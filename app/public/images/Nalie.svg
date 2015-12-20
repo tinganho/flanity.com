@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="512px" height="512px" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.3.3 (12081) - http://www.bohemiancoding.com/sketch -->
+    <title>AppLogo</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#733ACB" offset="0%"></stop>
+            <stop stop-color="#267BBE" offset="100%"></stop>
+        </linearGradient>
+        <rect id="path-2" x="0" y="0" width="232" height="340"></rect>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <g id="AppLogo" sketch:type="MSArtboardGroup">
+            <rect id="Rectangle-5" stroke="#979797" fill="#D8D8D8" sketch:type="MSShapeGroup" x="0" y="0" width="512" height="512"></rect>
+            <rect id="BACKGROUND" fill="url(#linearGradient-1)" sketch:type="MSShapeGroup" x="0" y="0" width="512" height="512"></rect>
+            <g id="N" sketch:type="MSLayerGroup" transform="translate(141.000000, 86.000000)"></g>
+            <g id="Line-+-Line-Copy-2-+-Line-Mask" sketch:type="MSLayerGroup" transform="translate(137.000000, 86.000000)">
+                <mask id="mask-3" sketch:name="Mask" fill="white">
+                    <use xlink:href="#path-2"></use>
+                </mask>
+                <use id="Mask" sketch:type="MSShapeGroup" xlink:href="#path-2"></use>
+                <path d="M17.5,2.24669604 L17.5,336.255507" id="Line" stroke="#FFFFFF" stroke-width="35" stroke-linecap="square" sketch:type="MSShapeGroup" mask="url(#mask-3)"></path>
+                <path d="M214.5,3.74449339 L214.5,337.753304" id="Line-Copy-2" stroke="#FFFFFF" stroke-width="35" stroke-linecap="square" sketch:type="MSShapeGroup" mask="url(#mask-3)"></path>
+                <path d="M14.2197452,0.748898678 L211.799363,339.251101" id="Line" stroke="#FFFFFF" stroke-width="35" stroke-linecap="square" sketch:type="MSShapeGroup" mask="url(#mask-3)"></path>
+            </g>
+        </g>
+    </g>
+</svg>

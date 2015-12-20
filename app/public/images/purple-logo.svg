@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="226px" height="51px" viewBox="0 0 226 51" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.4.4 (17249) - http://www.bohemiancoding.com/sketch -->
+    <title>Logo</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <g id="LandingPage" sketch:type="MSArtboardGroup" transform="translate(-320.000000, -126.000000)">
+            <g id="Logo" sketch:type="MSLayerGroup" transform="translate(322.000000, 121.000000)">
+                <rect id="Rectangle-2" stroke="#7C809D" stroke-width="4.05" sketch:type="MSShapeGroup" x="9.49081633" y="5" width="51.052381" height="50"></rect>
+                <path d="M0.308335022,30.263493 C5.1103313,22.8331675 9.46376856,16.0532617 16.8331207,16.053262 C24.2024728,16.0532624 31.7846416,26.4971879 35.5622244,30.9689242 C39.3398072,35.4406605 46.8672531,43.8869043 53.1903691,43.8869045 C60.5923756,43.8869047 70.6473764,30.9689242 70.6473764,30.9689242" id="Path-1" stroke="#7C809D" stroke-width="4.05" sketch:type="MSShapeGroup"></path>
+                <text id="Flanity" sketch:type="MSTextLayer" font-family="Helvetica Neue" font-size="48" font-weight="260" letter-spacing="0.866666555" fill="#7C809D">
+                    <tspan x="88" y="46">Flanity</tspan>
+                </text>
+            </g>
+        </g>
+    </g>
+</svg>

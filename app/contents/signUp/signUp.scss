@@ -1,0 +1,64 @@
+
+#SignUpFormForm {
+    position: relative;
+    margin: 200px auto 0;
+    width: 300px;
+    height: 400px;
+    border-radius: 5px;
+    padding: 20px 10px;
+}
+
+#SignUpFormFirstRow {
+    @include display-flex;
+    margin-bottom: 20px;
+}
+
+#SignUpNameAndPasswordContainer {
+    position: relative;
+    margin-left: 20px;
+    float: left;
+    @include flex-grow(1);
+}
+
+#SignUpProfileImage {
+    position: relative;
+    width: 67px;
+    height: 67px;
+    float: left;
+    background: url('/public/images/profile-image-placeholder.png');
+    background-size: 67px 67px;
+    background-repeat: no-repeat;
+    border-radius: 5px;
+    overflow: hidden;
+    cursor: pointer;
+
+    &:active {
+        opacity: 0.3;
+    }
+}
+
+#SignUpProfileImagePreview {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#SignUpProfileImageInput {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    line-height: 400px;
+    width: 400px;
+    cursor: pointer;
+}
+
+.SignUpFormTextInput {
+    width: calc(100% - 14px);
+}
+
+#SignUpSubmitButton {
+    position: absolute;
+    bottom: 20px;
+    right: 10px;
+}

@@ -1,0 +1,28 @@
+{
+    "defaultProject": "nalie.co",
+    "projects": {
+        "nalie.co": {
+            "timezones": [
+                "America/Los_Angeles"
+            ],
+            "currencies": [
+                "USD"
+            ],
+            "interface": {
+                "autoOpen": true,
+                "port": 3001
+            },
+            "languages": {
+                "en-US": "English (US)",
+                "zh-CN": "Chinese (Simplified)"
+            },
+            "defaultLanguage": "en-US",
+            "programmingLanguage": "javascript",
+            "store": "app/localizations/",
+            "output": "app/localizations/output",
+            "source": [
+                "app/**/*.{ts,tsx}"
+            ]
+        }
+    }
+}

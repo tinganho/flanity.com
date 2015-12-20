@@ -1,0 +1,82 @@
+
+#ImageCrop {
+    display: inline-block;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 10%;
+
+    @include transition(opacity 0.3s);
+
+    &.Hidden {
+        opacity: 0;
+    }
+
+    &.Revealed {
+        opacity: 1;
+    }
+}
+
+#ImageCropCanvasHelper {
+    display: none;
+}
+
+#ImageCropCropSection {
+    position: relative;
+    overflow: hidden;
+}
+
+.ImageCropOverlay {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 1;
+}
+
+#ImageCropOverlayTop {
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+#ImageCropOverlayLeft {
+    left: 0;
+}
+
+#ImageCropOverlayRight {
+    right: 0;
+}
+
+#ImageCropOverlayBottom {
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
+
+#ImageCropBullsEye {
+    position: absolute;
+    border: 2px solid #fff;
+    z-index: 1;
+    cursor: move;
+    cursor: grab;
+    cursor: -webkit-grab;
+
+    &:active {
+        cursor: grabbing;
+        cursor: -webkit-grabbing;
+    }
+}
+
+#ImageCropActionSection {
+    @include display-flex;
+    @include justify-content(flex-end);
+    @include align-items(center);
+    height: 60px;
+}
+
+#ImageCropImagePreview {
+    position: absolute;
+}
+
+#ImageCropDoneButton {
+    float: right;
+    margin-right: 8px;
+}

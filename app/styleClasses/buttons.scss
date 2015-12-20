@@ -1,0 +1,33 @@
+
+.PurpleButton {
+    border: none;
+    outline: none;
+    display: inline-block;
+    border-radius: 5px;
+    background-color: #7C809D;
+    color: #fff;
+    cursor: pointer;
+    text-align: center;
+
+    &:active {
+        color: rgba(255, 255, 255, 0.3);
+    }
+}
+
+.PurpleButton1 {
+    @extend .PurpleButton;
+    font-size: 14px;
+    padding: 11px 30px;
+}
+
+.PurpleButton2 {
+    @extend .PurpleButton;
+    font-size: 12px;
+    padding: 5px 10px;
+    min-width: 60px;
+}
+
+.PurpleButton1Wide {
+    @extend .PurpleButton1;
+    min-width: 180px;
+}

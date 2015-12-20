@@ -1,0 +1,10 @@
+
+@import "compass";
+
+.BgLightGrey {
+    @include background-image(linear-gradient(#858A9F, #ffffff));
+}
+
+.BgWhite {
+    background-color: #EDEEF4;
+}

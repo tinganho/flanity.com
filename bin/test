@@ -1,0 +1,4 @@
+
+echo "Executing..."
+echo "TESTING=true ./node_modules/mocha/bin/mocha ./built/src/harness/runner.js --reporter spec --timeout 300000"
+TESTING=true ./node_modules/mocha/bin/mocha ./built/src/harness/runner.js --reporter spec --timeout 300000 "$@"

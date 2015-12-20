@@ -1,0 +1,54 @@
+{
+  "version": "v4",
+  "repo": "borisyankov/DefinitelyTyped",
+  "ref": "master",
+  "path": "typings",
+  "bundle": "typings/tsd.d.ts",
+  "installed": {
+    "react/react.d.ts": {
+      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+    },
+    "node/node.d.ts": {
+      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+    },
+    "express/express.d.ts": {
+      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+    },
+    "glob/glob.d.ts": {
+      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+    },
+    "mocha/mocha.d.ts": {
+      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+    },
+    "chai/chai.d.ts": {
+      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+    },
+    "minimatch/minimatch.d.ts": {
+      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+    },
+    "serve-static/serve-static.d.ts": {
+      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+    },
+    "mime/mime.d.ts": {
+      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+    },
+    "morgan/morgan.d.ts": {
+      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+    },
+    "es6-promise/es6-promise.d.ts": {
+      "commit": "be03157bace6e6465e63f13073d7b68e8ea1303c"
+    },
+    "mkdirp/mkdirp.d.ts": {
+      "commit": "8f51d25ad3523cd01f2d92e343247852f6b70dff"
+    },
+    "rimraf/rimraf.d.ts": {
+      "commit": "b0d313e1b10be5cdbd47f8bdadd888f066a626bd"
+    },
+    "cookie-parser/cookie-parser.d.ts": {
+      "commit": "efa0c1196d7280640e624ac1e7fa604502e7bd63"
+    },
+    "compression/compression.d.ts": {
+      "commit": "8f081073e6cb416f901b272810d8b04d6e01c9e0"
+    }
+  }
+}

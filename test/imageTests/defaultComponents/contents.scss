@@ -1,0 +1,29 @@
+
+.TodoItemAnchor {
+    overflow: hidden;
+    display: inline-block;
+}
+
+.TodoList {
+    margin: 0;
+    padding: 0;
+}
+
+.TodoListItem {
+    list-style: none;
+    background-color: #333;
+    color: #fff;
+    margin: 20px;
+    padding: 20px;
+}
+
+.Dialog {
+    position: fixed;
+    left: 50%;
+    top: 30%;
+    margin-left: -200px;
+    width: 400px;
+    height: 200px;
+    background-color: #143;
+    color: #fff;
+}

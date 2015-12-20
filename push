@@ -1,0 +1,4 @@
+echo 1 >> dummy
+git add .
+git commit -m "heroku"
+git push heroku master

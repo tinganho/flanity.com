@@ -1,0 +1,123 @@
+[
+  {
+    "files": [
+      "app/components/imageCrop.tsx"
+    ],
+    "id": "ajxM44MquX",
+    "key": "DEFAULT->DONE",
+    "new": false,
+    "timestamp": "2015-12-19T16:25:16.225Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "app/contents/signUp/signUp.tsx"
+    ],
+    "id": "9xGMMnyBIL",
+    "key": "SIGN_UP->INVITE_FRIEND_PLACEHOLDER",
+    "new": false,
+    "timestamp": "2015-12-18T13:20:13.340Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "app/contents/signUp/signUp.tsx"
+    ],
+    "id": "7o699RXySd",
+    "key": "SIGN_UP->INVITE_FRIEND_PROMPT_TEXT",
+    "new": false,
+    "timestamp": "2015-12-18T13:20:13.340Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "app/contents/signUp/signUp.tsx"
+    ],
+    "id": "4LjMMnyBf8",
+    "key": "SIGN_UP->SUBMIT_BUTTON",
+    "new": false,
+    "timestamp": "2015-12-18T13:20:13.340Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "app/contents/signUp/signUp.tsx"
+    ],
+    "id": "KGKAAxRXhg",
+    "key": "SIGN_UP->USERNAME_PLACEHOLDER",
+    "new": false,
+    "timestamp": "2015-12-18T12:56:47.750Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "app/contents/signUp/signUp.tsx"
+    ],
+    "id": "9xGMzo9KSB",
+    "key": "SIGN_UP->EMAIL_PLACEHOLDER",
+    "new": false,
+    "timestamp": "2015-12-18T11:39:25.329Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "app/contents/signUp/signUp.tsx"
+    ],
+    "id": "jKxM7qaduG",
+    "key": "SIGN_UP->NAME_PLACEHOLDER",
+    "new": false,
+    "timestamp": "2015-12-18T10:50:45.219Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "app/contents/signUp/signUp.tsx"
+    ],
+    "id": "4LjMK9r7fj",
+    "key": "SIGN_UP->PASSWORD_PLACEHOLDER",
+    "new": false,
+    "timestamp": "2015-12-18T10:50:45.219Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "app/contents/topBar/topBar.tsx"
+    ],
+    "id": "ejx877nqFX",
+    "key": "DEFAULT->LOGIN",
+    "new": false,
+    "timestamp": "2015-12-18T09:17:46.944Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "app/contents/hero/hero.tsx"
+    ],
+    "id": "4LjMAekXfj",
+    "key": "HERO->SIGNUP_BUTTON",
+    "new": false,
+    "timestamp": "2015-12-17T12:30:24.807Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "app/contents/hero/hero.tsx"
+    ],
+    "id": "qo69MAqdu8",
+    "key": "HERO->DESCRIPTION",
+    "new": false,
+    "timestamp": "2015-12-17T12:09:17.980Z",
+    "value": "",
+    "variables": []
+  }
+]
