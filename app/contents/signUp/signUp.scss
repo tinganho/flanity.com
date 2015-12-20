@@ -22,18 +22,30 @@
 
 #SignUpProfileImage {
     position: relative;
-    width: 67px;
-    height: 67px;
+    width: 64px;
+    height: 64px;
     float: left;
     background: url('/public/images/profile-image-placeholder.png');
-    background-size: 67px 67px;
+    background-size: 64px 64px;
     background-repeat: no-repeat;
-    border-radius: 5px;
+    border-radius: 10px;
     overflow: hidden;
     cursor: pointer;
+    border: 2px dashed #7C809D;
 
     &:active {
         opacity: 0.3;
+    }
+
+    &.DragOver {
+        border: 2px dashed #5FCA7A;
+    }
+
+    &.HasPicture {
+        width: 67px;
+        height: 67px;
+        border-radius: 5px;
+        border: none;
     }
 }
 

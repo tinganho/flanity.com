@@ -40,7 +40,7 @@ export class SignUpForm extends ComposerContent<Props, {}, FormElements> {
     private profileImageHeight: number;
     private profileImageWidth: number;
 
-    public static fetch(routeOrRequest: string | express.Request): Promise<Props> {
+    static fetch(routeOrRequest: string | express.Request): Promise<Props> {
         let l: any;
         if (typeof routeOrRequest !== 'string') {
             l = routeOrRequest.localizations;
@@ -61,20 +61,19 @@ export class SignUpForm extends ComposerContent<Props, {}, FormElements> {
         });
     }
 
-    public render() {
+    render() {
         return (
             <div>
                 <form id='SignUpFormForm' class='BgWhite'>
                     <div id='SignUpFormFirstRow'>
                         <div id='SignUpProfileImage' ref='profileImage'>
-                            <input id='SignUpProfileImageInput' ref='profileImageInput' name='profileImage' type='file'/>
+                            <input id='SignUpProfileImageInput' ref='profileImageInput' name='profileImage' type='file' accept='image/*'/>
                         </div>
                         <div id='SignUpNameAndPasswordContainer'>
                             <input name='name' ref='name' type='text' class='TextInput SignUpFormTextInput' placeholder={this.props.l10ns.namePlaceholder}/>
                             <input name='username' ref='username' type='text' class='TextInput SignUpFormTextInput' placeholder={this.props.l10ns.usernamePlaceholder}/>
                         </div>
                     </div>
-                    <input name='profileImageBinary' ref='profileImageBinary' type='hidden'/>
                     <input name='email' ref='email' type='email' class='TextInput SignUpFormTextInput' placeholder={this.props.l10ns.emailPlaceholder}/>
                     <input name='password' ref='password' type='password' class='TextInput SignUpFormTextInput' placeholder={this.props.l10ns.passwordPlaceholder}/>
                     <p class='PromptText'>{this.props.l10ns.inviteFriendPromptText}</p>
@@ -86,7 +85,7 @@ export class SignUpForm extends ComposerContent<Props, {}, FormElements> {
         );
     }
 
-    public bindDOM() {
+    bindDOM() {
         super.bindDOM();
         this.bindInteractions();
         this.elements.submitButton.onClick(this.submit);
@@ -95,13 +94,32 @@ export class SignUpForm extends ComposerContent<Props, {}, FormElements> {
         this.profileImageWidth = this.elements.profileImage.getWidth();
     }
 
-    public bindInteractions() {
+    bindInteractions() {
         this.bindProfileImage();
     }
 
-    public bindProfileImage() {
+    bindProfileImage() {
         this.handleFileChange = this.handleFileChange.bind(this);
-        this.elements.profileImageInput.addEventListener('change', this.handleFileChange);
+        this.handleDragOver = this.handleDragOver.bind(this);
+        this.handleDragLeave = this.handleDragLeave.bind(this);
+
+        let fileInput = this.elements.profileImageInput;
+        fileInput.addEventListener('change', this.handleFileChange);
+        fileInput.addEventListener('dragenter', this.handleDragOver);
+        fileInput.addEventListener('dragleave', this.handleDragLeave);
+        fileInput.addEventListener('drop', this.handleFileChange);
+    }
+
+    private handleDragOver(event: DragEvent) {
+        event.stopPropagation();
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+        this.elements.profileImage.addClass('DragOver');
+
+    }
+
+    private handleDragLeave(event: DragEvent) {
+        this.elements.profileImage.removeClass('DragOver');
     }
 
     private handleFileChange(event: FileChangeEvent) {
@@ -128,6 +146,7 @@ export class SignUpForm extends ComposerContent<Props, {}, FormElements> {
 
                         // Copy and replace input so that we can use the same image.
                         let input = this.elements.profileImageInput;
+                        let container = this.elements.profileImage;
                         let clone = input.clone();
                         this.elements.profileImageInput = clone;
                         clone.addEventListener('change', this.handleFileChange);
@@ -141,6 +160,7 @@ export class SignUpForm extends ComposerContent<Props, {}, FormElements> {
                         this.elements.previewImage = new DOMElement(image);
                         this.elements.previewImage.id = 'SignUpProfileImagePreview';
                         this.elements.previewImage.appendTo(this.elements.profileImage);
+                        container.addClass('HasPicture');
                     })
                     .end();
                 }

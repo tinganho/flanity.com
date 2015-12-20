@@ -3,6 +3,17 @@
     "files": [
       "app/components/imageCrop.tsx"
     ],
+    "id": "A5Ay9pAgtq",
+    "key": "IMAGE_CROP->ZOOM_HELP_TEXT",
+    "new": true,
+    "timestamp": "2015-12-20T08:14:57.612Z",
+    "value": "Scroll to zoom",
+    "variables": []
+  },
+  {
+    "files": [
+      "app/components/imageCrop.tsx"
+    ],
     "id": "ajxM44MquX",
     "key": "DEFAULT->DONE",
     "new": false,

@@ -14,6 +14,7 @@ interface ImageCropElements extends Elements {
     imageCropCanvasHelper: IDOMElement;
     imageCropSection: IDOMElement;
     doneButton: IDOMElement;
+    zoomHelpTextContainer: IDOMElement;
 }
 
 interface ImageCropDimensions {
@@ -90,8 +91,12 @@ export class ImageCrop extends Component<Props, {}, ImageCropElements> {
                     <div id='ImageCropOverlayLeft' class='ImageCropOverlay' style={this.imageCropOverlayLeftStyle}></div>
                     <div id='ImageCropOverlayRight' class='ImageCropOverlay' style={this.imageCropOverlayRightStyle}></div>
                     <div id='ImageCropOverlayBottom' class='ImageCropOverlay' style={this.imageCropOverlayBottomStyle}></div>
-                    <div id='ImageCropBullsEye' ref='bullsEye' style={this.bullsEyeStyle}></div>
-                    <img ref='imagePreview' id='ImageCropImagePreview' src={this.props.image.src} style={this.imagePreviewStyle}/>
+                    <div id='ImageCropBullsEye' ref='bullsEye' style={this.bullsEyeStyle}>
+                        <div id='ImageCropZoomHelpTextContainer' ref='zoomHelpTextContainer' class='Revealed'>
+                            <span id='ImageCropZoomHelpText'>{l('IMAGE_CROP->ZOOM_HELP_TEXT')}</span>
+                        </div>
+                    </div>
+                    <img ref='imagePreview' id='ImageCropImagePreview' class='ZoomIn' src={this.props.image.src} style={this.imagePreviewStyle}/>
                 </section>
                 <section id='ImageCropActionSection' style={this.imageCropActionSectionStyle}>
                     <a ref='doneButton' id='ImageCropDoneButton' class='PurpleButton2'>{l('DEFAULT->DONE')}</a>
@@ -275,6 +280,7 @@ export class ImageCrop extends Component<Props, {}, ImageCropElements> {
             bullsEyeTop,
             bullsEyeWidth,
             bullsEyeHeight, 0, 0, this.canvasWidth, this.canvasHeight);
+        context.scale(2, 2);
 
         this.overlay.removeClass('Revealed').addClass('Hidden');
         this.root.removeClass('Revealed').addClass('Hidden')
@@ -291,6 +297,10 @@ export class ImageCrop extends Component<Props, {}, ImageCropElements> {
         this.appendTo('Overlay');
         setTimeout(() => {
             this.root.addClass('Revealed').removeClass('Hidden');
+            this.elements.imagePreview.addClass('ZoomOut').removeClass('ZoomIn')
+                .whenTransitionEnd(() => {
+                    this.elements.zoomHelpTextContainer.addClass('Hidden').removeClass('Revealed');
+                });
         }, 0);
         this.overlay = Component.getElement('Overlay');
         this.overlay.show().addClass('Revealed').removeClass('Hidden');
