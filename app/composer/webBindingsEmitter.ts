@@ -2,7 +2,7 @@
 /// <reference path='../client/router.d.ts'/>
 
 import { createTextWriter, forEach } from '../core';
-import { sys } from '../sys';
+import { sys } from '../lib/sys';
 
 export const enum ModuleKind {
     None,
@@ -36,7 +36,6 @@ export interface PageEmitInfo {
 }
 
 export function emitBindings(
-    appName: string,
     output: string,
     imports: ComponentInfo[],
     pageInfos: PageEmitInfo[],
@@ -45,7 +44,7 @@ export function emitBindings(
 
     output = output.replace(/\.js$/, '');
 
-    let {write, writeLine, increaseIndent, decreaseIndent } = writer;
+    let { write, writeLine, increaseIndent, decreaseIndent } = writer;
 
     writeClientComposer();
     return;
@@ -73,23 +72,23 @@ export function emitBindings(
     }
 
     function writeBindings(): void {
-        write(`var ${appName} = {};`);
+        write(`var App = {};`);
         writeLine();
-        write(`window.${appName} = ${appName};`);
+        write(`window.App = App;`);
         writeLine();
-        write(`${appName}.Component = { Document: {}, Layout: {}, Content: {} };`);
+        write(`App.Component = { Document: {}, Layout: {}, Content: {} };`);
         writeLine();
         for (let pageInfo of pageInfos) {
             let document = pageInfo.document.className;
-            write(`${appName}.Component.Document.${document} = ${document};`);
+            write(`App.Component.Document.${document} = ${document};`);
             writeLine();
             let layout = pageInfo.layout.className;
-            write(`${appName}.Component.Layout.${layout} = ${layout};`);
+            write(`App.Component.Layout.${layout} = ${layout};`);
             writeLine();
 
             for (let contentInfo of pageInfo.contents) {
                 let content = contentInfo.className;
-                write(`${appName}.Component.Content.${content} = ${content};`);
+                write(`App.Component.Content.${content} = ${content};`);
                 writeLine();
             }
         }
@@ -98,7 +97,7 @@ export function emitBindings(
     }
 
     function writeRoutingTable(): void {
-        write(`${appName}.RoutingTable = [`);
+        write(`App.RoutingTable = [`);
         writeLine();
         increaseIndent();
         forEach(pageInfos, (pageInfo, index) => {
@@ -142,7 +141,7 @@ export function emitBindings(
     }
 
     function writeRouterInit() {
-        write(`${appName}.Router = window.__Router = new Router.default('${appName}', ${appName}.RoutingTable, ${appName}.Component);`);
+        write(`App.router = window.__Router = new Router.default('App', App.RoutingTable, App.Component);`);
         writeLine();
     }
 

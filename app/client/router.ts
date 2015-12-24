@@ -12,6 +12,9 @@ declare function require(path: string): any;
 import ReactMod = require('../components/element');
 let React: typeof ReactMod = require('components/element');
 
+import { setDefaultHttpRequestOptions as setOption } from '../lib/http';
+let setDefaultHttpRequestOptions: typeof setOption = require('/lib/http').setDefaultHttpRequestOptions;
+
 interface Map {
    [entity: string]: string;
 }
@@ -37,7 +40,6 @@ export class Router {
     public onPushState: (route: string) => void;
 
     constructor(public appName: string, pages: Page[], public pageComponents: PageComponents) {
-
         for (let page of pages) {
             let routePattern = '^' + page.route
                 .replace(/:(\w+)\//, (match, param) => `(${param})`)
@@ -47,6 +49,12 @@ export class Router {
                 matcher: new RegExp(routePattern),
                 path: page.route,
             }
+
+            setDefaultHttpRequestOptions({
+                protocol: cf.DEFAULT_HTTP_REQUEST_HTTPS ? 'https' : 'http',
+                host: cf.DEFAULT_HTTP_REQUEST_HOST,
+                port: cf.DEFAULT_HTTP_REQUEST_PORT,
+            });
 
             this.routes.push(route);
             this.routingInfoIndex[route.path] = page;
@@ -61,7 +69,13 @@ export class Router {
             }
             this.onPushState = this.checkRouteAndRenderIfMatch;
         }
+    }
 
+    public getQueryParam(name: string): string {
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        let regExp = new RegExp(`[\\?&]${name}=([^&#]*)`);
+        let results = regExp.exec(location.search);
+        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
     }
 
     public navigateTo(route: string, state?: Object): void {
@@ -119,7 +133,6 @@ this component is properly named?`);
     }
 
     private showErrorDialog(err: Error): void {
-
     }
 
     private loopThroughIrrelevantCurrentContentsAndExec(nextPage: Page, method: string): Promise<void> {

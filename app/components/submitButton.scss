@@ -1,0 +1,40 @@
+
+.SubmitButtonContainer {
+    display: inline-block;
+    padding: 0 10px 0 30px;
+    cursor: pointer;
+}
+
+.SubmitButtonButton {
+    @include transition(opacity 1s);
+
+    .SubmitButtonContainer:active & {
+        @include transition(none);
+        opacity: 0.3 !important;
+    }
+
+    .SubmitButtonContainer.Idle & {
+        opacity: 1;
+
+    }
+
+    .SubmitButtonContainer.Loading & {
+        opacity: 0;
+    }
+}
+
+.SubmitButtonLoadingCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    @include transition(opacity 1s);
+    @include transition-delay(0.2s);
+
+    .SubmitButtonContainer.Idle & {
+        opacity: 0;
+    }
+
+    .SubmitButtonContainer.Loading & {
+        opacity: 1;
+    }
+}

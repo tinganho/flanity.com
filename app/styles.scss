@@ -1,7 +1,10 @@
 
+$color-purple: #7C809D;
+
 @import "compass";
 
 @import "./components/imageCrop";
+@import "./components/submitButton";
 
 @import "./styleClasses/background";
 @import "./styleClasses/normalize";

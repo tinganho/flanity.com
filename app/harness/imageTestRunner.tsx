@@ -2,7 +2,7 @@
 import { CommandLineOptions, Map } from './types';
 import imageDiff = require('image-diff');
 import logger = require('morgan');
-import { cf } from '../../conf/conf';
+import cf from '../conf/server';
 import { ServerComposer, PlatformDetect } from '../composer/serverComposer';
 import { ModuleKind } from '../composer/webBindingsEmitter';
 import {
@@ -24,6 +24,8 @@ import { Document } from '../../test/imageTests/defaultComponents/document';
 import * as contentComponents from '../../test/imageTests/defaultComponents/contents';
 import { Layout } from '../../test/imageTests/defaultComponents/layout';
 import { WebdriverTest } from './webdriverTest';
+import cookieParser = require('cookie-parser');
+import requestLanguage = require('express-request-language');
 
 declare function require(path: string): any;
 require('source-map-support').install();
@@ -31,7 +33,7 @@ require('source-map-support').install();
 interface ProjectFile {
     route: string;
 }
-
+let localizations = require('../public/scripts/localizations/all');
 let defaultPlatform: PlatformDetect = { name: 'all', detect: (req: express.Request) => true };
 
 function useDefaultDocument(): DocumentDeclaration {
@@ -47,7 +49,6 @@ export default class ImageTestRunner {
     public root = path.join(this.builtFolder, '../');
 
     constructor(public options: CommandLineOptions) {
-
     }
 
     public createComposer(app: express.Express, folderPath: string, fileName: string, shouldEmitComposer: boolean): { serverComposer: ServerComposer, browserDirectives: BrowserDirectives } {
@@ -61,17 +62,27 @@ export default class ImageTestRunner {
         app.use('/public', express.static(path.join(this.root, 'public')));
         app.use('/' + componentFolderPath, express.static(path.join('built', folderPath, 'components')));
         app.use(logger('dev'));
+        app.use(cookieParser());
+        app.use(requestLanguage({
+            languages: ['en-US', 'zh-CN'],
+            cookie: {
+                name: 'language',
+                options: { maxAge: 24*3600*1000 },
+                url: '/languages/{language}'
+            },
+            localizations,
+        }))
 
         let serverComposer = new ServerComposer({
             app,
             routerOutput: 'public/scripts/router.js',
             bindingsOutput: 'public/scripts/bindings.js',
             clientConfigurationPath: './client/*.js',
-            rootPath: this.root,
+            rootPath: path.join(this.builtFolder, 'app'),
             moduleKind: ModuleKind.CommonJs,
         }, this.options);
 
-        let directives = require(path.join(this.root, 'built', folderPath, 'test.js')).test({
+        let directives = require(path.join(this.builtFolder, folderPath, 'test.js')).test({
             componentFolderPath,
             useDefaultDocument,
             useDefaultLayout: function(): LayoutDeclaration {
@@ -176,7 +187,7 @@ export default class ImageTestRunner {
             resolution: `${cf.DEFAULT_SCREEN_RESOLUTION.WIDTH}x${cf.DEFAULT_SCREEN_RESOLUTION.HEIGHT}`
         });
 
-        webdriverTest.get(`http://localhost:${cf.DEFAULT_PORT}${initialRoute}`)
+        webdriverTest.get(`http://localhost:${cf.DEFAULT_SERVER_PORT}${initialRoute}`)
             .wait({ css: 'html' })
 
         let browserActions = browserDirectives.useBrowserActions ?

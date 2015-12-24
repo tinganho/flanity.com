@@ -82,8 +82,13 @@ export class DOMElement implements IDOMElement {
         return this;
     }
 
-    public getHTML(): string {
+    public getHtml(): string {
         return this.nativeElement.innerHTML;
+    }
+
+    public setHtml(html: string): this {
+        this.nativeElement.innerHTML = html;
+        return this;
     }
 
     public append(element: DOMElement): this {
@@ -125,6 +130,16 @@ export class DOMElement implements IDOMElement {
         return this;
     }
 
+    public removeClass(className: string): this {
+        this.nativeElement.classList.remove(className);
+        return this;
+    }
+
+    public setClass(className: string): this {
+        this.nativeElement.className = className;
+        return this;
+    }
+
     public addEventListener(event: string, listener: EventListener): this {
         this.nativeElement.addEventListener(event, listener, false);
         return this;
@@ -132,11 +147,6 @@ export class DOMElement implements IDOMElement {
 
     public removeEventListener(event: string, listener: EventListener): this {
         this.nativeElement.removeEventListener(event, listener);
-        return this;
-    }
-
-    public removeClass(className: string): this {
-        this.nativeElement.classList.remove(className);
         return this;
     }
 
@@ -199,5 +209,9 @@ export class DOMElement implements IDOMElement {
         }
 
         return this;
+    }
+
+    public getValue(): string {
+        return (this.nativeElement as any).value;
     }
 }

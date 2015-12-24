@@ -1,7 +1,7 @@
 {
-    "defaultProject": "nalie.co",
+    "defaultProject": "flanity.com",
     "projects": {
-        "nalie.co": {
+        "flanity.com": {
             "timezones": [
                 "America/Los_Angeles"
             ],
@@ -19,7 +19,7 @@
             "defaultLanguage": "en-US",
             "programmingLanguage": "javascript",
             "store": "app/localizations/",
-            "output": "app/localizations/output",
+            "output": "app/public/scripts/localizations",
             "source": [
                 "app/**/*.{ts,tsx}"
             ]

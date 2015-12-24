@@ -7,7 +7,7 @@ import * as u from './utils';
 
 let id = 0;
 let instantiatedComponents: { [renderId: string]: u.Map<Component<any, any, any>> } = {};
-let nodes: { [node: string]: IDOMElement } = {};
+let nodes: { [node: string]: DOMElement } = {};
 
 export function getNodeLink(id: string) {
     if (id in nodes) return nodes[id];
@@ -133,8 +133,8 @@ export function createElement(
                 if (typeof child === 'string') {
                     root.textContent += child;
                 }
-                else if ((child as IDOMElement).nativeElement) {
-                    root.appendChild((child as IDOMElement).nativeElement);
+                else if ((child as DOMElement).nativeElement) {
+                    root.appendChild((child as DOMElement).nativeElement);
                 }
                 else if((child as HTMLElement).classList) {
                     root.appendChild(child as HTMLElement);
@@ -164,7 +164,7 @@ export function createElement(
         },
         (element, renderId) => {
             let elementComponent: Component<any, any, any>;
-            let elementComponentId = props.id ? (element as any).name + props.id : (element as any).name;
+            let elementComponentId = props.id ? props.id : (element as any).name;
             if (instantiatedComponents[renderId] &&
                 instantiatedComponents[renderId][elementComponentId]) {
 
@@ -281,7 +281,7 @@ export function createElement(
         }
         else {
             let customElement: Component<any, any, any>;
-            let elementComponentId = props.id ? (element as any).name + props.id : (element as any).name;
+            let elementComponentId = props.id ? props.id : (element as any).name;
             if (instantiatedComponents[renderId] &&
                 instantiatedComponents[renderId][elementComponentId]) {
 
@@ -320,6 +320,9 @@ export function createElement(
                     }
 
                     let referencedElement = component.root.findOne(`[data-ref="${ref}"]`);
+                    if (!referencedElement && component.root.getAttribute('data-ref') === ref) {
+                        referencedElement = component.root;
+                    }
                     if (!referencedElement) {
                         Debug.error(`Could not bind referenced element '{0}'.`, ref);
                     }
@@ -346,7 +349,7 @@ export function createElement(
         },
         (element, renderId) => {
             let elementComponent: Component<any, any, any>;
-            let elementComponentId = props.id ? (element as any).name + props.id : (element as any).name;
+            let elementComponentId = props.id ? props.id : (element as any).name;
             if (instantiatedComponents[renderId] &&
                 instantiatedComponents[renderId][elementComponentId]) {
                 elementComponent = instantiatedComponents[renderId][elementComponentId]

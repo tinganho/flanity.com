@@ -18,3 +18,4 @@
 /// <reference path="rimraf/rimraf.d.ts" />
 /// <reference path="cookie-parser/cookie-parser.d.ts" />
 /// <reference path="compression/compression.d.ts" />
+/// <reference path="ini/ini.d.ts" />

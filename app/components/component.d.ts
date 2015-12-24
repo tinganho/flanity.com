@@ -6,12 +6,14 @@ declare interface IDOMElement {
     nativeElement: HTMLElement;
     addEventListener(event: string, listener: EventListener): IDOMElement;
     removeEventListener(event: string, listener: EventListener): IDOMElement;
+    getAttribute(name: string): string;
     setAttribute(name: string, value: string): IDOMElement;
     removeAttribute(name: string): IDOMElement;
     findOne(query: string): IDOMElement;
     findAll(query: string): IDOMElement[];
     getText(): string;
-    getHTML(): string;
+    getHtml(): string;
+    setHtml(html: string): this;
     addClass(className: string): IDOMElement;
     removeClass(className: string): IDOMElement;
     position(): { left: number, top: number };
@@ -32,6 +34,7 @@ declare interface IDOMElement {
     whenTransitionEnd(callback: (...args: any[]) => any): this;
     clone(): IDOMElement;
     appendTo(target: IDOMElement | string): this;
+    getValue(): string;
 }
 
 declare interface Props {
@@ -56,7 +59,7 @@ declare abstract class Component<P extends Props, S, E> {
     public id: string;
     public l10ns: any;
     public children: Child[];
-    public elements: Elements;
+    public elements: E;
     public hasBoundDOM: boolean;
     public hasRenderedFirstElement: boolean;
     public customElements: Components;

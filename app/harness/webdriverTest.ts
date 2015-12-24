@@ -4,7 +4,7 @@
 /// <reference path='../../typings/selenium-webdriver/selenium-webdriver.d.ts'/>
 
 import webdriver = require('selenium-webdriver');
-import cf from '../../conf/conf';
+import cf from '../conf/server';
 import sys from '../sys';
 import * as fs from 'fs';
 import { dirname } from 'path';

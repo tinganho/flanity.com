@@ -11,9 +11,11 @@
 if (process.env.NODE_ENV !== 'production') {
     require('source-map-support').install();
 }
-let localizations = require('./localizations/output/all');
+let localizations = require('./public/scripts/localizations/all');
 
-import cf from '../conf/conf';
+import cf from './conf/server';
+(global as any).cf = cf;
+import { writeClientConf } from './lib/conf';
 import express = require('express');
 import * as path from 'path';
 import logger = require('morgan');
@@ -27,7 +29,8 @@ import {
     DocumentDeclaration,
     LayoutDeclaration,
     ContentDeclaration,
-    ComposerContent } from './components/layerComponents';
+    ComposerContent
+} from './components/layerComponents';
 
 let app = express();
 app.use(compression());
@@ -36,7 +39,7 @@ if (process.env.NODE_ENV === 'production') {
     app.use((req, res, next) => {
         if(req.url.indexOf('/public/') === 0) {
             res.setHeader('Cache-Control', 'public, max-age=31536000000');
-            res.setHeader('Expires', new Date(Date.now() + 365*24*3600*1000).toUTCString());
+            res.setHeader('Expires', new Date(Date.now() + 365 * 24 * 3600 * 1000).toUTCString());
         }
         return next();
     });
@@ -57,15 +60,17 @@ app.use(requestLanguage({
 let serverComposer = initPages(app);
 
 export function start() {
+    writeClientConf();
     serverComposer.start((err) => {
         if (err) {
             throw err;
         }
-        Debug.prompt(`Server started at port ${process.env.PORT || cf.DEFAULT_PORT}. Press CTRL + C to exit.`);
+        Debug.prompt(`Server started at port ${process.env.PORT || cf.DEFAULT_SERVER_PORT}. Press CTRL + C to exit.`);
     });
 }
 
-export function emitBindingsAndRouterFiles() {
+export function emitClientFiles() {
     serverComposer.emitBindings();
+    writeClientConf();
     serverComposer.emitClientRouter();
 }

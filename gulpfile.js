@@ -19,10 +19,12 @@ var uglify = require('gulp-uglify');
 var filter = require('gulp-filter');
 var csso = require('gulp-csso');
 
+var spawn = cp.spawn;
 var exec = cp.exec;
+
 gulp.task('bundle', ['tsc:dist'], function(next) {
     var server = require('./built/app/server.js');
-    server.emitBindingsAndRouterFiles();
+    server.emitClientFiles();
 
     var builder = new Builder({
         baseURL: 'built/app'
@@ -68,20 +70,17 @@ var compassOptions = {
     image: 'app/public/styles/images'
 }
 
-gulp.task('compass:app:dev', function() {
-    return gulp.src('app/styles.scss', { base: 'app' })
+gulp.task('compass:compile:dev', function() {
+    return gulp.src('app/styles.scss', { base: __dirname })
         .pipe(compass(compassOptions));
 });
 
-gulp.task('compass:app:dist', function() {
+gulp.task('compass:compile:dist', function() {
     var options = compassOptions;
     options.source_map = false;
-    return gulp.src('app/styles.scss', { base: 'app' })
-        .pipe(compass(compassOptions));
-});
 
-gulp.task('compass:watch:app', function () {
-    gulp.watch('./**/*.scss', ['compass:app:dev']);
+    return gulp.src('app/styles.scss', { base: __dirname })
+        .pipe(compass(compassOptions));
 });
 
 var tscCommand = 'tsc';
@@ -93,9 +92,8 @@ tscCommand += ' --rootDir .';
 tscCommand += ' --jsx react';
 tscCommand += ' --removeComments';
 
-gulp.task('tsc', ['l10ns', 'copy-public'], function(next) {
+gulp.task('tsc:dev', function(next) {
     var command = tscCommand;
-    command += ' --inlineSourceMap';
     command += ' --inlineSources';
     console.log(command);
     exec(command, function(err, stdout, stderr) {
@@ -103,7 +101,7 @@ gulp.task('tsc', ['l10ns', 'copy-public'], function(next) {
         console.log(stderr);
 
         var server = require('./built/app/server.js');
-        server.emitBindingsAndRouterFiles();
+        server.emitClientFiles();
         next(err);
     });
 });
@@ -117,7 +115,7 @@ gulp.task('tsc:watch', function() {
     });
 });
 
-gulp.task('tsc:dist', ['l10ns', 'copy-public'], function(next) {
+gulp.task('tsc:dist', ['compile-l10ns', 'copy-public'], function(next) {
     exec(tscCommand, function(err, stdout, stderr) {
         console.log(stdout);
         console.log(stderr);
@@ -125,23 +123,34 @@ gulp.task('tsc:dist', ['l10ns', 'copy-public'], function(next) {
     });
 });
 
-gulp.task('copy-public', ['clean', 'compass:app:dist'], function() {
-    var publicCopyStream = gulp.src('app/public/**/*')
+gulp.task('copy-public', function() {
+    return gulp.src('app/public/**/*')
         .pipe(gulp.dest('built/app/public'));
-
-    return es.concat(publicCopyStream);
 });
 
-gulp.task('image-tests', ['tsc'], function(next) {
-    exec('node_modules/mocha/bin/mocha built/src/harness/runner.js --reporter spec --timeout 10000 ' + process.argv.slice(3).join(' '), function(err, stdout, stderr) {
-        console.log(stdout);
-        console.log(stderr);
-        next(err);
-    });
+gulp.task('image-tests', ['tsc:dev'], function(next) {
+    var cmdEmitter = spawn('node_modules/mocha/bin/mocha',
+        [
+            'built/app/harness/runner.js',
+            '--reporter', 'spec',
+            '--timeout', '10000', '--full-trace'
+        ].concat(process.argv.slice(6)), { env: process.env });
+
+        var hasError = false;
+        cmdEmitter.stdout.on('data', function (data) {
+            process.stdout.write(data.toString());
+        });
+        cmdEmitter.stderr.on('data', function (data) {
+            process.stderr.write(data.toString());
+        });
+        cmdEmitter.on('exit', function (code) {
+            console.log('child process exited with code ' + code);
+            next();
+        });
 });
 
-gulp.task('selenium', function(next) {
-    exec('java -jar bin/selenium-server-standalone-2.46.0.jar -Dwebdriver.chrome.driver=bin/chromedriver');
+gulp.task('selenium-server', function(next) {
+    exec('java -jar bin/selenium-server.jar -Dwebdriver.chrome.driver=bin/chromedriver');
     console.log('Selenium server started. Press CTRL + C to close it.');
 });
 
@@ -164,13 +173,10 @@ gulp.task('compile-l10ns', function(next) {
     });
 });
 
-gulp.task('l10ns', ['compile-l10ns'], function() {
-    return gulp.src('app/localizations/output/*')
-        .pipe(gulp.dest('built/app/localizations/output'));
-});
-
-gulp.task('l10ns:watch', function() {
-    gulp.watch('app/localizations/*.json', ['l10ns']);
+gulp.task('watch', function() {
+    gulp.watch('app/public/scripts/localizations/*.js', ['copy-public']);
+    gulp.watch('app/**/*.{ts,tsx}', ['tsc:dev']);
+    gulp.watch('app/**/*.scss', ['compass:compile:dev']);
 });
 
 gulp.task('rev', ['bundle'], function() {
@@ -199,7 +205,5 @@ gulp.task('dist', ['rev'], function() {
         .pipe(revReplace({ manifest: manifest }))
         .pipe(gulp.dest('built/app/'));
 });
-
-gulp.task('watch', ['compass:watch:app', 'l10ns:watch']);
 
 gulp.task('default', ['generate-diagnostics']);

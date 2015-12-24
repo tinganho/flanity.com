@@ -18,3 +18,31 @@
         font-size: 12px;
     }
 }
+
+.MessageContainer {
+    height: 30px;
+    line-height: 30px;
+    padding: 0px 11px;
+    border-radius: 5px;
+
+    &.Error {
+        background-color: #E27575;
+    }
+
+    &.Success {
+        background-color: #7BE275;
+    }
+
+    &.Hidden {
+        display: none;
+    }
+
+    &.Revealed {
+        display: block;
+    }
+}
+
+.Message {
+    font-size: 12px;
+    font-weight: 400;
+}

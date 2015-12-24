@@ -90,7 +90,8 @@ export class Document extends ComposerDocument<ComposerDocumentProps, {}, Elemen
                     <script type='text/javascript' src='/public/scripts/vendor/promise.js'></script>
                     <script type='text/javascript' src='/public/scripts/vendor/promise.prototype.finally.js'></script>
                     <script type='text/javascript' src='/public/scripts/vendor/system.js'></script>
-                    <script type='text/javascript' src='/localizations/output/all.js'></script>
+                    <script type='text/javascript' src='/public/scripts/localizations/all.js'></script>
+                    <script type='text/javascript' src='/public/scripts/conf.js'></script>
                     <script html={this.googleAnalytics}></script>
 
                     {this.props.jsonScriptData.map(attr => {

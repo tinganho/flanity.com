@@ -21,7 +21,7 @@ export abstract class Component<P extends Props, S, E extends Elements> {
     /**
      * Root element of the component view.
      */
-    public root: IDOMElement;
+    public root: DOMElement;
 
     /**
      * Properties.
@@ -52,7 +52,6 @@ export abstract class Component<P extends Props, S, E extends Elements> {
     /* @internal */
     public hasBoundDOM = false;
 
-    /* @internal */
     public customElements: Components = {};
 
     /* @internal */
@@ -95,7 +94,7 @@ export abstract class Component<P extends Props, S, E extends Elements> {
     }
 
     public get id() {
-        return this.props.id ? (this as any).constructor.name + this.props.id : (this as any).constructor.name;
+        return this.props.id ? this.props.id : (this as any).constructor.name;
     }
 
     /**

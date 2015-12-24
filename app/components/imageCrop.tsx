@@ -24,7 +24,7 @@ interface ImageCropDimensions {
     paddingHorizontal: number;
 }
 
-function dataURItoBlob(dataURI: string) {
+function dataUriToBlob(dataURI: string) {
     var byteString = atob(dataURI.split(',')[1]);
     var ab = new ArrayBuffer(byteString.length);
     var ia = new Uint8Array(ab);
@@ -290,7 +290,7 @@ export class ImageCrop extends Component<Props, {}, ImageCropElements> {
             });
 
         let dataURL = canvas.toDataURL('image/jpeg', 1);
-        this.doneHandler(dataURItoBlob(dataURL), dataURL);
+        this.doneHandler(dataUriToBlob(dataURL), dataURL);
     }
 
     end() {
@@ -299,7 +299,10 @@ export class ImageCrop extends Component<Props, {}, ImageCropElements> {
             this.root.addClass('Revealed').removeClass('Hidden');
             this.elements.imagePreview.addClass('ZoomOut').removeClass('ZoomIn')
                 .whenTransitionEnd(() => {
-                    this.elements.zoomHelpTextContainer.addClass('Hidden').removeClass('Revealed');
+                    this.elements.zoomHelpTextContainer.addClass('Hidden').removeClass('Revealed')
+                        .whenTransitionEnd(() => {
+                            this.elements.zoomHelpTextContainer.remove();
+                        })
                 });
         }, 0);
         this.overlay = Component.getElement('Overlay');

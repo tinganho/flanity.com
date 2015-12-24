@@ -13,7 +13,7 @@ import Debug from '../debug';
 import { sys } from '../sys';
 import * as path from 'path'
 import { createServer, Server } from 'http';
-import { cf } from '../../conf/conf';
+import cf from '../conf/server';
 import * as ts from 'typescript';
 import connectModrewrite = require('connect-modrewrite');
 import {
@@ -251,10 +251,20 @@ export class ServerComposer {
 
     public start(callback?: (err?: Error) => void): void {
         this.server = createServer(this.options.app);
-        this.server.on('error', (err: Error) => {
-            printError(err);
-        });
-        this.server.listen(process.env.PORT || cf.DEFAULT_PORT, callback);
+        let hasCalled = false;
+            this.server.listen(process.env.PORT || cf.DEFAULT_SERVER_PORT, () => {
+                setTimeout(() => {
+                    if (!hasCalled) {
+                        callback();
+                    }
+                }, 1500);
+            });
+            this.server.on('error', (err: Error) => {
+                if (!hasCalled) {
+                    callback(err);
+                    hasCalled = true;
+                }
+            });
     }
 
     public stop(callback?: (err?: Error) => void): void {
@@ -267,9 +277,8 @@ export class ServerComposer {
 
     public emitBindings(): void {
         if (this.pageEmitInfos.length === this.pageCount) {
-            let writer = createTextWriter(cf.DEFAULT_NEW_LINE);
+            let writer = createTextWriter('\n');
             emitBindings(
-                this.options.appName,
                 this.options.routerOutput,
                 this.getAllImportPaths(this.pageEmitInfos),
                 this.pageEmitInfos,

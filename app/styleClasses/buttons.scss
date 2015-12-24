@@ -1,12 +1,16 @@
 
-.PurpleButton {
+.Button {
     border: none;
     outline: none;
     display: inline-block;
-    border-radius: 5px;
-    background-color: #7C809D;
-    color: #fff;
     cursor: pointer;
+}
+
+.PurpleButton {
+    @extend .Button;
+    border-radius: 5px;
+    background-color: $color-purple;
+    color: #fff;
     text-align: center;
 
     &:active {
@@ -30,4 +34,17 @@
 .PurpleButton1Wide {
     @extend .PurpleButton1;
     min-width: 180px;
+}
+
+.TextButton {
+    @extend .Button;
+    font-size: 28px;
+    font-weight: 300;
+    color: $color-purple;
+    background-color: transparent;
+    padding: 0 0;
+
+    &:active {
+        opacity: 0.3;
+    }
 }

@@ -11,8 +11,8 @@ import Sys from '../sys';
 let sys: typeof Sys = inServer ? __r('../sys').default : undefined;
 import Path = require('path');
 let path: typeof Path = inServer ? __r('path') : undefined;
-import Conf = require('../../conf/conf');
-let cf: typeof Conf.default = inServer ? __r('../../conf/conf').default : undefined;
+import Conf = require('../conf/server');
+let cf: typeof Conf.default = inServer ? __r('../conf/server').default : undefined;
 
 export interface PageLayerDeclaration {
     importPath: string;

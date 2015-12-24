@@ -12,6 +12,7 @@ interface Regions extends Props {
 interface LayoutElements extends Elements {
     canvasWave: IDOMElement;
 }
+
 class Gaussian {
     public standardDeviation: number;
 
