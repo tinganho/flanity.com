@@ -1,13 +1,12 @@
 
-built
-node_modules/
-app/localizations/output/
-app/public/scripts/bindings.js
-app/public/scripts/router.js
-app/public/styles/
-test/baselines/local/
-test/baselines/diff/
+.l10ns/
 .sass-cache/
 
-bin/chromedriver
-bin/selenium-server-standalone-2.46.0.jar
+Binaries/chromedriver
+Binaries/selenium-server.jar
+Build/
+node_modules/
+Public/Scripts/Localizations/*
+Public/Scripts/Bindings.js
+Public/Scripts/Router.js
+Public/Styles/

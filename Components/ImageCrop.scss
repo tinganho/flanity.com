@@ -1,0 +1,114 @@
+
+#ImageCrop {
+    display: inline-block;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 10%;
+    @include transition(opacity 0.3s);
+    @include user-select(none);
+
+    &.Hidden {
+        opacity: 0;
+    }
+
+    &.Revealed {
+        opacity: 1;
+    }
+}
+
+#ImageCropCanvasHelper {
+    display: none;
+}
+
+#ImageCropCropSection {
+    position: relative;
+    overflow: hidden;
+}
+
+.ImageCropOverlay {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 1;
+}
+
+#ImageCropOverlayTop {
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+#ImageCropOverlayLeft {
+    left: 0;
+}
+
+#ImageCropOverlayRight {
+    right: 0;
+}
+
+#ImageCropOverlayBottom {
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
+
+#ImageCropBullsEye {
+    position: absolute;
+    border: 2px solid #fff;
+    z-index: 1;
+    cursor: move;
+    cursor: grab;
+    cursor: -webkit-grab;
+
+    &:active {
+        cursor: grabbing;
+        cursor: -webkit-grabbing;
+    }
+}
+
+#ImageCropZoomHelpTextContainer {
+    width: 100%;
+    height: 100%;
+
+    @include display-flex;
+    @include justify-content(center);
+    @include align-items(center);
+    @include transition(opacity 0.3s, background-color 0.3s);
+
+    &.Hidden {
+        opacity: 0;
+        background-color: rgba(0, 0, 0, 0);
+    }
+
+    &.Revealed {
+        opacity: 1;
+        background-color: rgba(0, 0, 0, 0.2);
+    }
+}
+#ImageCropZoomHelpText {
+    font-size: 28px;
+}
+
+#ImageCropActionSection {
+    height: 60px;
+    @include display-flex;
+    @include justify-content(flex-end);
+    @include align-items(center);
+}
+
+#ImageCropImagePreview {
+    position: absolute;
+    @include transition(transform 2s);
+
+    &.ZoomIn {
+        @include transform(scale(3, 3));
+    }
+
+    &.ZoomOut {
+        @include transform(scale(1, 1));
+    }
+}
+
+#ImageCropDoneButton {
+    float: right;
+    margin-right: 8px;
+}

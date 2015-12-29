@@ -1,14 +1,6 @@
 [
   {
-    "ref": "SIGN_UP->USERNAME_PLACEHOLDER",
-    "score": 0.8934338300384612
-  },
-  {
-    "ref": "SIGN_UP->USERNAME_UNIQUE_SUCCESS_MESSAGE",
-    "score": 0.45549972206837175
-  },
-  {
-    "ref": "SIGN_UP->USERNAME_ALREADY_TAKEN_MESSAGE",
-    "score": 0.3138288715270616
+    "ref": "DEFAULT->LOGIN",
+    "score": 0.7071067811865476
   }
 ]

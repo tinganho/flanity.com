@@ -18,10 +18,11 @@
             },
             "defaultLanguage": "en-US",
             "programmingLanguage": "javascript",
-            "store": "app/localizations/",
-            "output": "app/public/scripts/localizations",
+            "store": "Localizations/",
+            "output": "Public/Scripts/Localizations",
             "source": [
-                "app/**/*.{ts,tsx}"
+                "**/*.{ts,tsx}",
+                "!node_modules/"
             ]
         }
     }

@@ -1,0 +1,495 @@
+[
+  {
+    "files": [
+      "Contents/Hero/HeroView.tsx"
+    ],
+    "id": "ejxMRE8bun",
+    "key": "HERO->SIGN_UP_BUTTON_TEXT",
+    "new": true,
+    "timestamp": "2015-12-29T11:10:06.852Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
+    ],
+    "id": "9xGb9bgaty",
+    "key": "RESET_PASSWORD_FORM->INVALID_RESET_PASSWORD_REQUEST_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-27T11:23:33.703Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx",
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "yxGzy7krFo8",
+    "key": "DEFAULT->PASSWORD_TOO_LONG_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-27T10:45:11.388Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx",
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "nKx5n79aFqg",
+    "key": "DEFAULT->PASSWORD_TOO_SHORT_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-27T10:45:11.388Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
+    ],
+    "id": "BKBzpGerFp",
+    "key": "RESET_PASSWORD_FORM->WRONG_REPEAT_PASSWORD_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-27T10:45:11.388Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
+    ],
+    "id": "Lqkyo5XLtyB",
+    "key": "RESET_PASSWORD_FORM->NEW_PASSWORD_PLACEHOLDER_TEXT",
+    "new": false,
+    "timestamp": "2015-12-27T10:02:06.133Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
+    ],
+    "id": "MGMy67notgj",
+    "key": "RESET_PASSWORD_FORM->REPEAT_PASSWORD_PLACEHOLDER_TEXT",
+    "new": false,
+    "timestamp": "2015-12-27T10:02:06.133Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
+    ],
+    "id": "gjxpgq6bIgy",
+    "key": "RESET_PASSWORD_FORM->RESET_PASSWORD_DESCRIPTION",
+    "new": false,
+    "timestamp": "2015-12-27T10:02:06.133Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
+    ],
+    "id": "zEoRzj64tpR",
+    "key": "RESET_PASSWORD_FORM->SUCCESSFUL_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-27T10:02:06.133Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx"
+    ],
+    "id": "Ryd8RrzgSL",
+    "key": "FORGOT_PASSWORD_FORM->SUCCESSFUL_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-27T08:52:04.106Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx"
+    ],
+    "id": "ejxMeaB6U6",
+    "key": "FORGOT_PASSWORD_FORM->USER_NOT_FOUND_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-27T08:52:04.106Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx"
+    ],
+    "id": "XjEMgbGLFd",
+    "key": "FORGOT_PASSWORD_FORM->FORGOT_PASSWORD_DESCRIPTION",
+    "new": false,
+    "timestamp": "2015-12-27T04:50:24.817Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx"
+    ],
+    "id": "KGKyXdGxSd",
+    "key": "DEFAULT->EMAIL_PLACEHOLDER_TEXT",
+    "new": false,
+    "timestamp": "2015-12-27T04:45:33.464Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx",
+      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
+    ],
+    "id": "qo67dno8Fj",
+    "key": "DEFAULT->SEND_BUTTON_TEXT",
+    "new": false,
+    "timestamp": "2015-12-27T04:45:33.464Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/LogInForm/LogInFormView.tsx"
+    ],
+    "id": "ajxpgpK6saX",
+    "key": "LOG_IN_FORM->FORGOT_PASSWORD_LINK_TEXT",
+    "new": false,
+    "timestamp": "2015-12-27T03:56:04.348Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/LogInForm/LogInFormView.tsx"
+    ],
+    "id": "nKx5y4qjI4",
+    "key": "LOG_IN_FORM->USER_NOT_FOUND_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-25T14:51:32.156Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/LogInForm/LogInFormView.tsx"
+    ],
+    "id": "xRonB6GKS5",
+    "key": "LOG_IN_FORM->NO_PASSWORD_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-25T10:04:52.979Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/LogInForm/LogInFormView.tsx"
+    ],
+    "id": "8EoRq6X5S5",
+    "key": "LOG_IN_FORM->NO_USERNAME_OR_EMAIL_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-25T10:04:52.979Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/LogInForm/LogInFormView.tsx"
+    ],
+    "id": "8EoRqEa9sX",
+    "key": "LOG_IN_FORM->PASSWORD_PLACEHOLDER",
+    "new": false,
+    "timestamp": "2015-12-25T09:16:44.498Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/LogInForm/LogInFormView.tsx"
+    ],
+    "id": "kzoeyzaBsy",
+    "key": "LOG_IN_FORM->SUBMIT_BUTTON",
+    "new": false,
+    "timestamp": "2015-12-25T09:16:44.498Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/LogInForm/LogInFormView.tsx"
+    ],
+    "id": "ejxMGjrBsR",
+    "key": "LOG_IN_FORM->USERNAME_OR_EMAIL_PLACEHOLDER",
+    "new": false,
+    "timestamp": "2015-12-25T09:16:44.498Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "9xGbAdLquG",
+    "key": "SIGN_UP->SUCCESSFUL_SIGN_UP_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-24T17:27:12.090Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "gjxpreBkf9",
+    "key": "SIGN_UP->INVALID_INVITATION_TOKEN_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-24T17:07:17.164Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx",
+      "Contents/LogInForm/LogInFormView.tsx",
+      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx",
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "7o6zr5o7tg",
+    "key": "DEFAULT->UNKNOW_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-24T16:15:48.772Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "G5GzRe8eu4",
+    "key": "SIGN_UP->USERNAME_ALREADY_TAKEN_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-24T07:44:18.411Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx",
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "KGKyo4pbSL",
+    "key": "DEFAULT->INVALID_EMAIL_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-23T15:22:56.971Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx",
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "dbKe4yBjSe",
+    "key": "DEFAULT->NO_EMAIL_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-23T15:22:56.971Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx",
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "jKx5bydpSL",
+    "key": "DEFAULT->NO_PASSWORD_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-23T15:22:56.971Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "zEoR4B9pSq",
+    "key": "SIGN_UP->INVALID_USERNAME_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-23T15:22:56.971Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "bz9e4yBjS4",
+    "key": "SIGN_UP->NO_NAME_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-23T15:22:56.971Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "5o6z4yqKSx",
+    "key": "SIGN_UP->NO_USERNAME_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-23T15:22:56.971Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "G5Gzbq7ohG",
+    "key": "SIGN_UP->USERNAME_UNIQUE_SUCCESS_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-22T07:42:22.893Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "KGKAKRbKs9",
+    "key": "SIGN_UP->EMAIL_ALREADY_TAKEN_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2015-12-21T13:28:29.822Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Components/ImageCrop.tsx"
+    ],
+    "id": "A5Ay9pAgtq",
+    "key": "IMAGE_CROP->ZOOM_HELP_TEXT",
+    "new": false,
+    "timestamp": "2015-12-20T08:14:57.612Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Components/ImageCrop.tsx"
+    ],
+    "id": "ajxM44MquX",
+    "key": "DEFAULT->DONE",
+    "new": false,
+    "timestamp": "2015-12-19T16:25:16.225Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "9xGMMnyBIL",
+    "key": "SIGN_UP->INVITE_FRIEND_PLACEHOLDER",
+    "new": false,
+    "timestamp": "2015-12-18T13:20:13.340Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "7o699RXySd",
+    "key": "SIGN_UP->INVITE_FRIEND_PROMPT_TEXT",
+    "new": false,
+    "timestamp": "2015-12-18T13:20:13.340Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "4LjMMnyBf8",
+    "key": "SIGN_UP->SUBMIT_BUTTON_TEXT",
+    "new": false,
+    "timestamp": "2015-12-18T13:20:13.340Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "KGKAAxRXhg",
+    "key": "SIGN_UP->USERNAME_PLACEHOLDER",
+    "new": false,
+    "timestamp": "2015-12-18T12:56:47.750Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "9xGMzo9KSB",
+    "key": "SIGN_UP->EMAIL_PLACEHOLDER",
+    "new": false,
+    "timestamp": "2015-12-18T11:39:25.329Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "jKxM7qaduG",
+    "key": "SIGN_UP->NAME_PLACEHOLDER",
+    "new": false,
+    "timestamp": "2015-12-18T10:50:45.219Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "4LjMK9r7fj",
+    "key": "SIGN_UP->PASSWORD_PLACEHOLDER",
+    "new": false,
+    "timestamp": "2015-12-18T10:50:45.219Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopBar/TopBarView.tsx"
+    ],
+    "id": "ejx877nqFX",
+    "key": "DEFAULT->LOGIN",
+    "new": false,
+    "timestamp": "2015-12-18T09:17:46.944Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/Hero/HeroView.tsx"
+    ],
+    "id": "qo69MAqdu8",
+    "key": "HERO->DESCRIPTION",
+    "new": false,
+    "timestamp": "2015-12-17T12:09:17.980Z",
+    "value": "",
+    "variables": []
+  }
+]

@@ -2,17 +2,17 @@
   "version": "v4",
   "repo": "borisyankov/DefinitelyTyped",
   "ref": "master",
-  "path": "typings",
-  "bundle": "typings/tsd.d.ts",
+  "path": "Typings",
+  "bundle": "Typings/tsd.d.ts",
   "installed": {
     "react/react.d.ts": {
       "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
     },
     "node/node.d.ts": {
-      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+      "commit": "1da639a106527e0c4010b354a1efe52a3059a291"
     },
     "express/express.d.ts": {
-      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+      "commit": "1da639a106527e0c4010b354a1efe52a3059a291"
     },
     "glob/glob.d.ts": {
       "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
@@ -27,10 +27,10 @@
       "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
     },
     "serve-static/serve-static.d.ts": {
-      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+      "commit": "1da639a106527e0c4010b354a1efe52a3059a291"
     },
     "mime/mime.d.ts": {
-      "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
+      "commit": "1da639a106527e0c4010b354a1efe52a3059a291"
     },
     "morgan/morgan.d.ts": {
       "commit": "625cd68fed45e3230393af71bcde1d36706f3d56"
@@ -52,6 +52,9 @@
     },
     "ini/ini.d.ts": {
       "commit": "40c60850ad6c8175a62d5ab48c4e016ea5b3dffe"
+    },
+    "body-parser/body-parser.d.ts": {
+      "commit": "1da639a106527e0c4010b354a1efe52a3059a291"
     }
   }
 }

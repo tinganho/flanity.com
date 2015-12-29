@@ -2,6 +2,8 @@
 {
     "files.trimTrailingWhitespace": true,
     "files.exclude": {
+		".sass-cache": true,
+		".l10ns": true,
 		"**/.git": true
 	}
 }

@@ -27,15 +27,15 @@ gulp.task('bundle', ['tsc:dist'], function(next) {
     server.emitClientFiles();
 
     var builder = new Builder({
-        baseURL: 'built/app'
+        baseURL: 'Build/'
     });
 
-    builder.loadConfig('built/app/public/scripts/startup.js')
+    builder.loadConfig('Build/Public/Scripts/Startup.js')
         .then(function() {
             builder.config({
-                baseURL: 'built/app'
+                baseURL: 'Build/'
             });
-            return builder.buildSFX('public/scripts/bindings.js', 'built/app/public/scripts/app.js', { runtime: false });
+            return builder.buildSFX('Public/Scripts/Bindings.js', 'Build/Public/Scripts/App.js', { runtime: false });
         })
         .then(function() {
             next();
@@ -55,7 +55,7 @@ gulp.task('clean', function() {
     var cleanLocalStream = gulp.src('dist', { read: false })
         .pipe(clean());
 
-    var cleanDistStream = gulp.src('built', { read: false })
+    var cleanDistStream = gulp.src('Build', { read: false })
         .pipe(clean());
 
     return es.concat(cleanLocalStream, cleanDistStream);
@@ -63,15 +63,15 @@ gulp.task('clean', function() {
 
 var compassOptions = {
     project: __dirname,
-    css: 'built/app/public/styles',
-    sass: 'app',
+    css: 'Build/Public/Styles/',
+    sass: 'Styles/',
     bundle_exec: true,
     source_map: true,
-    image: 'app/public/styles/images'
+    image: 'Public/Styles/Images/'
 }
 
 gulp.task('compass:compile:dev', function() {
-    return gulp.src('app/styles.scss', { base: __dirname })
+    return gulp.src('Styles/Index.scss', { base: __dirname })
         .pipe(compass(compassOptions));
 });
 
@@ -79,13 +79,13 @@ gulp.task('compass:compile:dist', function() {
     var options = compassOptions;
     options.source_map = false;
 
-    return gulp.src('app/styles.scss', { base: __dirname })
+    return gulp.src('Styles/Index.scss', { base: __dirname })
         .pipe(compass(compassOptions));
 });
 
 var tscCommand = 'tsc';
 tscCommand += ' --noImplicitAny';
-tscCommand += ' --outDir built';
+tscCommand += ' --outDir Build';
 tscCommand += ' --experimentalDecorators';
 tscCommand += ' --target es5';
 tscCommand += ' --rootDir .';
@@ -100,18 +100,9 @@ gulp.task('tsc:dev', function(next) {
         console.log(stdout);
         console.log(stderr);
 
-        var server = require('./built/app/server.js');
+        var server = require('./Build/Server.js');
         server.emitClientFiles();
         next(err);
-    });
-});
-
-gulp.task('tsc:watch', function() {
-    gulp.watch('app/**/*.{ts,tsx}', function() {
-        exec(tscCommand + ' -w', function(err, stdout, stderr) {
-            console.log(stdout);
-            console.log(stderr);
-        });
     });
 });
 
@@ -124,14 +115,19 @@ gulp.task('tsc:dist', ['compile-l10ns', 'copy-public'], function(next) {
 });
 
 gulp.task('copy-public', function() {
-    return gulp.src('app/public/**/*')
-        .pipe(gulp.dest('built/app/public'));
+    return gulp.src('Public/**/*')
+        .pipe(gulp.dest('Build/Public/'));
+});
+
+gulp.task('copy-l10ns', function() {
+    return gulp.src('Public/Scripts/Localizations/**/*')
+        .pipe(gulp.dest('Build/Public/Scripts/Localizations/'));
 });
 
 gulp.task('image-tests', ['tsc:dev'], function(next) {
     var cmdEmitter = spawn('node_modules/mocha/bin/mocha',
         [
-            'built/app/harness/runner.js',
+            'Build/Application/Harness/Runner.js',
             '--reporter', 'spec',
             '--timeout', '10000', '--full-trace'
         ].concat(process.argv.slice(6)), { env: process.env });
@@ -174,16 +170,16 @@ gulp.task('compile-l10ns', function(next) {
 });
 
 gulp.task('watch', function() {
-    gulp.watch('app/public/scripts/localizations/*.js', ['copy-public']);
-    gulp.watch('app/**/*.{ts,tsx}', ['tsc:dev']);
-    gulp.watch('app/**/*.scss', ['compass:compile:dev']);
+    gulp.watch('Public/Scripts/Localizations/*.js', ['copy-l10ns']);
+    gulp.watch('**/*.{ts,tsx}', ['tsc:dev', 'copy-public']);
+    gulp.watch('**/*.scss', ['compass:compile:dev']);
 });
 
 gulp.task('rev', ['bundle'], function() {
     var jsFilter = filter('**/*.js', { restore: true });
     var cssFilter = filter('**/*.css', { restore: true });
 
-    return gulp.src('built/app/public/**/*')
+    return gulp.src('Build/Public/**/*')
         .pipe(jsFilter)
         .pipe(uglify({ mangle: false }))
         .pipe(jsFilter.restore)
@@ -192,18 +188,18 @@ gulp.task('rev', ['bundle'], function() {
         .pipe(cssFilter.restore)
         .pipe(rev())
         .pipe(revReplace())
-        .pipe(gulp.dest('built/app/public'))
+        .pipe(gulp.dest('Build/Public'))
         .pipe(rev.manifest())
-        .pipe(gulp.dest('built/app/public'));
+        .pipe(gulp.dest('Build/Public'));
 });
 
 gulp.task('dist', ['rev'], function() {
-    var manifest = gulp.src('built/app/public/rev-manifest.json');
+    var manifest = gulp.src('Build/Public/rev-manifest.json');
 
     // Revision replace all server files.
-    return gulp.src('built/app/**/*.js')
+    return gulp.src('Build/**/*.js')
         .pipe(revReplace({ manifest: manifest }))
-        .pipe(gulp.dest('built/app/'));
+        .pipe(gulp.dest('Build/'));
 });
 
 gulp.task('default', ['generate-diagnostics']);
