@@ -1,6 +1,28 @@
 [
   {
     "files": [
+      "Components/ImageCrop.tsx"
+    ],
+    "id": "ejxMoXajFe",
+    "key": "DEFAULT->DONE",
+    "new": true,
+    "timestamp": "2015-12-30T11:35:31.319Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Components/ImageCrop.tsx"
+    ],
+    "id": "dbKexnabta",
+    "key": "IMAGE_CROP->ZOOM_HELP_TEXT",
+    "new": true,
+    "timestamp": "2015-12-30T11:35:31.319Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
       "Contents/Hero/HeroView.tsx"
     ],
     "id": "ejxMRE8bun",

@@ -26,4 +26,13 @@
     height: 140px;
     border-radius: 5px;
     padding: 20px 10px;
+    @include transition(opacity 0.5s);
+
+    .Ingoing &, .Outgoing & {
+        opacity: 0;
+    }
+
+    .Final & {
+        opacity: 1;
+    }
 }

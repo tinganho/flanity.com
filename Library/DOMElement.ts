@@ -137,6 +137,10 @@ export class DOMElement implements DOMElement {
         return this;
     }
 
+    public hasClass(className: string): boolean {
+        return this.nativeElement.classList.contains(className);
+    }
+
     public addEventListener(event: string, listener: EventListener): this {
         this.nativeElement.addEventListener(event, listener, false);
         return this;
@@ -176,7 +180,7 @@ export class DOMElement implements DOMElement {
         return this;
     }
 
-    public whenTransitionEnd(callback: (...args: any[]) => any): this {
+    public onTransitionEnd(callback: (...args: any[]) => any): this {
         let finish = () => {
             this.removeEventListener('transitionend', finish);
             this.removeEventListener('webkitTransitionEnd', finish);

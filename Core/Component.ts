@@ -10,12 +10,15 @@ export interface Props {
     [prop: string]: any;
 }
 
+type Hook = () => void;
+
 export abstract class Component<P extends Props, L, E> {
+    private removeHooks: Hook[] = [];
 
     /**
      * Get element by id.
      */
-    static getElement(id: string) {
+    public static getElement(id: string) {
         let el = document.getElementById(id);
         return new DOMElement(el);
     }
@@ -97,12 +100,20 @@ export abstract class Component<P extends Props, L, E> {
     }
 
     /**
+     * Check if component is outgoing.
+     */
+    public isOutgoing(): boolean {
+        return this.root.hasClass('Outgoing');
+    }
+
+    /**
      * Remove is called be the router whenever we switch pages and
      * want to remove some components. This remove function is called immediately
      * after fetching of the new page is finished.
      */
     public remove(): Promise<void> {
         this.root.remove();
+        this.hookDown(this.removeHooks);
         return Promise.resolve(undefined);
     }
 
@@ -173,7 +184,7 @@ export abstract class Component<P extends Props, L, E> {
     /**
      * Find specific node using id.
      */
-    public findNode(id: string): DOMElement {
+    public findElement(id: string): DOMElement {
         return new DOMElement(document.getElementById(id));
     }
 
@@ -241,5 +252,17 @@ export abstract class Component<P extends Props, L, E> {
         let rootElement = this.render();
         rootElement.setComponent(this);
         return rootElement;
+    }
+
+    public onRemoval(hook: Hook) {
+        this.removeHooks.push(hook);
+    }
+
+    /**
+     * Call callbacks using FIFO order.
+     */
+    private hookDown(hooks: Hook[]) {
+        let hook = hooks.shift();
+        hook && hook();
     }
 }

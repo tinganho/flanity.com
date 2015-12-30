@@ -29,6 +29,7 @@ interface IDOMElement {
     removeClass(className: string): this;
     setClass(className: string): this;
     getClasses(): string[];
+    hasClass(className: string): boolean;
     position(): { left: number, top: number };
     getWidth(): number;
     getHeight(): number;
@@ -44,7 +45,7 @@ interface IDOMElement {
     onBlur(listener: EventListener): this;
     onSubmit(listener: EventListener): this;
     show(): this;
-    whenTransitionEnd(callback: (...args: any[]) => any): this;
+    onTransitionEnd(callback: (...args: any[]) => any): this;
     clone(): IDOMElement;
     appendTo(target: IDOMElement | string): this;
     getValue(): string;

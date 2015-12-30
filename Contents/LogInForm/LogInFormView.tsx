@@ -72,7 +72,7 @@ export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormEleme
     public render() {
         return (
             <div>
-                <form id='LogInFormForm' class='BgWhite'>
+                <form id='LogInFormForm' class='CentralForm BgWhite'>
                     <input name='usernameOrEmail' ref='usernameOrEmail' type='text' class='TextInput LogInFormTextInput' placeholder={this.l10ns.usernameOrEmailPlaceholder}/>
                     <input name='password' ref='password' type='password' class='TextInput LogInFormTextInput' placeholder={this.l10ns.passwordPlaceholder}/>
                     <FormMessage/>

@@ -151,10 +151,30 @@ this component is properly named?`);
         }
     }
 
-    private bindLayoutAndContents(page: Page, contents: Contents) {
+    private bindLayoutAndContents(page: Page, contents: Contents): void {
         this.currentLayoutView = new this.pageComponents.Layout[page.layout.view.className](contents);
         this.currentLayoutView.bindDOM();
         this.currentContents = this.currentLayoutView.components as any;
+    }
+
+    private getIrrelevantCurrentContents(nextPage: Page): ContentComponentInfo[] {
+        let contents: ContentComponentInfo[] = [];
+        for (let currentContent in this.currentContents) {
+            if (!this.currentContents.hasOwnProperty(currentContent)) return;
+
+            let removeCurrentContent = true;
+            for (let nextContent of nextPage.contents) {
+                if (nextContent.view.className !== (this as any).currentContents[currentContent].constructor.name) {
+                    // if (!(this as any).currentContents[currentContent][method]) {
+                    //     return reject(new Error('You have not implemented a hide or remove method for \'' + currentContent.constructor.name + '\''))
+                    // }
+                }
+            }
+        }
+
+
+
+        return contents;
     }
 
     private loopThroughIrrelevantCurrentContentsAndExecMethod(nextPage: Page, method: string): Promise<void> {
@@ -229,87 +249,114 @@ this component is properly named?`);
         }
     }
 
-    private handleClientPageRequest(page: Page) {
+    private handleClientPageRequest(nextPage: Page) {
         let newContents: Contents = {};
         let currentNumberOfFetches = 0;
         let expectedNumberOfFetches = 0;
 
-        this.hideIrrelevantCurrentContents(page).then(() => {
-            for (let content of page.contents) {
+        for (let content of nextPage.contents) {
 
-                // Filter the content that will propogate to the next page.
-                if (this.currentContents.hasOwnProperty(toCamelCase(content.view.className))) {
-                    continue;
-                }
-
-                let ContentView = this.pageComponents.Contents[content.view.className];
-                let ContentModel = this.pageComponents.Contents[content.model.className];
-
-                expectedNumberOfFetches++;
-
-                ((contentInfo: ContentComponentInfo, ContentModel: typeof Model, ContentView: typeof ContentComponent) => {
-                    let model = new ContentModel;
-                    model.fetch().then(() => {
-
-                        (model.props as any).l = (window as any).localizations;
-                        (model.props as any).model = model;
-                        newContents[contentInfo.region] = React.createElement(this.pageComponents.Contents[contentInfo.view.className], model.props, null);
-
-                        currentNumberOfFetches++;
-                        if (currentNumberOfFetches === expectedNumberOfFetches) {
-                            let LayoutComponentClass = (this as any).pageComponents.Layout[page.layout.view.className];
-
-                            // If we are not in the same layout, we will replace the current layout region with a new one.
-                            if (LayoutComponentClass.name !== this.currentLayoutView.id) {
-                                let layoutComponent = new LayoutComponentClass(newContents);
-                                this.currentLayoutView.remove();
-                                document.getElementById('LayoutRegion').appendChild(layoutComponent.toDOM());
-                                layoutComponent.bindDOM();
-                                layoutComponent.show();
-                                this.currentLayoutView = layoutComponent;
-                            }
-
-                            // If we are in the same layout, we will remove irrelevant content and bind the new content.
-                            else {
-                                this.removeIrrelevantCurrentContents(page).then(() => {
-                                    for (let r in newContents) {
-                                        let content = (newContents as any)[r];
-                                        let region = document.getElementById(r);
-                                        if (!region) {
-                                            throw new Error('Region \'' + r + '\' is missing.');
-                                        }
-                                        this.currentLayoutView.setProp(r, content);
-                                        region.appendChild(content.toDOM().frag);
-                                        let component = content.getComponent();
-                                        this.currentLayoutView.components[toCamelCase(component.id)] = component;
-
-                                        // We must reset the component created by the `toDOM()` method above.
-                                        // Because children component should not have component reference
-                                        // in their create element closure. If we don't reset the component
-                                        // reference there will be a component property referencing itself.
-                                        content.resetComponent();
-
-                                        content.bindDOM();
-
-                                        // Must reset the component with the same reason as above.
-                                        content.resetComponent();
-                                    }
-
-                                    this.currentContents = this.currentLayoutView.components as CurrentContents;
-                                    for (let c in this.currentContents) {
-                                        this.currentContents[c].recursivelyCallMethod('show');
-                                    }
-                                });
-                            }
-                        }
-                    })
-                    .catch((err: Error) => {
-                        console.log(err.stack);
-                    });
-
-                })(content, ContentView, ContentModel);
+            // Filter the content that will propogate to the next page.
+            if (this.currentContents.hasOwnProperty(toCamelCase(content.view.className))) {
+                continue;
             }
-        });
+
+            let ContentView = this.pageComponents.Contents[content.view.className];
+            let ContentModel = this.pageComponents.Contents[content.model.className];
+
+            expectedNumberOfFetches++;
+
+            ((contentInfo: ContentComponentInfo, ContentModel: typeof Model, ContentView: typeof ContentComponent) => {
+                let model = new ContentModel;
+                model.fetch().then(() => {
+
+                    (model.props as any).l = (window as any).localizations;
+                    (model.props as any).model = model;
+                    newContents[contentInfo.region] = React.createElement(this.pageComponents.Contents[contentInfo.view.className], model.props, null);
+
+                    currentNumberOfFetches++;
+                    if (currentNumberOfFetches === expectedNumberOfFetches) {
+                        let LayoutComponentClass = (this as any).pageComponents.Layout[nextPage.layout.view.className];
+
+                        // If we are not in the same layout, we will replace the current layout region with a new one.
+                        if (LayoutComponentClass.name !== this.currentLayoutView.id) {
+                            let layoutComponent = new LayoutComponentClass(newContents);
+                            this.currentLayoutView.remove();
+                            document.getElementById('LayoutRegion').appendChild(layoutComponent.toDOM());
+                            layoutComponent.bindDOM();
+                            layoutComponent.show();
+                            this.currentLayoutView = layoutComponent;
+                        }
+
+                        // If we are in the same layout, we will remove irrelevant content and bind the new content.
+                        else {
+                            let currentRemovals = 0;
+                            let expectedRemovals = 0;
+                            for (let r in newContents) {
+                                expectedRemovals++;
+
+                                let content = (newContents as any)[r];
+                                let region = document.getElementById(r);
+                                if (!region) {
+                                    throw new Error('Region \'' + r + '\' is missing.');
+                                }
+                                let outgoingComponent = this.currentLayoutView.props[r].getComponent();
+                                this.currentLayoutView.setProp(r, content);
+                                region.appendChild(content.toDOM().frag);
+                                let ingoingComponent = content.getComponent();
+
+                                ingoingComponent.root.addClass('Ingoing');
+                                outgoingComponent.root.addClass('Outgoing').removeClass('Final');
+
+                                ((componentId: string) => {
+                                    let hasOutgoingTransition = false;
+                                    outgoingComponent.root.onTransitionEnd(() => {
+                                        if (outgoingComponent.isOutgoing()) {
+                                            outgoingComponent.remove();
+                                        }
+                                        hasOutgoingTransition = true;
+                                    });
+
+                                    // Give developer a warning that he has not implemented a outgoing transition.
+                                    setTimeout(() => {
+                                        if (!hasOutgoingTransition) {
+                                            console.warn(`You do not have an outgoing transition for component '${componentId}'.`);
+                                        }
+                                    }, 3000);
+
+                                    outgoingComponent.onRemoval(() => {
+                                        delete this.currentLayoutView.components[toCamelCase(componentId)];
+
+                                        currentRemovals++;
+                                        if (currentRemovals === expectedRemovals) {
+                                            this.currentContents = this.currentLayoutView.components as CurrentContents;
+                                        }
+                                    });
+                                })(outgoingComponent.id);
+
+                                setTimeout(() => {
+                                    ingoingComponent.root.addClass('Final').removeClass('Ingoing');
+                                }, 0);
+                                this.currentLayoutView.components[toCamelCase(ingoingComponent.id)] = ingoingComponent;
+
+                                // We must reset the component created by the `toDOM()` method above.
+                                // Because children component should not have component reference
+                                // in their create element closure. If we don't reset the component
+                                // reference there will be a component property referencing itself.
+                                // content.resetComponent();
+
+                                content.bindDOM();
+                            }
+
+                        }
+                    }
+                })
+                .catch((err: Error) => {
+                    console.log(err.stack);
+                });
+
+            })(content, ContentView, ContentModel);
+        }
     }
 }
 

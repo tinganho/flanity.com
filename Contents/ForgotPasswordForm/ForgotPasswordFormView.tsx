@@ -124,8 +124,11 @@ export class ForgotPasswordFormView extends ContentComponent<Props, L10ns, HeroE
     }
 
     private onSubmit(event: Event) {
-        let isValid = this.validateEmail();
+        if (this.isRequesting) {
+            return;
+        }
 
+        let isValid = this.validateEmail();
         if (!isValid) {
             return;
         }
@@ -136,7 +139,6 @@ export class ForgotPasswordFormView extends ContentComponent<Props, L10ns, HeroE
             this.components.submitButton.stopLoading();
         });
 
-        let body = { email: this.email };
         HTTP.post<string>('/forgot-password-tokens', {
                 body: {
                     email: this.email,

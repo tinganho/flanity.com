@@ -21,6 +21,7 @@
             "store": "Localizations/",
             "output": "Public/Scripts/Localizations",
             "source": [
+                "Components/**/*.{ts,tsx}",
                 "Contents/**/*.{ts,tsx}"
             ]
         }

@@ -23,11 +23,11 @@ export class DeferredCallback {
         let now = Date.now();
         let diff = now - this.start;
         if (diff < this.time) {
-            setTimeout(() => { this.callback(); callback(); }, this.time - diff);
+            setTimeout(() => { this.callback(); callback && callback(); }, this.time - diff);
         }
         else {
             this.callback();
-            callback();
+            callback && callback();
         }
     }
 }

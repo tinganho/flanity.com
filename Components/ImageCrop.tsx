@@ -281,7 +281,7 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
 
         this.overlay.removeClass('Revealed').addClass('Hidden');
         this.root.removeClass('Revealed').addClass('Hidden')
-            .whenTransitionEnd(() => {
+            .onTransitionEnd(() => {
                 this.root.remove();
                 this.overlay.hide();
             });
@@ -295,9 +295,9 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
         setTimeout(() => {
             this.root.addClass('Revealed').removeClass('Hidden');
             this.elements.imagePreview.addClass('ZoomOut').removeClass('ZoomIn')
-                .whenTransitionEnd(() => {
+                .onTransitionEnd(() => {
                     this.elements.zoomHelpTextContainer.addClass('Hidden').removeClass('Revealed')
-                        .whenTransitionEnd(() => {
+                        .onTransitionEnd(() => {
                             this.elements.zoomHelpTextContainer.remove();
                         })
                 });

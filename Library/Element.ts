@@ -23,7 +23,6 @@ export function getNodeLink(id: string) {
 }
 
 export function getRenderId(): number {
-    console.log(id + 1);
     return id++;
 }
 

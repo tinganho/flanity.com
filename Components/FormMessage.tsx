@@ -17,6 +17,7 @@ export class FormMessage extends ContentComponent<{}, {}, FormMessageElements> {
 
     public bindDOM() {
         super.bindDOM();
+        console.log('woifjfjieijew')
     }
 
     public showErrorMessage(message: string) {

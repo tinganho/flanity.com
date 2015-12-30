@@ -130,7 +130,7 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
     public render() {
         return (
             <div>
-                <form id='SignUpFormForm' class='BgWhite'>
+                <form id='SignUpFormForm' class='CentralForm BgWhite'>
                     <div id='SignUpFormFirstRow'>
                         <div id='SignUpProfileImage' ref='profileImage'>
                             <input id='SignUpProfileImageInput' ref='profileImageInput' name='profileImage' type='file' accept='image/*'/>
@@ -473,21 +473,22 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
                     err.body.feedback.current &&
                     err.body.feedback.current.code >= 0) {
 
-                    switch (err.body.feedback.current.code) {
-                        case CreateUserFeedback.UsernameAlreadyTaken:
-                            this.showErrorMessage(this.l10ns.usernameAlreadyTakenErrorMessage);
-                            break;
-                        case CreateUserFeedback.EmailAlreadyTaken:
-                            this.showErrorMessage(this.l10ns.emailAlreadyTakenErrorMessage);
-                            break;
-                        case CreateUserFeedback.InvalidInvitationToken:
-                            this.showErrorMessage(this.l10ns.invalidInvitationTokenErrorMessage);
-                            break;
-                        default:
-                            this.showErrorMessage(this.l10ns.unknownErrorErrorMessage);
-                    }
-
-                    callback.call();
+                    callback.call(() => {
+                        switch (err.body.feedback.current.code) {
+                            case CreateUserFeedback.UsernameAlreadyTaken:
+                                this.showErrorMessage(this.l10ns.usernameAlreadyTakenErrorMessage);
+                                break;
+                            case CreateUserFeedback.EmailAlreadyTaken:
+                                this.showErrorMessage(this.l10ns.emailAlreadyTakenErrorMessage);
+                                break;
+                            case CreateUserFeedback.MissingInvitationToken:
+                            case CreateUserFeedback.InvalidInvitationToken:
+                                this.showErrorMessage(this.l10ns.invalidInvitationTokenErrorMessage);
+                                break;
+                            default:
+                                this.showErrorMessage(this.l10ns.unknownErrorErrorMessage);
+                        }
+                    });
                }
                this.isRequesting = false;
             });

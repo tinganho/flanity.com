@@ -1,6 +1,28 @@
 [
   {
     "files": [
+      "Components/ImageCrop.tsx"
+    ],
+    "id": "ejxMoXajFe",
+    "key": "DEFAULT->DONE",
+    "new": true,
+    "timestamp": "2015-12-30T11:35:31.319Z",
+    "value": "Done",
+    "variables": []
+  },
+  {
+    "files": [
+      "Components/ImageCrop.tsx"
+    ],
+    "id": "dbKexnabta",
+    "key": "IMAGE_CROP->ZOOM_HELP_TEXT",
+    "new": true,
+    "timestamp": "2015-12-30T11:35:31.319Z",
+    "value": "Scroll to Zoom",
+    "variables": []
+  },
+  {
+    "files": [
       "Contents/Hero/HeroView.tsx"
     ],
     "id": "ejxMRE8bun",
@@ -252,7 +274,7 @@
     "key": "SIGN_UP->INVALID_INVITATION_TOKEN_ERROR_MESSAGE",
     "new": false,
     "timestamp": "2015-12-24T17:07:17.164Z",
-    "value": "Invalid invitation.",
+    "value": "You need an invitation to sign up.",
     "variables": []
   },
   {

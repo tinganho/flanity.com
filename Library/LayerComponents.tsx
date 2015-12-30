@@ -6,7 +6,7 @@ let __r = require;
 import SystemType from './Server/System';
 let System: typeof SystemType = inServer ? __r('./Server/System').System : undefined;
 
-export abstract class ComposerComponent<P extends Props, L, E> extends Component<P, L, E> {
+export abstract class ComposerComponent<P, L, E> extends Component<P, L, E> {
 
     /**
      * This static property is a native readonly JS property and it is automatically set to the
@@ -46,9 +46,9 @@ export abstract class DocumentComponent<P, L, E> extends ComposerComponent<P, L,
     }
 }
 
-export abstract class LayoutComponent<P extends Props, L, E> extends ComposerComponent<P, L, E> {}
+export abstract class LayoutComponent<P, L, E> extends ComposerComponent<P, L, E> {}
 
-export abstract class ContentComponent<P extends Props, L, E> extends ComposerComponent<P, L, E> {
+export abstract class ContentComponent<P, L, E> extends ComposerComponent<P, L, E> {
     public static pendingPageTitle: string;
     public static pendingPageDescription: string;
     public static pendingPageKeywords: string;

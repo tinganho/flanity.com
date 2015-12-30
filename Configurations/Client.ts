@@ -4,6 +4,7 @@ import { System } from '../Library/Server/System';
 import { formatConfiguration, mergeConfigurations } from '../Library/Server/Configurations';
 
 export let ClientConfigurations = {
+
     /**
      * Default page timeout in seconds.
      *
