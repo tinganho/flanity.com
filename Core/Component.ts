@@ -1,7 +1,6 @@
 
 import {
     extend,
-    unsetInstantiatedComponents,
     getInstantiatedComponents,
     DOMElement } from '../Library/Index';
 
@@ -163,8 +162,8 @@ export abstract class Component<P extends Props, L, E> {
     }
 
     public bindDOM(renderId?: number): void {
-        this.setLocalizations(this.props.l);
         if (!this.hasBoundDOM) {
+            this.setLocalizations(this.props.l);
             this.components = {};
             this.lastRenderId = this.renderAndSetComponent().bindDOM(renderId);
             this.hasBoundDOM = true;

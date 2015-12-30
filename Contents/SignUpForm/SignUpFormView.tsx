@@ -127,7 +127,7 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
 
     public components: SignUpComponents;
 
-    render() {
+    public render() {
         return (
             <div>
                 <form id='SignUpFormForm' class='BgWhite'>
@@ -147,7 +147,7 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
                     <input name='friend1Email' ref='friend1Email' type='email' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.inviteFriendPlaceholder}/>
                     <input name='friend2Email' ref='friend2Email' type='email' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.inviteFriendPlaceholder}/>
                     <SubmitButton id='SignUpSubmitButton' ref='submitButton' buttonText={this.l10ns.submitButtonText}/>
-                    <FormMessage id='SignUpFormMessage'/>
+                    <FormMessage id='SignUpFormMessage' ref='formMessage'/>
                 </form>
             </div>
         );

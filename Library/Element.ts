@@ -16,13 +16,14 @@ export function getNodeLink(id: string) {
 
     // Defer delete of node link
     ((id: string) => {
-        setTimeout(() => { delete nodes[id]; }, 100);
+        setTimeout(() => { delete nodes[id]; }, 0);
     })(id);
 
     return nodes[id] = new DOMElement(root);
 }
 
 export function getRenderId(): number {
+    console.log(id + 1);
     return id++;
 }
 
@@ -30,18 +31,14 @@ export function resetId(): void {
     id = 0;
 }
 
-export function unsetInstantiatedComponents(renderId: number): void {
-    delete instantiatedComponents[renderId];
-}
-
 export function getInstantiatedComponents(renderId: number): Map<Component<any, any, any>> {
     return instantiatedComponents[renderId];
 }
 
-export type ElementConstruct = (new<P extends Props, S, E>(props: Props, children: Child[]) => Component<P, S, E>);
+export type ComponentConstruct = (new<P extends Props, S, E>(props: Props, children: Child[]) => Component<P, S, E>);
 
 export function createElement(
-    element: string | ElementConstruct,
+    element: string | ComponentConstruct,
     props: any,
     ...children: Child[]): JSX.Element {
 
@@ -67,9 +64,11 @@ export function createElement(
             renderId = getRenderId();
 
             // Remove this render on next tick.
-            setTimeout(() => {
-                delete instantiatedComponents[renderId];
-            }, 0);
+            ((renderId: number) => {
+                setTimeout(() => {
+                    delete instantiatedComponents[renderId];
+                }, 0);
+            })(renderId);
         }
         if (typeof element === 'undefined') {
             return renderId;
@@ -279,17 +278,17 @@ export function createElement(
             }
         }
         else {
-            let _component: Component<any, any, any>;
+            let elementComponent: Component<any, any, any>;
             let elementComponentId = props.id ? props.id : (element as any).name;
             if (instantiatedComponents[renderId] &&
                 instantiatedComponents[renderId][elementComponentId]) {
 
-                _component = instantiatedComponents[renderId][elementComponentId];
+                elementComponent = instantiatedComponents[renderId][elementComponentId];
             }
             else {
-                _component = new (element as ElementConstruct)(props, children);
+                elementComponent = new (element as ComponentConstruct)(props, children);
             }
-            frag += _component.toString(renderId);
+            frag += elementComponent.toString(renderId);
         }
 
         return frag;
@@ -319,11 +318,13 @@ export function createElement(
                     }
 
                     let referencedElement = component.root.findOne(`[data-ref="${ref}"]`);
-                    if (!referencedElement && component.root.getAttribute('data-ref') === ref) {
-                        referencedElement = component.root;
-                    }
                     if (!referencedElement) {
-                        Debug.error(`Could not bind referenced element '{0}'.`, ref);
+                        if (component.root.getAttribute('data-ref') === ref) {
+                            referencedElement = component.root;
+                        }
+                        else {
+                            Debug.error(`Could not bind referenced element '{0}'.`, ref);
+                        }
                     }
                     component.elements[ref] = new DOMElement(referencedElement);
                 }
@@ -346,16 +347,16 @@ export function createElement(
                 }
             }
         },
-        (element, renderId) => {
+        (ElementComponent, renderId) => {
             let elementComponent: Component<any, any, any>;
-            let elementComponentId = props.id ? props.id : (element as any).name;
+            let elementComponentId = props.id ? props.id : (ElementComponent as any).name;
             if (instantiatedComponents[renderId] &&
                 instantiatedComponents[renderId][elementComponentId]) {
 
-                elementComponent = instantiatedComponents[renderId][elementComponentId]
+                elementComponent = instantiatedComponents[renderId][elementComponentId];
             }
             else {
-                elementComponent = new element(props, children);
+                elementComponent = new ElementComponent(props, children);
                 instantiatedComponents[renderId][elementComponent.id] = elementComponent;
             }
             if (!elementComponent.hasBoundDOM) {

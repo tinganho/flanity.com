@@ -79,7 +79,7 @@ export class Document extends DocumentComponent<ComposerDocumentProps, {}, Eleme
                     <link rel='shortcut icon' type='image/x-icon' href='/Public/Images/Nalie.ico'/>
                     <link rel='stylesheet' href='/Public/Styles/Index.css'/>
                     <meta name='viewport' content='user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height' />
-                    <meta property='og:site_name' content='Nalie' />
+                    <meta property='og:site_name' content='Flanity' />
                     <script type='text/javascript' html={this.weixinShare}></script>
                     <script type='text/javascript' html='window.inServer = false; window.inClient = true;'></script>
                     <script type='text/javascript' html='document.addEventListener("touchstart", function(){}, true);'></script>

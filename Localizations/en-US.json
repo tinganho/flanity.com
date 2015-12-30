@@ -5,7 +5,7 @@
     ],
     "id": "ejxMRE8bun",
     "key": "HERO->SIGN_UP_BUTTON_TEXT",
-    "new": true,
+    "new": false,
     "timestamp": "2015-12-29T11:10:06.852Z",
     "value": "Sign Up",
     "variables": []
@@ -369,28 +369,6 @@
     "new": false,
     "timestamp": "2015-12-21T13:28:29.822Z",
     "value": "Email already taken.",
-    "variables": []
-  },
-  {
-    "files": [
-      "Components/ImageCrop.tsx"
-    ],
-    "id": "A5Ay9pAgtq",
-    "key": "IMAGE_CROP->ZOOM_HELP_TEXT",
-    "new": false,
-    "timestamp": "2015-12-20T08:14:57.612Z",
-    "value": "Scroll to zoom",
-    "variables": []
-  },
-  {
-    "files": [
-      "Components/ImageCrop.tsx"
-    ],
-    "id": "ajxM44MquX",
-    "key": "DEFAULT->DONE",
-    "new": false,
-    "timestamp": "2015-12-19T16:25:16.225Z",
-    "value": "Done",
     "variables": []
   },
   {

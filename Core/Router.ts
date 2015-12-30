@@ -5,7 +5,7 @@ declare function requireLocalizations(locale: string): typeof l;
 
 declare function require(path: string): any;
 import ReactMod = require('../Library/Element');
-let React: typeof ReactMod = require('Core/Element');
+let React: typeof ReactMod = require('/Library/Element');
 
 import {
     setDefaultHttpRequestOptions as setOption,
@@ -194,6 +194,7 @@ this component is properly named?`);
                                         // Dispose current regions which are not used on the next page.
                                         // We need dispose them because layout needs to call bindDOM correctly.
                                         if (reuseRegions.indexOf(r) === -1) {
+                                            delete this.currentLayoutView.components[currentContent];
                                             this.currentLayoutView.unsetProp(r);
                                         }
                                     }
@@ -252,7 +253,6 @@ this component is properly named?`);
 
                         (model.props as any).l = (window as any).localizations;
                         (model.props as any).model = model;
-
                         newContents[contentInfo.region] = React.createElement(this.pageComponents.Contents[contentInfo.view.className], model.props, null);
 
                         currentNumberOfFetches++;
@@ -264,6 +264,7 @@ this component is properly named?`);
                                 let layoutComponent = new LayoutComponentClass(newContents);
                                 this.currentLayoutView.remove();
                                 document.getElementById('LayoutRegion').appendChild(layoutComponent.toDOM());
+                                layoutComponent.bindDOM();
                                 layoutComponent.show();
                                 this.currentLayoutView = layoutComponent;
                             }
@@ -271,26 +272,30 @@ this component is properly named?`);
                             // If we are in the same layout, we will remove irrelevant content and bind the new content.
                             else {
                                 this.removeIrrelevantCurrentContents(page).then(() => {
-                                    for (let c in newContents) {
-                                        let content = (newContents as any)[c];
-                                        let region = document.getElementById(c);
+                                    for (let r in newContents) {
+                                        let content = (newContents as any)[r];
+                                        let region = document.getElementById(r);
                                         if (!region) {
-                                            throw new Error('Region \'' + c + '\' is missing.');
+                                            throw new Error('Region \'' + r + '\' is missing.');
                                         }
-                                        this.currentLayoutView.setProp(c, content);
+                                        this.currentLayoutView.setProp(r, content);
                                         region.appendChild(content.toDOM().frag);
+                                        let component = content.getComponent();
+                                        this.currentLayoutView.components[toCamelCase(component.id)] = component;
 
                                         // We must reset the component created by the `toDOM()` method above.
-                                        // Because children custom element should not have component reference
+                                        // Because children component should not have component reference
                                         // in their create element closure. If we don't reset the component
-                                        // reference there will be a custom element property referencing itself.
+                                        // reference there will be a component property referencing itself.
+                                        content.resetComponent();
+
+                                        content.bindDOM();
+
+                                        // Must reset the component with the same reason as above.
                                         content.resetComponent();
                                     }
 
-                                    this.currentLayoutView.hasBoundDOM = false;
-                                    this.currentLayoutView.bindDOM();
                                     this.currentContents = this.currentLayoutView.components as CurrentContents;
-
                                     for (let c in this.currentContents) {
                                         this.currentContents[c].recursivelyCallMethod('show');
                                     }
