@@ -96,6 +96,7 @@ declare namespace JSX {
         setComponent(component: Component<any, any, any>): void;
         bindDOM(renderId?: number): number;
         getComponent(): Component<any, any, any>;
+        getChildComponent(): Component<any, any, any>;
         resetComponent(): void;
         instantiateComponents(renderId?: number): number;
         markAsChildOfRootElement(): void;

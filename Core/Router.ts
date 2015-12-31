@@ -302,9 +302,12 @@ this component is properly named?`);
                                 }
                                 let outgoingComponent = this.currentLayoutView.props[r].getComponent();
                                 this.currentLayoutView.setProp(r, content);
+                                content.setComponent(this.currentLayoutView);
                                 region.appendChild(content.toDOM().frag);
-                                let ingoingComponent = content.getComponent();
 
+                                // Component after rendering the DOM, becomes the content component.
+                                let ingoingComponent = content.getComponent();
+                                console.log(ingoingComponent.parentComponent)
                                 ingoingComponent.root.addClass('Ingoing');
                                 outgoingComponent.root.addClass('Outgoing').removeClass('Final');
 
@@ -317,7 +320,7 @@ this component is properly named?`);
                                         hasOutgoingTransition = true;
                                     });
 
-                                    // Give developer a warning that he has not implemented a outgoing transition.
+                                    // Give developer a warning that he has not implemented an outgoing transition.
                                     setTimeout(() => {
                                         if (!hasOutgoingTransition) {
                                             console.warn(`You do not have an outgoing transition for component '${componentId}'.`);
@@ -344,8 +347,7 @@ this component is properly named?`);
                                 // in their create element closure. If we don't reset the component
                                 // reference there will be a component property referencing itself.
                                 // content.resetComponent();
-
-                                content.bindDOM();
+                                ingoingComponent.bindDOM();
                             }
 
                         }

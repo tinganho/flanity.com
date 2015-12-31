@@ -23,6 +23,8 @@ export abstract class Component<P extends Props, L, E> {
         return new DOMElement(el);
     }
 
+    public parentComponent: Component<any, any, any>;
+
     public localizations: GetLocalization;
 
     /**
@@ -179,6 +181,14 @@ export abstract class Component<P extends Props, L, E> {
             this.lastRenderId = this.renderAndSetComponent().bindDOM(renderId);
             this.hasBoundDOM = true;
         }
+    }
+
+    public getElement(id: string) {
+        let el = this.root.nativeElement.querySelector('#' + id);
+        if (!el) {
+            throw new Error('Element not found: ' + id);
+        }
+        return new DOMElement(el as HTMLElement);
     }
 
     /**

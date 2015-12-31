@@ -44,6 +44,7 @@ export function createElement(
     props = props || {};
 
     let component: Component<any, any, any>;
+    let childComponent: Component<any, any, any>
     let isChildOfRootElement = false;
 
     function setComponent(c: Component<any, any, any>): void {
@@ -171,30 +172,27 @@ export function createElement(
                 elementComponent = new element(props, children);
                 instantiatedComponents[renderId][elementComponent.id] = elementComponent;
             }
-            frag.appendChild(elementComponent.toDOM());
 
-            // Add root custom element. There is no component injected for non-root
-            // custom element.
+            // Add element component's root element to parent component.
             if (component) {
+                elementComponent.parentComponent = component;
                 component.components[props.ref || toCamelCase(elementComponent.id)] = elementComponent;
             }
-            else {
-                component = elementComponent;
-            }
+            component = elementComponent;
+
+            frag.appendChild(elementComponent.toDOM());
         });
 
         return { renderId, frag }
 
         function renderChildToDOM(root: HTMLElement, child: JSX.Element, renderId: number) {
+            child.setComponent(component);
             if (child.isIntrinsic) {
-                child.setComponent(component);
                 child.markAsChildOfRootElement();
                 root.appendChild(child.toDOM(renderId).frag);
             }
             else {
                 root.appendChild(child.toDOM(renderId).frag);
-                let childComponent = child.getComponent();
-                component.components[props.ref || toCamelCase(childComponent.id)] = childComponent;
             }
         }
     }
@@ -307,7 +305,14 @@ export function createElement(
      */
     function bindDOM(renderId?: number): number {
         renderId = handleDOMAction(renderId, (element, renderId) => {
-            component.root = getNodeLink(component.id);
+            if (component.parentComponent) {
+                console.log(component.parentComponent)
+                console.log(component.parentComponent.root.nativeElement.outerHTML)
+                component.root = component.parentComponent.getElement(component.id);
+            }
+            else {
+                component.root = Component.getElement(component.id);
+            }
 
             for (let p in props) {
                 if (p === 'ref') {
@@ -358,31 +363,30 @@ export function createElement(
                 elementComponent = new ElementComponent(props, children);
                 instantiatedComponents[renderId][elementComponent.id] = elementComponent;
             }
-            if (!elementComponent.hasBoundDOM) {
-                elementComponent.bindDOM(renderId);
-            }
 
             // Add root custom element. There is no component injected for non-root
             // custom element.
             if (component) {
+                elementComponent.parentComponent = component;
                 component.components[props.ref || toCamelCase(elementComponent.id)] = elementComponent;
             }
-            else {
-                component = elementComponent;
+            component = elementComponent;
+            if (!elementComponent.hasBoundDOM) {
+                elementComponent.bindDOM(renderId);
             }
         });
 
         return renderId;
 
         function bindChildDOM(child: JSX.Element, renderId: number) {
+            child.setComponent(component);
             if (child.isIntrinsic) {
-                child.setComponent(component);
                 child.bindDOM(renderId);
             }
             else {
                 child.bindDOM(renderId);
-                let childComponent = child.getComponent();
-                component.components[childComponent.props.ref || toCamelCase(childComponent.id)] = childComponent;
+                // let childComponent = child.getChildComponent();
+                // parentComponent.components[childComponent.props.ref || toCamelCase(childComponent.id)] = childComponent;
             }
         }
     }
@@ -426,6 +430,7 @@ export function createElement(
         isIntrinsic: typeof element === 'string',
         isCustomElement: typeof element !== 'string',
         getComponent: () => component,
+        getChildComponent: () => childComponent,
         markAsChildOfRootElement,
         instantiateComponents,
         setComponent,
