@@ -306,8 +306,6 @@ export function createElement(
     function bindDOM(renderId?: number): number {
         renderId = handleDOMAction(renderId, (element, renderId) => {
             if (component.parentComponent) {
-                console.log(component.parentComponent)
-                console.log(component.parentComponent.root.nativeElement.outerHTML)
                 component.root = component.parentComponent.getElement(component.id);
             }
             else {

@@ -1,12 +1,14 @@
 
+declare function require(path: string): any;
 declare function l(name: string, data: any): string;
 declare function requireLocalizations(locale: string): typeof l;
 (window as any).localizations = requireLocalizations(document.documentElement.getAttribute('lang'));
 
-declare function require(path: string): any;
+import { ContentComponent, LayoutComponent, } from '../Library/LayerComponents';
+import { Contents, } from '../Core/ServerComposer';
+import { Model, } from '../Library/Model';
 import ReactMod = require('../Library/Element');
 let React: typeof ReactMod = require('/Library/Element');
-
 import {
     setDefaultHttpRequestOptions as setOption,
     setDefaultXCsrfTokenHeader as setXCsrfToken,
@@ -14,9 +16,6 @@ import {
 let setDefaultHttpRequestOptions: typeof setOption = require('/Library/HTTP').setDefaultHttpRequestOptions;
 let setDefaultXCsrfTokenHeader: typeof setXCsrfToken = require('/Library/HTTP').setDefaultXCsrfTokenHeader;
 let setDefaultCorsCredentials: typeof setCorsCredentials = require('/Library/HTTP').setDefaultCorsCredentials;
-import { ContentComponent, LayoutComponent, } from '../Library/LayerComponents';
-import { Contents, } from '../Core/ServerComposer';
-import { Model, } from '../Library/Model';
 
 interface Page {
     route: string;
@@ -157,86 +156,6 @@ this component is properly named?`);
         this.currentContents = this.currentLayoutView.components as any;
     }
 
-    private getIrrelevantCurrentContents(nextPage: Page): ContentComponentInfo[] {
-        let contents: ContentComponentInfo[] = [];
-        for (let currentContent in this.currentContents) {
-            if (!this.currentContents.hasOwnProperty(currentContent)) return;
-
-            let removeCurrentContent = true;
-            for (let nextContent of nextPage.contents) {
-                if (nextContent.view.className !== (this as any).currentContents[currentContent].constructor.name) {
-                    // if (!(this as any).currentContents[currentContent][method]) {
-                    //     return reject(new Error('You have not implemented a hide or remove method for \'' + currentContent.constructor.name + '\''))
-                    // }
-                }
-            }
-        }
-
-
-
-        return contents;
-    }
-
-    private loopThroughIrrelevantCurrentContentsAndExecMethod(nextPage: Page, method: string): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            let currentNumberOfRemoves = 0;
-            let expectedNumberOfRemoves = 0;
-            let reuseRegions: string[] = [];
-
-            if (!this.currentContents || Object.keys(this.currentContents).length === 0) {
-                return reject(new Error('You have not set any content for the current page.'));
-            }
-
-            for (let currentContent in this.currentContents) {
-                if (!this.currentContents.hasOwnProperty(currentContent)) return;
-
-                let removeCurrentContent = true;
-                for (let nextContent of nextPage.contents) {
-                    if (nextContent.view.className === (this as any).currentContents[currentContent].constructor.name) {
-                        removeCurrentContent = false;
-                        reuseRegions.push(nextContent.region);
-                    }
-                }
-
-                if (!(this as any).currentContents[currentContent][method]) {
-                    return reject(new Error('You have not implemented a hide or remove method for \'' + currentContent.constructor.name + '\''))
-                }
-
-                ((currentContent: string) => {
-                    if (removeCurrentContent) {
-                        expectedNumberOfRemoves++;
-                        this.currentContents[currentContent].recursivelyCallMethod(method)
-                            .then(() => {
-                                currentNumberOfRemoves++;
-                                if (method === 'remove') {
-                                    for (let r of this.currentRegions) {
-
-                                        // Dispose current regions which are not used on the next page.
-                                        // We need dispose them because layout needs to call bindDOM correctly.
-                                        if (reuseRegions.indexOf(r) === -1) {
-                                            delete this.currentLayoutView.components[currentContent];
-                                            this.currentLayoutView.unsetProp(r);
-                                        }
-                                    }
-                                }
-                                if (currentNumberOfRemoves === expectedNumberOfRemoves) {
-                                    resolve(undefined);
-                                }
-                            });
-                    }
-                })(currentContent);
-            }
-        });
-    }
-
-    private removeIrrelevantCurrentContents(nextPage: Page): Promise<void> {
-        return this.loopThroughIrrelevantCurrentContentsAndExecMethod(nextPage, 'remove');
-    }
-
-    private hideIrrelevantCurrentContents(nextPage: Page): Promise<void> {
-        return this.loopThroughIrrelevantCurrentContentsAndExecMethod(nextPage, 'hide');
-    }
-
     private renderPage(page: Page): void {
         let contents: Contents = {};
         if (this.inInitialPageLoad) {
@@ -307,7 +226,6 @@ this component is properly named?`);
 
                                 // Component after rendering the DOM, becomes the content component.
                                 let ingoingComponent = content.getComponent();
-                                console.log(ingoingComponent.parentComponent)
                                 ingoingComponent.root.addClass('Ingoing');
                                 outgoingComponent.root.addClass('Outgoing').removeClass('Final');
 
