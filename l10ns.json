@@ -19,7 +19,7 @@
             "defaultLanguage": "en-US",
             "programmingLanguage": "javascript",
             "store": "Localizations/",
-            "output": "Public/Scripts/Localizations",
+            "output": "Build/Public/Scripts/Localizations",
             "source": [
                 "Components/**/*.{ts,tsx}",
                 "Contents/**/*.{ts,tsx}"

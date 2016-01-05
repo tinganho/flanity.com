@@ -1,12 +1,12 @@
 
 import { ContentComponent, React } from '../Library/Index';
 
+declare let __Router: any;
+
 interface LinkProps {
     to: string;
     class: string;
 }
-
-declare let __Router: any;
 
 export class Link extends ContentComponent<LinkProps, any, any> {
     public navigateTo(event: Event) {

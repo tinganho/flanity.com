@@ -1,2 +1,2 @@
 
-require('./Server').start();
+require('./Server').startServer();

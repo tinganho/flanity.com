@@ -9,7 +9,8 @@ import {
     HTTPResponseType,
     DOMElement,
     ContentComponent,
-    React } from '../../Library/Index';
+    React,
+    PageInfo } from '../../Library/Index';
 
 interface L10ns {
     namePlaceholder: string;
@@ -108,6 +109,12 @@ interface SignUpComponents {
 }
 
 export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements> {
+
+    public static setPageInfo(props: Props, l: GetLocalization, pageInfo: PageInfo) {
+        this.setPageTitle(l('SIGN_UP_FORM->PAGE_TITLE'), pageInfo);
+        this.setPageDescription(l('SIGN_UP_FORM->PAGE_DESCRIPTION'), pageInfo);
+    }
+
     private profileImageHeight: number;
     private profileImageWidth: number;
 
@@ -137,7 +144,7 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
                         </div>
                         <div id='SignUpNameAndPasswordContainer'>
                             <input name='name' ref='name' type='text' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.namePlaceholder}/>
-                            <input name='username' ref='username' type='text' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.usernamePlaceholder}/>
+                            <input id='SignUpFormUsernameInput' name='username' ref='username' type='text' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.usernamePlaceholder}/>
                             <span id='SignUpUsernameFeedback' ref='usernameFeedback' class='Hidden'>&nbsp;</span>
                         </div>
                     </div>
@@ -301,32 +308,37 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
     }
 
     private inlineCheckUsername() {
+        unmarkPageAsLoaded();
+
         this.username = this.elements.username.getValue();
 
         if (Date.now() - this.lastUsernameCheckTime < 700) {
             setTimeout(this.inlineCheckUsername, 1000);
             return;
         }
+        if (this.username === this.lastUsernameCheck) {
+            return;
+        }
         if (this.username.length === 0) {
+            markPageAsLoaded();
             this.elements.usernameFeedback.setClass('Hidden');
         }
         else if (!cf.USERNAME_SYNTAX.test(this.username)) {
+            markPageAsLoaded();
             this.elements.usernameFeedback
-                .setHtml(this.l10ns.invalidUsernameErrorMessage)
+                .setHTML(this.l10ns.invalidUsernameErrorMessage)
                 .setClass('Error');
         }
         else {
-            if (this.username === this.lastUsernameCheck) {
-                return;
-            }
             ((currentUsername: string) => {
                 HTTP.get(`/usernames/${encodeURIComponent(this.username)}`)
                     .then(() => {
-                        if (currentUsername === this.lastUsernameCheck) {
+                        if (currentUsername === this.username) {
                             this.elements.usernameFeedback
-                                .setHtml(this.l10ns.usernameAlreadyTakenErrorMessage)
+                                .setHTML(this.l10ns.usernameAlreadyTakenErrorMessage)
                                 .setClass('Error');
                             this.usernameIsUnique = false;
+                            markPageAsLoaded();
                         }
                     })
                     .catch((err) => {
@@ -336,13 +348,15 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
                             }
                             else if (err.body && err.body.type === HTTPResponseType.Error &&
                                 err.body.feedback.current.code === UsernameRequestFeedback.UsernameNotFound &&
-                                currentUsername === this.lastUsernameCheck) {
+                                currentUsername === this.username) {
 
                                 this.elements.usernameFeedback
-                                    .setHtml(this.l10ns.usernameUniqueSuccessMessage)
+                                    .setHTML(this.l10ns.usernameUniqueSuccessMessage)
                                     .setClass('Success');
 
                                 this.usernameIsUnique = true;
+
+                                markPageAsLoaded();
                             }
                         }
                     });

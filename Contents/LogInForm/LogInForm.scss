@@ -16,7 +16,7 @@
 }
 
 .LogInFormTextInput {
-    width: calc(100% - 14px);
+    @include calc(width, '100% - 14px');
 }
 
 #LogInSubmitButton {

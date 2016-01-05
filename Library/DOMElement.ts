@@ -10,8 +10,22 @@ export class DOMElement implements DOMElement {
     /**
      * Get element by id.
      */
-    static getElement(id: string) {
+    public static getElement(id: string) {
         let el = document.getElementById(id);
+        if (!el) {
+            return null;
+        }
+        return new DOMElement(el);
+    }
+
+    /**
+     * Create element by id.
+     */
+    public static createElement(tag: string) {
+        let el = document.createElement(tag);
+        if (!el) {
+            return null;
+        }
         return new DOMElement(el);
     }
 
@@ -79,11 +93,11 @@ export class DOMElement implements DOMElement {
         return this;
     }
 
-    public getHtml(): string {
+    public getHTML(): string {
         return this.nativeElement.innerHTML;
     }
 
-    public setHtml(html: string): this {
+    public setHTML(html: string): this {
         this.nativeElement.innerHTML = html;
         return this;
     }
@@ -119,7 +133,12 @@ export class DOMElement implements DOMElement {
     }
 
     public remove(): void {
-        this.nativeElement.parentNode.removeChild(this.nativeElement);
+        if (this.nativeElement.remove) {
+            this.nativeElement.remove();
+        }
+        else {
+            this.nativeElement.parentNode.removeChild(this.nativeElement);
+        }
     }
 
     public addClass(className: string): this {
@@ -200,13 +219,16 @@ export class DOMElement implements DOMElement {
         return new DOMElement(this.nativeElement.cloneNode(true) as any);
     }
 
-    public appendTo(target: DOMElement | string): this {
+    public appendTo(target: DOMElement | HTMLElement | string): this {
         if (typeof target === 'string') {
             let element = DOMElement.getElement(target);
             element.append(this);
         }
+        else if ((target as DOMElement).append){
+            (target as DOMElement).append(this);
+        }
         else {
-            target.append(this);
+            (target as HTMLElement).appendChild(this.nativeElement);
         }
 
         return this;

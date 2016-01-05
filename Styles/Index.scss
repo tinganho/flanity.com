@@ -3,6 +3,10 @@ $color-purple: #7C809D;
 
 @import "compass";
 
+@mixin calc($property, $expression) {
+  #{$property}: -webkit-calc(#{$expression});
+  #{$property}: calc(#{$expression});
+}
 
 @import "../Components/ImageCrop";
 @import "../Components/SubmitButton";

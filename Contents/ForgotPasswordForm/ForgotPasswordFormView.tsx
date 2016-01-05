@@ -9,7 +9,8 @@ import {
     HTTPResponse,
     ModelResponse,
     ErrorResponse,
-    DeferredCallback } from '../../Library/Index';
+    DeferredCallback,
+    PageInfo } from '../../Library/Index';
 
 interface L10ns {
     forgotPasswordDescription: string;
@@ -47,6 +48,12 @@ const enum ForgotPasswordRequestFeedback {
 }
 
 export class ForgotPasswordFormView extends ContentComponent<Props, L10ns, HeroElements> {
+
+    public static setPageInfo(props: Props, l: GetLocalization, pageInfo: PageInfo) {
+        this.setPageTitle(l('FORGOT_PASSWORD_FORM->PAGE_TITLE'), pageInfo);
+        this.setPageDescription(l('FORGOT_PASSWORD_FORM->PAGE_DESCRIPTION'), pageInfo);
+    }
+
     private email: string;
     private isRequesting: boolean;
     public components: Components;

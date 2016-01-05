@@ -34,7 +34,7 @@ export class Document extends DocumentComponent<ComposerDocumentProps, {}, Eleme
             <html lang={this.props.pageInfo.language}>
                 <head>
                     <title>{this.props.pageInfo.title}</title>
-                    <meta property='og:title' content={this.props.pageInfo.title} />
+                    <meta id='OGTitle' property='og:title' content={this.props.pageInfo.title} />
                     <meta property='og:locale' content={this.props.pageInfo.language} />
                     <meta http-equiv='content-language' content={this.props.pageInfo.language} />
                     <meta charset='utf-8'></meta>
@@ -46,8 +46,8 @@ export class Document extends DocumentComponent<ComposerDocumentProps, {}, Eleme
                         (() => {
                             if (this.props.pageInfo.description) {
                                 return [
-                                    <meta name='description' content={this.props.pageInfo.description} />,
-                                    <meta property='og:description' content={this.props.pageInfo.description} />
+                                    <meta id='PageDescription' name='description' content={this.props.pageInfo.description} />,
+                                    <meta id='OGDescription' property='og:description' content={this.props.pageInfo.description} />
                                 ];
                             }
                         })()
@@ -56,7 +56,7 @@ export class Document extends DocumentComponent<ComposerDocumentProps, {}, Eleme
                     {
                         (() => {
                             if (this.props.pageInfo.image) {
-                                return <meta property='og:image' content={this.props.pageInfo.image} />;
+                                return <meta id='OGImage' property='og:image' content={this.props.pageInfo.image} />;
                             }
                         })()
                     }
@@ -89,6 +89,13 @@ export class Document extends DocumentComponent<ComposerDocumentProps, {}, Eleme
                     <script type='text/javascript' src='/Public/Scripts/Vendor/system.js'></script>
                     <script type='text/javascript' src='/Public/Scripts/Localizations/all.js'></script>
                     <script type='text/javascript' src='/Public/Scripts/Configurations.js'></script>
+                    {
+                        (()=> {
+                            if (cf.IN_IMAGE_TEST) {
+                                return <script type='text/javascript' src='/Public/Scripts/Vendor/FontLoader/FontLoader.js'></script>
+                            }
+                        })()
+                    }
                     <script html={this.googleAnalytics}></script>
 
                     {this.props.jsonScriptData.map(attr => {

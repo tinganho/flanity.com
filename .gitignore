@@ -10,3 +10,5 @@ Public/Scripts/Localizations/*
 Public/Scripts/Bindings.js
 Public/Scripts/Router.js
 Public/Styles/
+Tests/Baselines/Current
+Tests/Baselines/Diff

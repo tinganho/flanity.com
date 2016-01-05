@@ -1,8 +1,7 @@
 
 import {
     SubmitButton,
-    FormMessage
-} from '../../Components/Index';
+    FormMessage } from '../../Components/Index';
 import {
     React,
     ContentComponent,
@@ -12,8 +11,8 @@ import {
     HTTPResponseType,
     ModelResponse,
     ErrorResponse,
-    DeferredCallback
-} from '../../Library/Index';
+    DeferredCallback,
+    PageInfo } from '../../Library/Index';
 
 interface L10ns {
     sendButtonText: string;
@@ -56,6 +55,12 @@ const enum ResetPasswordRequestFeedback {
 }
 
 export class ResetPasswordFormView extends ContentComponent<Props, L10ns, HeroElements> {
+
+    public static setPageInfo(props: Props, l: GetLocalization, pageInfo: PageInfo) {
+        this.setPageTitle(l('RESET_PASSWORD_FORM->PAGE_TITLE'), pageInfo);
+        this.setPageDescription(l('RESET_PASSWORD_FORM->PAGE_DESCRIPTION'), pageInfo);
+    }
+
     private newPassword: string;
     private repeatPassword: string;
 

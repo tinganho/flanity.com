@@ -23,8 +23,8 @@ interface IDOMElement {
     findOne(query: string): IDOMElement;
     findAll(query: string): IDOMElement[];
     getText(): string;
-    getHtml(): string;
-    setHtml(html: string): this;
+    getHTML(): string;
+    setHTML(HTML: string): this;
     addClass(className: string): this;
     removeClass(className: string): this;
     setClass(className: string): this;

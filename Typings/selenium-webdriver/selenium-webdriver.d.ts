@@ -15,6 +15,73 @@ declare module 'selenium-webdriver' {
         xpath?: string;
     }
 
+    interface Key {
+        NULL: string;
+        CANCEL: string;  // ^break
+        HELP: string;
+        BACK_SPACE: string;
+        TAB: string;
+        CLEAR: string;
+        RETURN: string;
+        ENTER: string;
+        SHIFT: string;
+        CONTROL: string;
+        ALT: string;
+        PAUSE: string;
+        ESCAPE: string;
+        SPACE: string;
+        PAGE_UP: string;
+        PAGE_DOWN: string;
+        END: string;
+        HOME: string;
+        ARROW_LEFT: string;
+        LEFT: string;
+        ARROW_UP: string;
+        UP: string;
+        ARROW_RIGHT: string;
+        RIGHT: string;
+        ARROW_DOWN: string;
+        DOWN: string;
+        INSERT: string;
+        DELETE: string;
+        SEMICOLON: string;
+        EQUALS: string;
+
+        NUMPAD0: string;  // number pad keys
+        NUMPAD1: string;
+        NUMPAD2: string;
+        NUMPAD3: string;
+        NUMPAD4: string;
+        NUMPAD5: string;
+        NUMPAD6: string;
+        NUMPAD7: string;
+        NUMPAD8: string;
+        NUMPAD9: string;
+        MULTIPLY: string;
+        ADD: string;
+        SEPARATOR: string;
+        SUBTRACT: string;
+        DECIMAL: string;
+        DIVIDE: string;
+
+        F1: string;  // function keys
+        F2: string;
+        F3: string;
+        F4: string;
+        F5: string;
+        F6: string;
+        F7: string;
+        F8: string;
+        F9: string;
+        F10: string;
+        F11: string;
+        F12: string;
+
+        COMMAND: string;  // Apple command key
+        META: string;   // alias for Windows key
+    }
+    export var Key: Key;
+
     export interface Capabilities {
         [capability: string]: any;
     }
@@ -55,6 +122,7 @@ declare module 'selenium-webdriver' {
         public isSelected(): Promise<boolean>;
         public sendKeys(keys: string): Promise<void>;
         public serialize(): Id;
+        public clear(): Promise<void>;
         public submit(): Promise<void>;
     }
 
@@ -134,6 +202,8 @@ declare module 'selenium-webdriver' {
         public isElementPresent<T>(query: ElementQuery<T>): Promise<void>;
         public quit(): Promise<void>;
         public manage(): Options;
+        public executeScript(script: (...args: any[]) => void): Promise<any>;
+        public executeAsyncScript(script: (...args: any[]) => void): Promise<any>;
         public wait<T>(condition: Condition<T>, timeout?: number, message?: string): Promise<void>;
     }
 
@@ -154,6 +224,7 @@ declare module 'selenium-webdriver' {
     export class Builder {
         public usingServer(url: string): Builder;
         public withCapabilities(capabilities: Capabilities): Builder;
+        public forBrowser(name: string): Builder;
         public build(): WebDriver;
     }
 

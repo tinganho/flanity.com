@@ -86,7 +86,7 @@ export function mergeConfigurations(conf1: any, conf2: any) {
  */
 export function writeClientConfigurations() {
     let file = System.rootDir + cf.CLIENT_CONFIGURATION_OUTPUT;
-    if (System.exists(file)) {
+    if (System.fileExists(file)) {
         System.removeFile(file);
     }
     const clientConfiguration = require('../../Configurations/Client').ClientConfigurations;

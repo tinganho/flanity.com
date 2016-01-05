@@ -10,7 +10,8 @@ import {
     ModelResponse,
     ErrorResponse,
     DeferredCallback,
-    Feedback } from '../../Library/Index';
+    Feedback,
+    PageInfo } from '../../Library/Index';
 
 interface L10ns {
     usernameOrEmailPlaceholder: string;
@@ -62,6 +63,12 @@ interface Session {
 }
 
 export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormElements> {
+
+    public static setPageInfo(props: Props, l: GetLocalization, pageInfo: PageInfo) {
+        this.setPageTitle(l('LOG_IN_FORM->PAGE_TITLE'), pageInfo);
+        this.setPageDescription(l('LOG_IN_FORM->PAGE_DESCRIPTION'), pageInfo);
+    }
+
     public components: LogInFormComponents;
 
     private usernameOrEmail = '';
@@ -73,8 +80,8 @@ export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormEleme
         return (
             <div>
                 <form id='LogInFormForm' class='CentralForm BgWhite'>
-                    <input name='usernameOrEmail' ref='usernameOrEmail' type='text' class='TextInput LogInFormTextInput' placeholder={this.l10ns.usernameOrEmailPlaceholder}/>
-                    <input name='password' ref='password' type='password' class='TextInput LogInFormTextInput' placeholder={this.l10ns.passwordPlaceholder}/>
+                    <input id='LogInFormUsernameOrEmail' name='usernameOrEmail' ref='usernameOrEmail' type='text' class='TextInput LogInFormTextInput' placeholder={this.l10ns.usernameOrEmailPlaceholder}/>
+                    <input id='LogInFormPassword' name='password' ref='password' type='password' class='TextInput LogInFormTextInput' placeholder={this.l10ns.passwordPlaceholder}/>
                     <FormMessage/>
                     <a id='LogInFormForgotPasswordLink' ref='passwordLink' class='TextLink'>{this.l10ns.forgotPassword}</a>
                     <SubmitButton id='LogInSubmitButton' ref='submitButton' buttonText={this.l10ns.submitButtonText}/>
@@ -161,6 +168,7 @@ export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormEleme
 
         this.isRequesting = true;
 
+        unmarkPageAsLoaded();
         this.components.submitButton.startLoading();
         let callback = new DeferredCallback(2000, () => {
             this.components.submitButton.stopLoading();
@@ -186,7 +194,7 @@ export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormEleme
                             }
                         })
                         .then(() => {
-
+                            markPageAsLoaded();
                         })
                         .catch((err: HTTPResponse<ErrorResponse> | Error) => {
                             this.showErrorMessage(this.l10ns.unknownErrorErrorMessage);
@@ -194,6 +202,7 @@ export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormEleme
                 });
             })
             .catch((err: HTTPResponse<ErrorResponse> | Error) => {
+                markPageAsLoaded();
                 this.isRequesting = false;
                 if (err instanceof Error) {
                     throw err;

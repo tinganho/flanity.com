@@ -25,7 +25,7 @@ export class FormMessage extends ContentComponent<{}, {}, FormMessageElements> {
             .addClass('Error')
             .removeClass('Hidden')
             .removeClass('Success');
-        this.elements.message.setHtml(message);
+        this.elements.message.setHTML(message);
     }
 
     public showSuccessMessage(message: string) {
@@ -34,7 +34,7 @@ export class FormMessage extends ContentComponent<{}, {}, FormMessageElements> {
             .addClass('Success')
             .removeClass('Hidden')
             .removeClass('Error');
-        this.elements.message.setHtml(message);
+        this.elements.message.setHTML(message);
     }
 
     public hideMessage() {

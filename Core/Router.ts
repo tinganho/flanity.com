@@ -1,10 +1,11 @@
 
+declare let FontLoader: any;
 declare function require(path: string): any;
 declare function l(name: string, data: any): string;
 declare function requireLocalizations(locale: string): typeof l;
 (window as any).localizations = requireLocalizations(document.documentElement.getAttribute('lang'));
 
-import { ContentComponent, LayoutComponent, } from '../Library/LayerComponents';
+
 import { Contents, } from '../Core/ServerComposer';
 import { Model, } from '../Library/Model';
 import ReactMod = require('../Library/Element');
@@ -16,6 +17,10 @@ import {
 let setDefaultHttpRequestOptions: typeof setOption = require('/Library/HTTP').setDefaultHttpRequestOptions;
 let setDefaultXCsrfTokenHeader: typeof setXCsrfToken = require('/Library/HTTP').setDefaultXCsrfTokenHeader;
 let setDefaultCorsCredentials: typeof setCorsCredentials = require('/Library/HTTP').setDefaultCorsCredentials;
+import { ContentComponent as ContentComponentType, LayoutComponent, PageInfo } from '../Library/LayerComponents';
+let ContentComponent: typeof ContentComponentType = require('/Library/LayerComponents');
+import { DOMElement as DOMElementType } from '../Library/DOMElement';
+let DOMElement: typeof DOMElementType = require('/Library/DOMElement').DOMElement;
 
 interface Page {
     route: string;
@@ -49,7 +54,7 @@ interface Route {
 }
 
 interface CurrentContents {
-    [content: string]: ContentComponent<any, any, any>;
+    [content: string]: ContentComponentType<any, any, any>;
 }
 
 export class Router {
@@ -84,6 +89,22 @@ export class Router {
             this.routes.push(route);
             this.routingInfoIndex[route.path] = page;
             this.layoutRegion = document.getElementById('LayoutRegion');
+        }
+
+        if (document.readyState === 'complete') {
+            markPageAsLoaded();
+        }
+        else {
+            window.onload = markPageAsLoaded;
+        }
+
+        if (cf.IN_IMAGE_TEST) {
+            let fontLoader = new FontLoader(['Roboto'], {
+                complete: (error: any) => {
+                    markFontsAsLoaded();
+                }
+            }, 3000);
+            fontLoader.loadFonts();
         }
 
         this.checkRouteAndRenderIfMatch(document.location.pathname);
@@ -169,9 +190,12 @@ this component is properly named?`);
     }
 
     private handleClientPageRequest(nextPage: Page) {
+        let pageInfo: PageInfo = {};
         let newContents: Contents = {};
         let currentNumberOfFetches = 0;
         let expectedNumberOfFetches = 0;
+
+        unmarkPageAsLoaded();
 
         for (let content of nextPage.contents) {
 
@@ -189,9 +213,16 @@ this component is properly named?`);
                 let model = new ContentModel;
                 model.fetch().then(() => {
 
+                    let ViewClass = this.pageComponents.Contents[contentInfo.view.className];
                     (model.props as any).l = (window as any).localizations;
                     (model.props as any).model = model;
-                    newContents[contentInfo.region] = React.createElement(this.pageComponents.Contents[contentInfo.view.className], model.props, null);
+                    ViewClass.setPageInfo(model.props, (model.props as any).l, pageInfo);
+
+                    changePageTitle(pageInfo.title || 'NO_PAGE_TITLE');
+                    changePageDescription(pageInfo.description);
+                    changePageImage(pageInfo.image);
+
+                    newContents[contentInfo.region] = React.createElement(ViewClass, model.props, null);
 
                     currentNumberOfFetches++;
                     if (currentNumberOfFetches === expectedNumberOfFetches) {
@@ -236,6 +267,7 @@ this component is properly named?`);
                                             outgoingComponent.remove();
                                         }
                                         hasOutgoingTransition = true;
+                                        setTimeout(markPageAsLoaded, 1000);
                                     });
 
                                     // Give developer a warning that he has not implemented an outgoing transition.
@@ -283,5 +315,94 @@ this component is properly named?`);
 function toCamelCase(text: string): string {
     return text[0].toLowerCase() + text.substring(1);
 }
+
+function changePageTitle(title: string): void {
+    document.title = title;
+    DOMElement.getElement('OGTitle').setHTML(title);
+}
+
+function changePageDescription(description: string) {
+    let pageDescriptionElement = DOMElement.getElement('PageDescription');
+    let OGDescriptionElement = DOMElement.getElement('OGDescription');
+
+    if (!description) {
+        if (pageDescriptionElement) {
+            pageDescriptionElement.remove();
+        }
+        if (OGDescriptionElement) {
+            OGDescriptionElement.remove();
+        }
+        return;
+    }
+
+    if (pageDescriptionElement) {
+        pageDescriptionElement.setAttribute('content', description);
+    }
+    else {
+        let el = DOMElement.createElement('meta');
+        el.setAttribute('id', 'PageDescription');
+        el.setAttribute('property', 'description');
+        el.setAttribute('content', description);
+        el.appendTo(document.head);
+    }
+
+    if (OGDescriptionElement) {
+        OGDescriptionElement.setAttribute('content', description);
+    }
+    else {
+        let el = DOMElement.createElement('meta');
+        el.setAttribute('id', 'OGDescription');
+        el.setAttribute('property', 'og:description');
+        el.setAttribute('content', description);
+        el.appendTo(document.head);
+    }
+}
+
+function changePageImage(imagePath: string): void {
+    let OGImageElement = DOMElement.getElement('OGImage');
+    if (!imagePath) {
+        if (OGImageElement) {
+            OGImageElement.remove();
+        }
+        return;
+    }
+
+    if (OGImageElement) {
+        OGImageElement.setAttribute('content', imagePath);
+    }
+    else {
+        let el = DOMElement.createElement('meta');
+        el.setAttribute('id', 'OGImage');
+        el.setAttribute('property', 'og:image');
+        el.setAttribute('content', imagePath);
+        el.appendTo(document.head);
+    }
+}
+
+function markPageAsLoaded() {
+    let pageLoadMark = DOMElement.getElement('PageFinishedLoading');
+    if (!pageLoadMark) {
+        let el = DOMElement.createElement('div');
+        el.setAttribute('style', 'display: none;');
+        el.setAttribute('id', 'PageFinishedLoading');
+        el.appendTo('LayoutRegion');
+    }
+}
+(window as any).markPageAsLoaded = markPageAsLoaded;
+
+function markFontsAsLoaded() {
+    let el = DOMElement.createElement('div');
+    el.setAttribute('style', 'display: none;');
+    el.setAttribute('id', 'FontFinishedLoading');
+    el.appendTo('LayoutRegion');
+}
+
+function unmarkPageAsLoaded() {
+    let pageLoadMark = DOMElement.getElement('PageFinishedLoading');
+    if (pageLoadMark) {
+        pageLoadMark.remove();
+    }
+}
+(window as any).unmarkPageAsLoaded = unmarkPageAsLoaded;
 
 export default Router;

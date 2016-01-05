@@ -6,30 +6,37 @@ import { formatConfiguration, mergeConfigurations } from '../Library/Server/Conf
 export let ClientConfigurations = {
 
     /**
+     * Default origin.
+     *
+     * @type string
+     */
+    ORIGIN: cf.ORIGIN,
+
+    /**
      * Default page timeout in seconds.
      *
-     * @import
+     * @type number
      */
     DEFAULT_PAGE_TIMEOUT: cf.DEFAULT_PAGE_TIMEOUT,
 
     /**
      * Default page timeout in seconds.
      *
-     * @import
+     * @type string
      */
     DEFAULT_HTTP_REQUEST_HOST: System.config.backend.host,
 
     /**
      * Default page timeout in seconds.
      *
-     * @import
+     * @type number
      */
     DEFAULT_HTTP_REQUEST_PORT: System.config.backend.port,
 
     /**
      * Default page timeout in seconds.
      *
-     * @import
+     * @type boolean
      */
     DEFAULT_HTTP_REQUEST_HTTPS: System.config.backend.https,
 
@@ -46,6 +53,13 @@ export let ClientConfigurations = {
      * @type string
      */
     EMAIL_SYNTAX: '^[^\s@]+@[^\s@]+\.[^\s@]+$',
+
+    /**
+     * Flag for deciding if runtime is in image test.
+     *
+     * @type boolean
+     */
+    IN_IMAGE_TEST: cf.IN_IMAGE_TEST,
 }
 
 ClientConfigurations = formatConfiguration(ClientConfigurations);

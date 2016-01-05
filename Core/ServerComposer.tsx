@@ -46,19 +46,18 @@ interface ContentModelClassAndImportPathDeclaration extends ImportPathDeclaratio
     class: ContentModelClass
 }
 
-interface ContentDeclaration {
+export interface ContentDeclaration {
     model: ContentModelClassAndImportPathDeclaration;
     view: ContentViewClassAndImportPathDeclaration;
 }
 
-interface DocumentDeclaration {
+export interface DocumentDeclaration {
     view: DocumentViewClassAndImportPathDeclaration;
 }
 
-interface LayoutDeclaration {
+export interface LayoutDeclaration {
     view: LayoutViewClassAndImportPathDeclaration;
 }
-
 
 interface Content {
     model: ContentModelClass;
@@ -78,11 +77,11 @@ interface StoredContentDeclarations {
     [index: string]: ContentViewModelClassAndImport;
 }
 
-interface Pages {
+export interface Pages {
     [page: string]: (page: Page) => void;
 }
 
-interface PlatformDetect {
+export interface PlatformDetect {
     name: string;
 
     /**
@@ -308,7 +307,7 @@ export class ServerComposer {
 
     public stop(callback?: (err?: Error) => void): void {
         this.server.close((err?: Error) => {
-            callback(err);
+            callback && callback(err);
             this.server = undefined;
             serverComposer = undefined;
         });
@@ -389,7 +388,7 @@ function getNormalizedNameFromViewClassName(ctorName: string): string {
     return ctorName.replace('View', '');
 }
 
-interface DocumentProps extends Props {
+export interface DocumentProps extends Props {
     confs?: string[];
     title?: string;
     styles?: string[];
@@ -600,7 +599,7 @@ export class Page {
         req.pageInfo = {
             lang: req.language.slice(0, req.language.length - 3),
             language: req.language,
-        };
+        }
 
         for (let region in contents) {
             numberOfContentFetchings++;
@@ -608,15 +607,14 @@ export class Page {
 
                 let model = new Model();
                 model.fetch().then(() => {
-                        ContentView.setPageInfo(model, req.pageInfo);
-
                         (model.props as any).l = req.localizations;
+                        ContentView.setPageInfo(model.props, (model.props as any).l, req.pageInfo);
+
                         resultContents[region] = React.createElement(ContentView as any, model.props, null);
                         resultJsonScriptData.push({
                             id: `composer-content-json-${getClassName(contents[region].model.class).toLowerCase()}`,
                             data: model.toData(),
                         });
-
 
                         finishedContentFetchings++;
 

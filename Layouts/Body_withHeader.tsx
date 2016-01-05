@@ -150,8 +150,10 @@ export class Body_withHeader extends LayoutComponent<Regions, {}, LayoutElements
 
     public bindDOM() {
         super.bindDOM();
-        let canvas = this.elements.canvasWave;
-        let sinusWave = new SineWave(this.elements.canvasWave.nativeElement as HTMLCanvasElement, canvas.getWidth(), canvas.getHeight());
-        sinusWave.start();
+        if(!cf.IN_IMAGE_TEST) {
+            let canvas = this.elements.canvasWave;
+            let sinusWave = new SineWave(this.elements.canvasWave.nativeElement as HTMLCanvasElement, canvas.getWidth(), canvas.getHeight());
+            sinusWave.start();
+        }
     }
 }

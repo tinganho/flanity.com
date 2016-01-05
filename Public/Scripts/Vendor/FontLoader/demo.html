@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>FontLoader example</title>
+	<style type="text/css">
+		#loading {
+			display: inline-block;
+			background-color: #3A87AD;
+			padding: 1px 4px 2px;
+			-webkit-border-radius: 3px;
+			-moz-border-radius: 3px;
+			border-radius: 3px;
+			font-size: 14px;
+			font-weight: bold;
+			font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+			line-height: 16px;
+			color: white;
+			text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+		}
+		#fontsContainer {
+			visibility: hidden;
+			font-size: 26px;
+		}
+		#fontsContainer > div {
+			margin-bottom: 10px;
+			float:left;
+			clear:left;
+		}
+	</style>
+	<script type="text/javascript" src="FontLoader.js"></script>
+</head>
+<body>
+	<div id="loading">loading fonts</div>
+	<div id="fontsContainer">
+		<div style="font-family: 'Titan One', serif;">The quick brown fox jumps over the lazy dog</div>
+		<div style="font-family: 'Courgette', serif;">The quick brown fox jumps over the lazy dog</div>
+		<div style="font-family: 'Fugaz One', serif;">The quick brown fox jumps over the lazy dog</div>
+		<div style="font-family: 'Shojumaru', serif;">The quick brown fox jumps over the lazy dog</div>
+		<div style="font-family: 'Kaushan Script', serif;">The quick brown fox jumps over the lazy dog</div>
+		<div style="font-family: 'Capriola', serif;">The quick brown fox jumps over the lazy dog</div>
+		<div style="font-family: 'Devonshire', serif;">The quick brown fox jumps over the lazy dog</div>
+		<div style="font-family: 'Fredericka the Great', serif;">The quick brown fox jumps over the lazy dog</div>
+        <div style="font-family: 'Open Sans', serif; font-style: italic;">The quick brown fox jumps over the lazy dog</div>
+        <div style="font-family: 'Open Sans', serif; font-weight: 800;">The quick brown fox jumps over the lazy dog</div>
+        <div style="font-family: 'Roboto', serif; font-weight: 100; font-style: italic;">The quick brown fox jumps over the lazy dog</div>
+        <div style="font-family: 'Roboto', serif; font-weight: 500;">The quick brown fox jumps over the lazy dog</div>
+	</div>
+	<script type="text/javascript">
+		var loadingElm = document.getElementById("loading"),
+			fontsContainerElm = document.getElementById("fontsContainer"),
+			elementsMap = {},
+			fontLoader,
+			fonts = [];
+		
+		// When developer tools are closed IE8 does not have console object.
+		if (typeof console === "undefined") {
+			console = {log: function() {}};
+		}
+		
+		function addFonts() {
+			var i, link, div, fontFamily, fontVariation, googleFontVariation, head = document.getElementsByTagName("head")[0];
+			// For each font family create <link> in head
+			for (i = 0; i < fontsContainerElm.childNodes.length - 1; i++) {
+				if (fontsContainerElm.childNodes[i].nodeType !== 1) continue;
+
+				div = fontsContainerElm.childNodes[i];
+                fontFamily = div.style.fontFamily.match(/[^'",;]+/)[0];
+                fontVariation = fontFamily;
+                googleFontVariation = fontFamily;
+                if (div.style.fontStyle || div.style.fontWeight) {
+                    fontVariation += ":";
+                    fontVariation += div.style.fontStyle ? div.style.fontStyle[0] : "n";
+                    fontVariation += div.style.fontWeight ? div.style.fontWeight[0] : "4";
+                    googleFontVariation += ":";
+                    googleFontVariation += div.style.fontWeight ? div.style.fontWeight : "";
+                    googleFontVariation += div.style.fontStyle ? div.style.fontStyle : "";
+                }
+				elementsMap[fontVariation] = div;
+				fonts.push(fontVariation);
+				
+				link = document.createElement("link");
+				link.rel = "stylesheet";
+				link.type = "text/css";
+				link.href = "http://fonts.googleapis.com/css?family=" + googleFontVariation;
+				head.appendChild(link);
+			}
+		}
+
+
+
+		window.setTimeout(function() {
+			
+			addFonts();
+
+			fontLoader = new FontLoader(fonts, {
+				fontLoaded: function(font) {
+                    console.log("font loaded: " + font.family + ", " + font.style + ", " + font.weight);
+				},
+                complete: function(error) {
+                    console.log("error:", error);
+                    loadingElm.style.display = "none";
+                    fontsContainerElm.style.visibility = "visible";
+                }
+			}, 3000);
+			fontLoader.loadFonts();
+			
+		}, 0);
+		
+	</script>
+</body>
+</html>

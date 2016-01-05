@@ -19,53 +19,68 @@ import cookieParser = require('cookie-parser');
 import bodyParser = require('body-parser');
 import { login } from './Contents/LogInForm/LogInAPI';
 import { init as initPages } from './Pages';
+import { ServerComposer } from './Core/ServerComposer';
 import { System, writeClientConfigurations } from './Library/Server/Index';
 import { setDefaultHttpRequestOptions, Debug } from './Library/Index';
 
-let Server = express();
-Server.use(compression());
-Server.use(logger('dev'));
-if (process.env.NODE_ENV === 'production') {
-    Server.use((req, res, next) => {
-        if(req.url.indexOf('/Public/') === 0) {
-            res.setHeader('Cache-Control', 'public, max-age=31536000000');
-            res.setHeader('Expires', new Date(Date.now() + 365 * 24 * 3600 * 1000).toUTCString());
-        }
-        return next();
+
+let serverComposer: ServerComposer;
+
+export function startServer(quiet = false) {
+    let Server = express();
+    Server.use(compression());
+    if (process.env.NODE_ENV === 'production') {
+        Server.use((req, res, next) => {
+            if(req.url.indexOf('/Public/') === 0) {
+                res.setHeader('Cache-Control', 'public, max-age=31536000000');
+                res.setHeader('Expires', new Date(Date.now() + 365 * 24 * 3600 * 1000).toUTCString());
+            }
+            return next();
+        });
+    }
+    if (!quiet) {
+        Server.use(logger('dev'));
+    }
+    Server.use(bodyParser.urlencoded({ extended: true }));
+    Server.use('/Public', express.static(System.joinPaths(__dirname, 'Public'), { etag: false }));
+    Server.use('/', express.static(__dirname));
+    Server.use(cookieParser());
+    Server.use(requestLanguage({
+        languages: ['en-US', 'zh-CN'],
+        cookie: {
+            name: 'language',
+            options: { maxAge: 24*3600*1000 },
+            url: '/languages/{language}'
+        },
+        localizations,
+    }));
+
+    setDefaultHttpRequestOptions({
+        host: cf.DEFAULT_HTTP_REQUEST_HOST,
+        port: cf.DEFAULT_HTTP_REQUEST_PORT,
+        protocol: cf.DEFAULT_HTTP_REQUEST_HTTPS ? 'https' : 'http',
+    });
+
+    Server.post('/login', login);
+
+    serverComposer = initPages(Server);
+
+    return new Promise((resolve, reject) => {
+        writeClientConfigurations();
+        serverComposer.start((err: any) => {
+            if (err) {
+                reject(err);
+            }
+            if (!quiet) {
+                Debug.prompt(`Server started at port ${process.env.PORT || cf.DEFAULT_SERVER_PORT}. Press CTRL + C to exit.`);
+            }
+            resolve();
+        });
     });
 }
-Server.use(bodyParser.urlencoded({ extended: true }));
-Server.use('/Public', express.static(System.joinPaths(__dirname, 'Public'), { etag: false }));
-Server.use('/', express.static(__dirname));
-Server.use(cookieParser());
-Server.use(requestLanguage({
-    languages: ['en-US', 'zh-CN'],
-    cookie: {
-        name: 'language',
-        options: { maxAge: 24*3600*1000 },
-        url: '/languages/{language}'
-    },
-    localizations,
-}));
 
-setDefaultHttpRequestOptions({
-    host: cf.DEFAULT_HTTP_REQUEST_HOST,
-    port: parseInt(cf.DEFAULT_HTTP_REQUEST_PORT),
-    protocol: cf.DEFAULT_HTTP_REQUEST_HTTPS ? 'https' : 'http',
-});
-
-Server.post('/login', login);
-
-let serverComposer = initPages(Server);
-
-export function start() {
-    writeClientConfigurations();
-    serverComposer.start((err: any) => {
-        if (err) {
-            throw err;
-        }
-        Debug.prompt(`Server started at port ${process.env.PORT || cf.DEFAULT_SERVER_PORT}. Press CTRL + C to exit.`);
-    });
+export function stopServer() {
+    serverComposer.stop();
 }
 
 export function emitClientFiles() {

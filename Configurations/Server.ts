@@ -21,7 +21,9 @@ export let ServerConfigurations = {
      *
      * @type string
      */
-    ORIGIN: 'https://flanity.com',
+    PROD_ORIGIN: 'https://flanity.com',
+    DEV_ORIGIN: 'http://flanity.local:3000',
+
     /**
      * Default server port.
      *
@@ -42,8 +44,8 @@ export let ServerConfigurations = {
      * @type { HEIGHT: number,  WIDTH: number }
      */
     DEFAULT_SCREEN_RESOLUTION: {
-        WIDTH: 1024,
-        HEIGHT: 768,
+        WIDTH: 1500,
+        HEIGHT: 1000,
     },
 
     /**
@@ -65,7 +67,7 @@ export let ServerConfigurations = {
      *
      * @type string
      */
-    DEFAULT_WEBDRIVER_SERVER: 'http://127.0.0.1:4444/wd/hub',
+    DEFAULT_WEBDRIVER_SERVER: 'http://localhost:4444/wd/hub',
 
     /**
      * Specify the idle time for your webdriver tests.
@@ -101,4 +103,11 @@ export let ServerConfigurations = {
      * @type number
      */
     ACCESS_TOKEN_MAX_AGE: 12 * 30 * 24 * 3600,
+
+    /**
+     * Flag for deciding if runtime is in image test.
+     *
+     * @type boolean
+     */
+    IN_IMAGE_TEST: process.env.IN_IMAGE_TEST,
 }

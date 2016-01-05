@@ -42,7 +42,7 @@ export abstract class DocumentComponent<P, L, E> extends ComposerComponent<P, L,
         children?: Child[]) {
 
         super(props, children);
-        this.manifestExists = System.exists(System.joinPaths(__dirname, '../Public/rev-manifest.json'));
+        this.manifestExists = System.fileExists(System.joinPaths(__dirname, '../Public/rev-manifest.json'));
     }
 }
 
@@ -53,7 +53,7 @@ export abstract class ContentComponent<P, L, E> extends ComposerComponent<P, L, 
     public static pendingPageDescription: string;
     public static pendingPageKeywords: string;
 
-    public static setPageInfo(props: any, pageInfo: PageInfo) {}
+    public static setPageInfo(props: any, l: GetLocalization, pageInfo: PageInfo) {}
 
     public static setPageTitle(title: string, pageInfo: PageInfo) {
         pageInfo.title = title;

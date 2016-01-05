@@ -14,12 +14,12 @@ let spawn = cp.spawn;
 
 interface BackendConfig {
      host: string;
-     port: string;
+     port: number;
      https?: boolean;
 }
 
 interface ServerConfig {
-    port: string;
+    port: number;
 }
 
 interface Config {
@@ -55,11 +55,11 @@ else {
     ]);
     let env = process.env;
     let serverConfig: ServerConfig = {
-        port: env.FLANITY_COM_SERVER_PORT,
+        port: parseInt(env.FLANITY_COM_SERVER_PORT),
     }
     let backendConfig: BackendConfig = {
         host: env.FLANITY_COM_BACKEND_HOST,
-        port: env.FLANITY_COM_BACKEND_PORT,
+        port: parseInt(env.FLANITY_COM_BACKEND_PORT),
         https: env.FLANITY_COM_BACKEND_HTTPS,
     }
 
@@ -69,41 +69,47 @@ else {
     }
 }
 
+interface WriteFileOptions {
+    encoding: 'utf8' | 'base64' | 'binary';
+}
+
 export let System = {
     hostname: os.hostname(),
     rootDir,
-    exists: (filename: string) => fs.existsSync(filename),
+    fileExists: (filename: string) => fs.existsSync(filename),
     readFile: (filename: string) => fs.readFileSync(filename, 'utf8'),
     createReadStream: fs.createReadStream,
     findFiles: (pattern: string) => glob.sync(pattern),
     dirname: (filename: string) => path.dirname(filename),
-    writeFile: (filename: string, data: string) => fs.writeFileSync(filename, data, { encoding: 'utf8' }),
+    writeFile: (filename: string, data: string, options?: WriteFileOptions) => fs.writeFileSync(filename, data, options || { encoding: 'utf8' }),
     removeFile: (filename: string) => fs.unlinkSync(filename),
     removeDir: (dirname: string) => remove.removeSync(dirname),
     createDir: (dirname: string) => mkdirp.sync(dirname),
     joinPaths: path.join,
     config,
-    exec: (cmd: string, options: string[], env?: any, quiet?: boolean) => {
-        return new Promise<string>((resolve, reject) => {
-            var cmdEmitter = spawn(cmd, options, { env: env || {} });
-            var output = '';
-            cmdEmitter.stdout.on('data', function(data: any) {
-                var tmpData = data.toString();
-                output += tmpData;
-                if (!quiet) {
-                    process.stdout.write(tmpData);
-                }
-            });
-            cmdEmitter.stderr.on('data', function (data: any) {
-                console.log(data.toString());
-            });
-            cmdEmitter.on('exit', function (code: number) {
-                if (!quiet) {
-                    console.log('child process exited with code ' + code);
-                }
-                resolve(output);
-            });
+    exec: (cmd: string, options: string[], spawnOptions?: any, quiet?: boolean) => {
+        let cmdEmitter = spawn(cmd, options, spawnOptions);
+        let output = '';
+        cmdEmitter.stdout.on('data', function(data: any) {
+            var tmpData = data.toString();
+            output += tmpData;
+            if (!quiet) {
+                process.stdout.write(tmpData);
+            }
         });
+        cmdEmitter.stderr.on('data', function (data: any) {
+            if (!quiet) {
+                process.stdout.write(data);
+            }
+        });
+        cmdEmitter.on('exit', function (code: number) {
+            if (!quiet) {
+                console.log('child process exited with code ' + code);
+                console.log(output);
+            }
+        });
+
+        return cmdEmitter;
     }
 }
 

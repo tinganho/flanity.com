@@ -1,11 +1,88 @@
 [
   {
     "files": [
+      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx"
+    ],
+    "id": "6LjGAGynsj9",
+    "key": "FORGOT_PASSWORD_FORM->PAGE_DESCRIPTION",
+    "new": true,
+    "timestamp": "2016-01-05T05:35:05.194Z",
+    "value": "Please type in your email to reset your current password.",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx"
+    ],
+    "id": "rLjGAGynsjz",
+    "key": "FORGOT_PASSWORD_FORM->PAGE_TITLE",
+    "new": true,
+    "timestamp": "2016-01-05T05:35:05.194Z",
+    "value": "Forgot Password",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/LogInForm/LogInFormView.tsx"
+    ],
+    "id": "9xGjEj6rUon",
+    "key": "LOG_IN_FORM->PAGE_DESCRIPTION",
+    "new": false,
+    "timestamp": "2016-01-05T05:32:11.046Z",
+    "value": "Log in using your username/email and password.",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/LogInForm/LogInFormView.tsx"
+    ],
+    "id": "7o6xMxkpUo5",
+    "key": "LOG_IN_FORM->PAGE_TITLE",
+    "new": false,
+    "timestamp": "2016-01-05T05:32:11.046Z",
+    "value": "Log In",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "XjE7AKjKH9",
+    "key": "SIGN_UP_FORM->PAGE_DESCRIPTION",
+    "new": false,
+    "timestamp": "2015-12-31T16:45:37.209Z",
+    "value": "Sign up on Flanity to become a member of a topic based streaming social network.",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/SignUpForm/SignUpFormView.tsx"
+    ],
+    "id": "E5EobA5AHo",
+    "key": "SIGN_UP_FORM->PAGE_TITLE",
+    "new": false,
+    "timestamp": "2015-12-31T16:45:37.209Z",
+    "value": "Sign up on Flanity",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/Hero/HeroView.tsx"
+    ],
+    "id": "dbKgXb6RH54",
+    "key": "DEFAULT->APP_TITLE",
+    "new": false,
+    "timestamp": "2015-12-31T15:17:05.036Z",
+    "value": "Flanity",
+    "variables": []
+  },
+  {
+    "files": [
       "Components/ImageCrop.tsx"
     ],
     "id": "ejxMoXajFe",
     "key": "DEFAULT->DONE",
-    "new": true,
+    "new": false,
     "timestamp": "2015-12-30T11:35:31.319Z",
     "value": "Done",
     "variables": []
@@ -16,7 +93,7 @@
     ],
     "id": "dbKexnabta",
     "key": "IMAGE_CROP->ZOOM_HELP_TEXT",
-    "new": true,
+    "new": false,
     "timestamp": "2015-12-30T11:35:31.319Z",
     "value": "Scroll to Zoom",
     "variables": []

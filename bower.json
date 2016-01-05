@@ -2,6 +2,7 @@
   "name": "composer",
   "version": "1.0.0",
   "dependencies": {
+    "FontLoader": "~0.0.2"
   },
   "devDependencies": {}
 }

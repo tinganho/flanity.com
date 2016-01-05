@@ -1,9 +1,7 @@
 
-import { React, ContentComponent, DOMElement } from '../../Library/Index';
+import { React, ContentComponent, DOMElement, PageInfo } from '../../Library/Index';
 
 interface Props {
-    changeLangURL: string;
-    changeLangText: string;
 }
 
 interface HeroElements {
@@ -16,6 +14,12 @@ interface L10ns {
 }
 
 export class HeroView extends ContentComponent<Props, L10ns, HeroElements> {
+    public static setPageInfo(props: Props, l: GetLocalization, pageInfo: PageInfo) {
+        this.setPageTitle(l('DEFAULT->APP_TITLE'), pageInfo);
+        this.setPageDescription(l('HERO->DESCRIPTION'), pageInfo);
+        this.setPageImage('/Public/Images/HeroImage.jpg', pageInfo);
+    }
+
     public render() {
         return (
             <div>
