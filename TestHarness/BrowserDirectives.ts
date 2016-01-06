@@ -1,5 +1,5 @@
 
-import { WebDriverTest } from './WebDriverTest';
+import { WebDriverTest } from './Harness';
 import {
     Pages,
     PlatformDetect,

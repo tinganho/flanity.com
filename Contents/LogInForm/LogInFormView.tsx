@@ -168,12 +168,13 @@ export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormEleme
 
         this.isRequesting = true;
 
-        unmarkPageAsLoaded();
         this.components.submitButton.startLoading();
         let callback = new DeferredCallback(2000, () => {
             this.components.submitButton.stopLoading();
         });
         this.components.formMessage.hideMessage();
+
+        unmarkLoadFinished();
         HTTP.post<ModelResponse<Session>>('/login', {
                 host: window.location.hostname,
                 port: parseInt(window.location.port),
@@ -194,7 +195,7 @@ export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormEleme
                             }
                         })
                         .then(() => {
-                            markPageAsLoaded();
+                            markLoadFinished();
                         })
                         .catch((err: HTTPResponse<ErrorResponse> | Error) => {
                             this.showErrorMessage(this.l10ns.unknownErrorErrorMessage);
@@ -202,7 +203,6 @@ export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormEleme
                 });
             })
             .catch((err: HTTPResponse<ErrorResponse> | Error) => {
-                markPageAsLoaded();
                 this.isRequesting = false;
                 if (err instanceof Error) {
                     throw err;
@@ -215,6 +215,7 @@ export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormEleme
                                 this.showErrorMessage(this.l10ns.userNotFoundErrorMessage);
                                 break;
                         }
+                        markLoadFinished();
                     });
                 }
             });

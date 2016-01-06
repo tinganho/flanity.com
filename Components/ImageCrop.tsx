@@ -21,7 +21,7 @@ interface ImageCropDimensions {
     paddingHorizontal: number;
 }
 
-function dataUriToBlob(dataURI: string) {
+function dataURIToBlob(dataURI: string) {
     var byteString = atob(dataURI.split(',')[1]);
     var ab = new ArrayBuffer(byteString.length);
     var ia = new Uint8Array(ab);
@@ -77,7 +77,7 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
         this.done = this.done.bind(this);
     }
 
-    render() {
+    public render() {
         let l = (window as any).localizations;
 
         return (
@@ -102,7 +102,7 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
         );
     }
 
-    setDimensions(d: ImageCropDimensions): this {
+    public setDimensions(d: ImageCropDimensions): this {
         this.canvasHeight = d.cropHeight * 3;
         this.canvasWidth = d.cropWidth * 3;
         let cropContainerHeight = d.cropHeight + d.paddingVertical * 2;
@@ -121,7 +121,7 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
         return this;
     }
 
-    setImage(image: HTMLImageElement): this {
+    public setImage(image: HTMLImageElement): this {
         this.originalImageHeight = image.height;
         this.originalImageWidth = image.width;
 
@@ -143,7 +143,7 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
         return this;
     }
 
-    bindInteractions() {
+    public bindInteractions() {
         let bullsEye = this.elements.bullsEye;
         bullsEye.addEventListener('wheel', this.zoom);
         bullsEye.addEventListener('mousedown', this.startDrag);
@@ -151,7 +151,7 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
         this.elements.doneButton.onClick(this.done);
     }
 
-    startDrag(event: MouseEvent) {
+    public startDrag(event: MouseEvent) {
         let bullsEye = this.elements.bullsEye;
         bullsEye.addEventListener('mousemove', this.drag);
         bullsEye.addEventListener('mouseleave', this.stopDrag);
@@ -163,7 +163,7 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
         this.startPageY = event.pageY;
     }
 
-    drag(event: MouseEvent) {
+    public drag(event: MouseEvent) {
         event.preventDefault();
 
         let deltaX = event.pageX - this.startPageX;
@@ -190,11 +190,11 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
         this.elements.imagePreview.setAttribute('style', `height: ${this.height}px; width: ${this.width}px; top: ${this.top}px; left: ${this.left}px;`);
     }
 
-    stopDrag() {
+    public stopDrag() {
         this.elements.bullsEye.removeEventListener('mousemove', this.drag);
     }
 
-    zoom(event: WheelEvent) {
+    public zoom(event: WheelEvent) {
         event.preventDefault();
 
         let ratio: number;
@@ -258,12 +258,12 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
         this.elements.imagePreview.setAttribute('style', `height: ${this.height}px; width: ${this.width}px; top: ${this.top}px; left: ${this.left}px;`);
     }
 
-    whenDone(done: (imageBlob: Blob, imageUrl: string) => void): this {
+    public whenDone(done: (imageBlob: Blob, imageUrl: string) => void): this {
         this.doneHandler = done;
         return this;
     }
 
-    done() {
+    public done() {
         let canvas = (this.elements.imageCropCanvasHelper.nativeElement as HTMLCanvasElement);
         let context = canvas.getContext('2d');
         let ratio = this.originalImageWidth / this.width;
@@ -287,10 +287,10 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
             });
 
         let dataURL = canvas.toDataURL('image/jpeg', 1);
-        this.doneHandler(dataUriToBlob(dataURL), dataURL);
+        this.doneHandler(dataURIToBlob(dataURL), dataURL);
     }
 
-    end() {
+    public end() {
         this.appendTo('Overlay');
         setTimeout(() => {
             this.root.addClass('Revealed').removeClass('Hidden');
@@ -299,7 +299,7 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
                     this.elements.zoomHelpTextContainer.addClass('Hidden').removeClass('Revealed')
                         .onTransitionEnd(() => {
                             this.elements.zoomHelpTextContainer.remove();
-                        })
+                        });
                 });
         }, 0);
         this.overlay = ContentComponent.getElement('Overlay');

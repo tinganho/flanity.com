@@ -2,8 +2,8 @@
 import { System } from '../Library/Server/Index';
 import { HTTP } from '../Library/Index';
 import { startServer, stopServer } from '../Server';
-import { WebDriverTest } from './WebDriverTest';
-var imageDiff = require('image-diff');
+import { WebDriverTest } from './Harness';
+var imageDiff = require('image-diff')
 
 interface PageInfo {
     title: string;
@@ -15,6 +15,11 @@ interface PageInfo {
 let quiet = true;
 if (typeof process.env.NO_QUIET !== 'undefined') {
     quiet = false;
+}
+
+interface TestFile {
+    setup(): Promise<any>;
+    test(test: WebDriverTest, data: any): WebDriverTest;
 }
 
 export function runImageTests() {
@@ -38,26 +43,30 @@ export function runImageTests() {
                 System.createDir(diffBaselineFolder);
             }
 
-
             cmdEmitter = startWebdriver();
             startServer(quiet);
             setTimeout(done, 5000);
         });
 
         beforeEach(() => {
+            if (process.env.NO_QUIET) {
+                console.log('Restoring test state...');
+            }
             return HTTP.del('/all').then((result) => {
-                return HTTP.post('/users', {
-                    host: System.config.backend.host,
-                    port: System.config.backend.port,
-                    body: {
-                        name: 'User1',
-                        email: 'user1@domain.com',
-                        username: 'username1',
-                        password: 'password',
-                        token: 'grantme',
+                    return HTTP.post('/users', {
+                        body: {
+                            name: 'User1',
+                            email: 'username1@domain.com',
+                            username: 'username1',
+                            password: 'password',
+                            token: 'grantme',
+                        }
+                    });
+                }).then(() => {
+                    if (process.env.NO_QUIET) {
+                        console.log('Finished restoring test state.');
                     }
                 });
-            });
         });
 
         after(cleanUp);
@@ -67,11 +76,14 @@ export function runImageTests() {
         for (let t of testFiles) {
             ((testFilePath: string) => {
                 let testName = t.replace(System.rootDir, '');
-                it(testName, () => {
+                it(testName, (done) => {
+                    if (process.env.NO_QUIET) {
+                        console.log(`Begin testing '${testName}'.`);
+                    }
                     let promise = Promise.resolve<any>();
                     let pageInfo = {} as PageInfo;
 
-                    let testFile = require(testFilePath);
+                    let testFile = require(testFilePath) as TestFile;
                     if (testFile.setup) {
                         promise = promise.then(() => {
                             return testFile.setup();
@@ -84,8 +96,9 @@ export function runImageTests() {
                         .then((data: any) => {
                             let webDriverTest = new WebDriverTest(testName, null);
                             return testFile.test(webDriverTest, data)
-                                .waitFor('PageFinishedLoading')
                                 .waitFor('FontFinishedLoading')
+                                .click('UnFocus')
+                                .sleep(3000)
                                 .screenshot()
                                 .getPageURL((URL: string) => {
                                     pageInfo.URL = URL;
@@ -105,34 +118,58 @@ export function runImageTests() {
                             let stringifiedPageInfo = JSON.stringify(pageInfo, null, 4);
                             let expectedPageInfo = '';
                             let expectedPageInfoFile = testFilePath.replace('Build/Tests/Cases/', 'Tests/Baselines/Reference/').replace('.js', '.page');
+                            let errors: string[] = [];
                             if (System.fileExists(expectedPageInfoFile)) {
                                 expectedPageInfo = System.readFile(expectedPageInfoFile);
                             }
 
                             System.writeFile(testFilePath.replace('Build/Tests/Cases/', 'Tests/Baselines/Current/').replace('.js', '.page'), stringifiedPageInfo);
                             if (stringifiedPageInfo !== expectedPageInfo) {
-                                throw new Error('Page info test failed for \'' + testName + '\'');
+                                errors.push('Page info test failed for \'' + testName + '\'');
                             }
                             return new Promise((resolve, reject) => {
+                                let diffImageFile = testFilePath.replace('Build/Tests/Cases/', 'Tests/Baselines/Diff/').replace('.js', '.jpg');
                                 imageDiff({
                                         actualImage: testFilePath.replace('Build/Tests/Cases/', 'Tests/Baselines/Current/').replace('.js', '.jpg'),
                                         expectedImage: testFilePath.replace('Build/Tests/Cases/', 'Tests/Baselines/Reference/').replace('.js', '.jpg'),
-                                        diffImage: testFilePath.replace('Build/Tests/Cases/', 'Tests/Baselines/Diff/').replace('.js', '.jpg'),
+                                        diffImage: diffImageFile,
                                     },
                                     (err: Error, imagesAreSame: boolean) => {
                                         if (err) {
                                             return reject(err);
                                         }
                                         if (!imagesAreSame) {
-                                            return reject(new Error('The image test failed for \'' + testName + '\''));
+                                            errors.push('The image test failed for \'' + testName + '\'');
+                                        }
+                                        else {
+                                            System.removeFile(diffImageFile);
+                                        }
+                                        if (errors.length > 0) {
+                                            return reject(new Error(errors.join('. ')));
                                         }
                                         resolve();
                                     });
                             });
                         });
 
+                    promise.catch((err) => {
+                        if (err.body &&
+                            err.body.feedback &&
+                            err.body.feedback.current &&
+                            err.body.feedback.current.description &&
 
-                    return promise;
+                            err.status && err.endpoint) {
+
+                            done(new Error(err.body.feedback.current.name + ': ' + err.body.feedback.current.description + ' ' + err.status + ' ' + err.endpoint));
+                        }
+                        else {
+                            done(err);
+                        }
+                    });
+
+                    promise.then(() => {
+                        done()
+                    });
                 });
             })(t);
         }
@@ -147,5 +184,7 @@ export function runImageTests() {
 function startWebdriver() {
     let env = process.env;
     env.PATH = '/usr/local/bin:' + env.PATH;
-    return System.exec('java', ['-jar', '../Binaries/selenium-server.jar'], { cwd: System.rootDir, env: env }, quiet);
+    let options = ['-jar', '../Binaries/selenium-server.jar'];
+    console.log('java', options.join(' '));
+    return System.exec('java', options, { cwd: System.rootDir, env: env }, quiet);
 }

@@ -21,7 +21,7 @@ import { login } from './Contents/LogInForm/LogInAPI';
 import { init as initPages } from './Pages';
 import { ServerComposer } from './Core/ServerComposer';
 import { System, writeClientConfigurations } from './Library/Server/Index';
-import { setDefaultHttpRequestOptions, Debug } from './Library/Index';
+import { setDefaultHttpRequestOptions, setDefaultXCSRFTokenHeader, Debug } from './Library/Index';
 
 
 let serverComposer: ServerComposer;
@@ -60,6 +60,7 @@ export function startServer(quiet = false) {
         port: cf.DEFAULT_HTTP_REQUEST_PORT,
         protocol: cf.DEFAULT_HTTP_REQUEST_HTTPS ? 'https' : 'http',
     });
+    setDefaultXCSRFTokenHeader();
 
     Server.post('/login', login);
 

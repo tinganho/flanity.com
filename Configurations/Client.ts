@@ -48,11 +48,11 @@ export let ClientConfigurations = {
     USERNAME_SYNTAX: '^([a-zA-Z][a-zA-Z0-9_]*)$',
 
     /**
-     * Username syntax.
+     * Email syntax.
      *
      * @type string
      */
-    EMAIL_SYNTAX: '^[^\s@]+@[^\s@]+\.[^\s@]+$',
+    EMAIL_SYNTAX: '^\\S+@\\S+\\.\\S+$',
 
     /**
      * Flag for deciding if runtime is in image test.

@@ -14,12 +14,5 @@ declare module App {
     export let router: Router;
 }
 
-/**
- * Mark page as loaded. The test harness will directly proceed the test after this mark.
- */
-declare function markPageAsLoaded(): void;
-
-/**
- * Unmark page as loaded. Useful during testing when the application requires a waiting time.
- */
-declare function unmarkPageAsLoaded(): void;
+declare function markLoadFinished(): void;
+declare function unmarkLoadFinished(): void;

@@ -1,5 +1,6 @@
 
 'use strict';
+
 let __r = require;
 import NodeHttp = require('http');
 let nodeHttp: typeof NodeHttp = inServer ? __r('http') : undefined;
@@ -43,7 +44,7 @@ export interface HTTPOptions {
     withCredentials?: boolean;
     agent?: NodeHttp.Agent;
     auth?: string;
-    headers?: HttpHeaders;
+    headers?: HTTPHeaders;
 
     // Magic property used for testing authenticate handler for handling no authorization headers
     _noAuthorizationHeader?: boolean;
@@ -99,12 +100,12 @@ export function setDefaultHttpRequestOptions(options: DefaultHttpRequestOptions)
     defaultHttpRequestOption = options;
 }
 
-let useXCsrfToken = false;
-export function setDefaultXCsrfTokenHeader(): void {
-    useXCsrfToken = true;
+let useXCSRFToken = false;
+export function setDefaultXCSRFTokenHeader(): void {
+    useXCSRFToken = true;
 }
 let useCorsCredentials = false;
-export function setDefaultCorsCredentials(): void {
+export function setDefaultCORSCredentials(): void {
     useCorsCredentials = true;
 }
 
@@ -176,7 +177,7 @@ export var HTTP = {
 
 export type Http = typeof HTTP;
 
-export interface HttpHeaders {
+export interface HTTPHeaders {
     'Accept'?: string;
     'Accept-Charset'?: string;
     'Accept-Encoding'?: string;
@@ -216,8 +217,9 @@ export interface HttpHeaders {
 export interface HTTPResponse<T> {
     body?: T;
     rawBody?: string;
-    headers?: HttpHeaders;
+    headers?: HTTPHeaders;
     status?: number;
+    endpoint?: string;
 }
 
 const multipartBoundary = 'iojeoijefoiewfmultipartefboundary';
@@ -309,7 +311,7 @@ function buildMultipartChunkedRequest(object: any, request: NodeHttp.ClientReque
 export class HttpRequest<R> {
     public response: HTTPResponse<R>;
     public clientRequest: NodeHttp.ClientRequest;
-    public requestHeaders: HttpHeaders = {};
+    public requestHeaders: HTTPHeaders = {};
     private serializedBody: string;
 
     public constructor(public path: string, public options: HTTPOptions) {
@@ -369,6 +371,10 @@ export class HttpRequest<R> {
                 }
             }
 
+            if (useXCSRFToken) {
+                this.options.headers['Accept'] = 'Content-Type:application/json; X-CSRF-Token=1';
+            }
+
             if (this.options.accessToken) {
                 this.options.headers['Authorization'] = `Bearer ${this.options.accessToken}`;
             }
@@ -419,9 +425,6 @@ export class HttpRequest<R> {
                 for (let h in this.options.headers) {
                     xhr.setRequestHeader(h, this.options.headers[h]);
                 }
-                if (useXCsrfToken) {
-                    xhr.setRequestHeader('Accept', 'Content-Type:application/json; X-CSRF-Token=1');
-                }
 
                 if (this.options.body instanceof FormData ||
                     this.options.body instanceof Blob ||
@@ -462,6 +465,7 @@ export class HttpRequest<R> {
                             catch(err) {}
                             finally {
                                 if (response.status >= HttpStatusCode.BadRequest /* 400 */) {
+                                    response.endpoint = this.options.method + ' ' + this.path;
                                     reject(response);
                                 }
                                 else {
@@ -473,6 +477,7 @@ export class HttpRequest<R> {
                 );
 
                 this.clientRequest.on('error', (err: any) => {
+                    console.log('wffwwfe');
                     reject(err);
                 });
 

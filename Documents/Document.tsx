@@ -122,6 +122,7 @@ export class Document extends DocumentComponent<ComposerDocumentProps, {}, Eleme
                             }
                         })()
                     }
+                    <div id='UnFocus'></div>
                 </body>
             </html>
         );

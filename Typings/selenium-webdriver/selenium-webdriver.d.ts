@@ -126,7 +126,7 @@ declare module 'selenium-webdriver' {
         public submit(): Promise<void>;
     }
 
-    interface Cookie {
+    export interface Cookie {
         name: string;
         value: string;
         path?: string;
@@ -185,12 +185,17 @@ declare module 'selenium-webdriver' {
         public tapAndHold(element: WebElement): TouchSequence;
     }
 
+    interface TimeoutOptions {
+        implicitlyWait(time: number): Promise<void>;
+    }
+
     class Options {
         public addCookie(name: string, value: string, path?: string, domain?: string, isSecure?: boolean, expiry?: number): Promise<void>;
         public deleteCookie(name: string): Promise<void>;
         public deleteAllCookies(): Promise<void>;
         public getCookie(name: string): Promise<Cookie>;
         public getCookies(): Promise<Cookie[]>;
+        public timeouts(): TimeoutOptions;
         public window(): Window;
     }
 
@@ -202,9 +207,10 @@ declare module 'selenium-webdriver' {
         public isElementPresent<T>(query: ElementQuery<T>): Promise<void>;
         public quit(): Promise<void>;
         public manage(): Options;
-        public executeScript(script: (...args: any[]) => void): Promise<any>;
+        public executeScript(script: ((...args: any[]) => void) | string, ...args: any[]): Promise<any>;
         public executeAsyncScript(script: (...args: any[]) => void): Promise<any>;
         public wait<T>(condition: Condition<T>, timeout?: number, message?: string): Promise<void>;
+        public sleep(time: number): Promise<void>;
     }
 
     class Alert {

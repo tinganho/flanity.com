@@ -128,7 +128,6 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
 
     private lastUsernameCheck: string;
     private lastUsernameCheckTime = 0;
-    private usernameIsUnique = false;
 
     private isRequesting = false;
 
@@ -143,13 +142,13 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
                             <input id='SignUpProfileImageInput' ref='profileImageInput' name='profileImage' type='file' accept='image/*'/>
                         </div>
                         <div id='SignUpNameAndPasswordContainer'>
-                            <input name='name' ref='name' type='text' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.namePlaceholder}/>
+                            <input id='SignUpFormNameInput' name='name' ref='name' type='text' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.namePlaceholder}/>
                             <input id='SignUpFormUsernameInput' name='username' ref='username' type='text' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.usernamePlaceholder}/>
                             <span id='SignUpUsernameFeedback' ref='usernameFeedback' class='Hidden'>&nbsp;</span>
                         </div>
                     </div>
-                    <input name='email' ref='email' type='email' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.emailPlaceholder}/>
-                    <input name='password' ref='password' type='password' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.passwordPlaceholder}/>
+                    <input id='SignUpFormEmailInput' name='email' ref='email' type='email' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.emailPlaceholder}/>
+                    <input id='SignUpFormPasswordInput' name='password' ref='password' type='password' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.passwordPlaceholder}/>
                     <p class='PromptText'>{this.l10ns.inviteFriendPromptText}</p>
                     <input name='friend1Email' ref='friend1Email' type='email' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.inviteFriendPlaceholder}/>
                     <input name='friend2Email' ref='friend2Email' type='email' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.inviteFriendPlaceholder}/>
@@ -308,8 +307,6 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
     }
 
     private inlineCheckUsername() {
-        unmarkPageAsLoaded();
-
         this.username = this.elements.username.getValue();
 
         if (Date.now() - this.lastUsernameCheckTime < 700) {
@@ -320,16 +317,15 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
             return;
         }
         if (this.username.length === 0) {
-            markPageAsLoaded();
             this.elements.usernameFeedback.setClass('Hidden');
         }
         else if (!cf.USERNAME_SYNTAX.test(this.username)) {
-            markPageAsLoaded();
             this.elements.usernameFeedback
                 .setHTML(this.l10ns.invalidUsernameErrorMessage)
                 .setClass('Error');
         }
         else {
+            unmarkLoadFinished();
             ((currentUsername: string) => {
                 HTTP.get(`/usernames/${encodeURIComponent(this.username)}`)
                     .then(() => {
@@ -337,9 +333,8 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
                             this.elements.usernameFeedback
                                 .setHTML(this.l10ns.usernameAlreadyTakenErrorMessage)
                                 .setClass('Error');
-                            this.usernameIsUnique = false;
-                            markPageAsLoaded();
                         }
+                        markLoadFinished();
                     })
                     .catch((err) => {
                         if (err) {
@@ -353,12 +348,9 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
                                 this.elements.usernameFeedback
                                     .setHTML(this.l10ns.usernameUniqueSuccessMessage)
                                     .setClass('Success');
-
-                                this.usernameIsUnique = true;
-
-                                markPageAsLoaded();
                             }
                         }
+                        markLoadFinished();
                     });
             })(this.username);
         }
@@ -387,10 +379,6 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
             return false;
         }
 
-        if (!this.usernameIsUnique) {
-            this.showErrorMessage(this.l10ns.usernameAlreadyTakenErrorMessage);
-            return false;
-        }
         return true;
     }
 
@@ -470,6 +458,7 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
             this.components.submitButton.stopLoading();
         });
 
+        unmarkLoadFinished();
         HTTP.post('/users',
             {
                 bodyType: HTTP.BodyType.MultipartFormData,
@@ -479,6 +468,7 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
                 callback.call(() => {
                     this.showSuccessMessage(this.l10ns.signUpSuccessfulMessage);
                     this.loginUser();
+                    markLoadFinished();
                 });
             })
             .catch((err) => {
@@ -502,6 +492,8 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
                             default:
                                 this.showErrorMessage(this.l10ns.unknownErrorErrorMessage);
                         }
+
+                        markLoadFinished();
                     });
                }
                this.isRequesting = false;

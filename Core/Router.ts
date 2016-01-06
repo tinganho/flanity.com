@@ -12,11 +12,11 @@ import ReactMod = require('../Library/Element');
 let React: typeof ReactMod = require('/Library/Element');
 import {
     setDefaultHttpRequestOptions as setOption,
-    setDefaultXCsrfTokenHeader as setXCsrfToken,
-    setDefaultCorsCredentials as setCorsCredentials } from '../Library/HTTP';
+    setDefaultXCSRFTokenHeader as setDefaultXCSRFTokenHeaderType,
+    setDefaultCORSCredentials as setDefaultCORSCredentialsType } from '../Library/HTTP';
 let setDefaultHttpRequestOptions: typeof setOption = require('/Library/HTTP').setDefaultHttpRequestOptions;
-let setDefaultXCsrfTokenHeader: typeof setXCsrfToken = require('/Library/HTTP').setDefaultXCsrfTokenHeader;
-let setDefaultCorsCredentials: typeof setCorsCredentials = require('/Library/HTTP').setDefaultCorsCredentials;
+let setDefaultXCSRFTokenHeader: typeof setDefaultXCSRFTokenHeaderType = require('/Library/HTTP').setDefaultXCSRFTokenHeader;
+let setDefaultCORSCredentials: typeof setDefaultCORSCredentialsType = require('/Library/HTTP').setDefaultCORSCredentials;
 import { ContentComponent as ContentComponentType, LayoutComponent, PageInfo } from '../Library/LayerComponents';
 let ContentComponent: typeof ContentComponentType = require('/Library/LayerComponents');
 import { DOMElement as DOMElementType } from '../Library/DOMElement';
@@ -78,8 +78,8 @@ export class Router {
                 matcher: new RegExp(routePattern),
                 path: page.route,
             }
-            setDefaultXCsrfTokenHeader();
-            setDefaultCorsCredentials();
+            setDefaultXCSRFTokenHeader();
+            setDefaultCORSCredentials();
             setDefaultHttpRequestOptions({
                 protocol: cf.DEFAULT_HTTP_REQUEST_HTTPS ? 'https' : 'http',
                 host: cf.DEFAULT_HTTP_REQUEST_HOST,
@@ -89,13 +89,6 @@ export class Router {
             this.routes.push(route);
             this.routingInfoIndex[route.path] = page;
             this.layoutRegion = document.getElementById('LayoutRegion');
-        }
-
-        if (document.readyState === 'complete') {
-            markPageAsLoaded();
-        }
-        else {
-            window.onload = markPageAsLoaded;
         }
 
         if (cf.IN_IMAGE_TEST) {
@@ -195,8 +188,6 @@ this component is properly named?`);
         let currentNumberOfFetches = 0;
         let expectedNumberOfFetches = 0;
 
-        unmarkPageAsLoaded();
-
         for (let content of nextPage.contents) {
 
             // Filter the content that will propogate to the next page.
@@ -267,7 +258,6 @@ this component is properly named?`);
                                             outgoingComponent.remove();
                                         }
                                         hasOutgoingTransition = true;
-                                        setTimeout(markPageAsLoaded, 1000);
                                     });
 
                                     // Give developer a warning that he has not implemented an outgoing transition.
@@ -379,17 +369,6 @@ function changePageImage(imagePath: string): void {
     }
 }
 
-function markPageAsLoaded() {
-    let pageLoadMark = DOMElement.getElement('PageFinishedLoading');
-    if (!pageLoadMark) {
-        let el = DOMElement.createElement('div');
-        el.setAttribute('style', 'display: none;');
-        el.setAttribute('id', 'PageFinishedLoading');
-        el.appendTo('LayoutRegion');
-    }
-}
-(window as any).markPageAsLoaded = markPageAsLoaded;
-
 function markFontsAsLoaded() {
     let el = DOMElement.createElement('div');
     el.setAttribute('style', 'display: none;');
@@ -397,12 +376,26 @@ function markFontsAsLoaded() {
     el.appendTo('LayoutRegion');
 }
 
-function unmarkPageAsLoaded() {
-    let pageLoadMark = DOMElement.getElement('PageFinishedLoading');
-    if (pageLoadMark) {
-        pageLoadMark.remove();
+let marks = 0;
+function markLoadFinished() {
+    marks += 1;
+    if (marks !== 0) {
+        return;
+    }
+    let el = DOMElement.createElement('div');
+    el.setAttribute('style', 'display: none;');
+    el.setAttribute('id', 'FinishedLoading');
+    el.appendTo('LayoutRegion');
+}
+(window as any).markLoadFinished = markLoadFinished;
+
+function unmarkLoadFinished() {
+    marks -= 1;
+    let el = DOMElement.getElement('FinishedLoading');
+    if (el) {
+        el.remove();
     }
 }
-(window as any).unmarkPageAsLoaded = unmarkPageAsLoaded;
+(window as any).unmarkLoadFinished = unmarkLoadFinished;
 
 export default Router;
