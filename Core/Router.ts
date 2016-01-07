@@ -84,6 +84,7 @@ export class Router {
                 protocol: cf.DEFAULT_HTTP_REQUEST_HTTPS ? 'https' : 'http',
                 host: cf.DEFAULT_HTTP_REQUEST_HOST,
                 port: cf.DEFAULT_HTTP_REQUEST_PORT,
+                timeout: cf.DEFAULT_HTTP_REQUEST_TIMEOUT,
             });
 
             this.routes.push(route);

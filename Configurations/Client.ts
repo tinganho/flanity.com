@@ -41,6 +41,13 @@ export let ClientConfigurations = {
     DEFAULT_HTTP_REQUEST_HTTPS: System.config.backend.https,
 
     /**
+     * Default HTTP request timeout.
+     *
+     * @type number
+     */
+    DEFAULT_HTTP_REQUEST_TIMEOUT: cf.DEFAULT_HTTP_REQUEST_TIMEOUT,
+
+    /**
      * Username syntax.
      *
      * @type string

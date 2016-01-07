@@ -12,7 +12,7 @@ export { Cookie } from 'selenium-webdriver';
 
 export class WebDriverTest {
     private driver: webdriver.WebDriver;
-    private currentControlFlow: Promise<any>;
+    public currentControlFlow: Promise<any>;
 
     constructor(public testName: string, public capabilites: webdriver.Capabilities) {
         let _capabilities = (webdriver as any).Capabilities.chrome();

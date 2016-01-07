@@ -73,8 +73,8 @@ export class ResetPasswordFormView extends ContentComponent<Props, L10ns, HeroEl
             <div>
                 <form id='ResetPasswordFormForm' class='CentralForm BgWhite'>
                     <p id='ResetPasswordFormDescription' class='PromptText'>{this.l10ns.resetPasswordDescription}</p>
-                    <input name='newPassword' ref='newPasswordInput' type='password' class='TextInput ResetPasswordFormTextInput' placeholder={this.l10ns.newPasswordPlaceholderText}/>
-                    <input name='repeatPassword' ref='repeatPasswordInput' type='password' class='TextInput ResetPasswordFormTextInput' placeholder={this.l10ns.repeatPasswordPlaceholderText}/>
+                    <input id='ResetPasswordFormNewPasswordInput' name='newPassword' ref='newPasswordInput' type='password' class='TextInput ResetPasswordFormTextInput' placeholder={this.l10ns.newPasswordPlaceholderText}/>
+                    <input id='ResetPasswordFormRepeatPasswordInput' name='repeatPassword' ref='repeatPasswordInput' type='password' class='TextInput ResetPasswordFormTextInput' placeholder={this.l10ns.repeatPasswordPlaceholderText}/>
                     <FormMessage/>
                     <SubmitButton id='ResetPasswordFormSubmitButton' ref='submitButton' buttonText={this.l10ns.sendButtonText}/>
                 </form>
@@ -178,6 +178,7 @@ export class ResetPasswordFormView extends ContentComponent<Props, L10ns, HeroEl
             this.components.submitButton.stopLoading();
         });
 
+        unmarkLoadFinished();
         HTTP.put<string>('/users/me/password', {
                 body: {
                     token: App.router.getQueryParam('token'),
@@ -187,6 +188,7 @@ export class ResetPasswordFormView extends ContentComponent<Props, L10ns, HeroEl
             .then(() => {
                 callback.call(() => {
                     this.showSuccessMessage(this.l10ns.successfulMessage);
+                    markLoadFinished();
                 });
             })
             .catch((err: HTTPResponse<ErrorResponse> | Error) => {
@@ -194,6 +196,7 @@ export class ResetPasswordFormView extends ContentComponent<Props, L10ns, HeroEl
                 if (err instanceof Error) {
                     callback.call(() => {
                         this.showErrorMessage(this.l10ns.unknownErrorErrorMessage);
+                        markLoadFinished();
                     });
                     throw err;
                 }
@@ -205,6 +208,7 @@ export class ResetPasswordFormView extends ContentComponent<Props, L10ns, HeroEl
                         else {
                             this.showErrorMessage(this.l10ns.unknownErrorErrorMessage);
                         }
+                        markLoadFinished();
                     });
                 }
             });

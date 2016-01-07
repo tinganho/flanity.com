@@ -11,7 +11,7 @@ module.exports = function(grunt) {
         env.IN_IMAGE_TEST = true;
 
         var cmd = './node_modules/mocha/bin/mocha';
-        var options = ['./Build/TestHarness/Runner.js', '--reporter', 'dot', '--timeout', '300000', '--colors', '--full-trace'];
+        var options = ['./Build/TestHarness/Runner.js', '--reporter', 'dot', '--timeout', '600000', '--colors', '--full-trace'];
 
         if (grunt.option('grep')) {
             options.push('--grep');
@@ -28,6 +28,11 @@ module.exports = function(grunt) {
 
         if (grunt.option('no-test-retries')) {
             env.NO_TEST_RETRIES = true;
+        }
+
+
+        if (grunt.option('interactive')) {
+            env.INTERACTIVE = true;
         }
 
         console.log(cmd, options.join(' '));

@@ -63,7 +63,7 @@ export class ForgotPasswordFormView extends ContentComponent<Props, L10ns, HeroE
             <div>
                 <form id='ForgotPasswordFormForm' class='CentralForm BgWhite'>
                     <p id='ForgotPasswordFormDescription' class='PromptText'>{this.l10ns.forgotPasswordDescription}</p>
-                    <input name='email' ref='emailInput' type='text' class='TextInput ForgotPasswordFormTextInput' placeholder={this.l10ns.emailPlaceholderText}/>
+                    <input id='ForgotPasswordEmailInput' name='email' ref='emailInput' type='text' class='TextInput ForgotPasswordFormTextInput' placeholder={this.l10ns.emailPlaceholderText}/>
                     <FormMessage/>
                     <SubmitButton id='ForgotPasswordFormSubmitButton' ref='submitButton' buttonText={this.l10ns.sendButtonText}/>
                 </form>
@@ -146,6 +146,7 @@ export class ForgotPasswordFormView extends ContentComponent<Props, L10ns, HeroE
             this.components.submitButton.stopLoading();
         });
 
+        unmarkLoadFinished();
         HTTP.post<string>('/forgot-password-tokens', {
                 body: {
                     email: this.email,
@@ -154,17 +155,20 @@ export class ForgotPasswordFormView extends ContentComponent<Props, L10ns, HeroE
             .then(() => {
                 callback.call(() => {
                     this.showSuccessMessage(this.l10ns.successfulMessage);
+                    markLoadFinished();
                 });
             })
             .catch((err: HTTPResponse<ErrorResponse> | Error) => {
                 if (err instanceof Error) {
                     callback.call(() => {
+                        markLoadFinished();
                         this.showErrorMessage(this.l10ns.unknownErrorErrorMessage);
                     });
                     throw err;
                 }
                 else {
                     callback.call(() => {
+                        markLoadFinished();
                         if (err.body.feedback.current.code === ForgotPasswordRequestFeedback.UserNotFound) {
                             this.showErrorMessage(this.l10ns.userNotFoundErrorMessage);
                         }

@@ -1,11 +1,33 @@
 [
   {
     "files": [
+      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
+    ],
+    "id": "jKxA4y9oIM",
+    "key": "RESET_PASSWORD_FORM->PAGE_DESCRIPTION",
+    "new": true,
+    "timestamp": "2016-01-07T07:45:28.367Z",
+    "value": "Please enter your new password.",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
+    ],
+    "id": "yxG4XjkoIG",
+    "key": "RESET_PASSWORD_FORM->PAGE_TITLE",
+    "new": true,
+    "timestamp": "2016-01-07T07:45:28.367Z",
+    "value": "Reset Password",
+    "variables": []
+  },
+  {
+    "files": [
       "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx"
     ],
     "id": "6LjGAGynsj9",
     "key": "FORGOT_PASSWORD_FORM->PAGE_DESCRIPTION",
-    "new": true,
+    "new": false,
     "timestamp": "2016-01-05T05:35:05.194Z",
     "value": "Please type in your email to reset your current password.",
     "variables": []
@@ -16,7 +38,7 @@
     ],
     "id": "rLjGAGynsjz",
     "key": "FORGOT_PASSWORD_FORM->PAGE_TITLE",
-    "new": true,
+    "new": false,
     "timestamp": "2016-01-05T05:35:05.194Z",
     "value": "Forgot Password",
     "variables": []

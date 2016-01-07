@@ -59,6 +59,7 @@ export function startServer(quiet = false) {
         host: cf.DEFAULT_HTTP_REQUEST_HOST,
         port: cf.DEFAULT_HTTP_REQUEST_PORT,
         protocol: cf.DEFAULT_HTTP_REQUEST_HTTPS ? 'https' : 'http',
+        timeout: cf.DEFAULT_HTTP_REQUEST_TIMEOUT,
     });
     setDefaultXCSRFTokenHeader();
 

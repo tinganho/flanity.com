@@ -10,6 +10,7 @@ interface Session {
 }
 
 export function setup() {
+    let accessToken: string;
     return HTTP.post('/users', {
             body: {
                 name: 'User2',
@@ -30,12 +31,14 @@ export function setup() {
             });
         })
         .then((response: HTTPResponse<ModelResponse<Session>>) => {
+            accessToken = response.body.model.accessToken
             return HTTP.get('/users/2/email-verification', {
-                accessToken: response.body.model.accessToken,
+                accessToken,
             });
         })
         .then((response: HTTPResponse<ModelResponse<EmailVerification>>) => {
             return HTTP.del('/users/2/email-verification', {
+                accessToken,
                 body: {
                     token: response.body.model.token
                 }

@@ -98,6 +98,13 @@ export let ServerConfigurations = {
     DEFAULT_HTTP_REQUEST_HTTPS: System.config.backend.https,
 
     /**
+     * Default HTTP request timeout.
+     *
+     * @type number
+     */
+    DEFAULT_HTTP_REQUEST_TIMEOUT: process.env.NODE_ENV === 'development' ? 2 * 60 * 1000 : 5 * 60 * 1000,
+
+    /**
      * Access token max age.
      *
      * @type number

@@ -45,6 +45,7 @@ export interface HTTPOptions {
     agent?: NodeHttp.Agent;
     auth?: string;
     headers?: HTTPHeaders;
+    timeout?: number;
 
     // Magic property used for testing authenticate handler for handling no authorization headers
     _noAuthorizationHeader?: boolean;
@@ -88,12 +89,14 @@ interface DefaultHttpRequestOptions {
     protocol: 'https' | 'http';
     host: string;
     port: number;
+    timeout: number;
 }
 
 let defaultHttpRequestOption: DefaultHttpRequestOptions = {
     protocol: 'http',
     host: 'localhost',
     port: 3000,
+    timeout: 2 * 3600,
 }
 
 export function setDefaultHttpRequestOptions(options: DefaultHttpRequestOptions): void {
@@ -333,6 +336,10 @@ export class HttpRequest<R> {
             options.port = defaultHttpRequestOption.port;
         }
 
+        if (!options.timeout) {
+            options.timeout = defaultHttpRequestOption.timeout;
+        }
+
         if (this.options.body && typeof this.options.body !== 'string') {
             if (this.options.bodyType === BodyType.ApplicationJson) {
                 this.serializedBody = JSON.stringify(this.options.body);
@@ -420,6 +427,10 @@ export class HttpRequest<R> {
                 }
                 url += this.path;
                 xhr.open(this.options.method, url, true);
+                xhr.timeout = this.options.timeout;
+                xhr.ontimeout = () => {
+                    reject(new Error(`Timeout on HTTP request ${this.options.method} ${this.path}`));
+                }
 
                 // Set request header. We must set headers after the XHR has been opened.
                 for (let h in this.options.headers) {
@@ -476,8 +487,10 @@ export class HttpRequest<R> {
                     }
                 );
 
+                this.clientRequest.setTimeout(this.options.timeout, () => {
+                    reject(new Error(`Timeout on HTTP request ${this.options.method} ${this.path}`));
+                });
                 this.clientRequest.on('error', (err: any) => {
-                    console.log('wffwwfe');
                     reject(err);
                 });
 

@@ -22,6 +22,10 @@ interface TestFile {
     test(test: WebDriverTest, data: any): WebDriverTest;
 }
 
+let masks: RegExp[] = [
+    /^\/reset\-password\?token\=(.+)/
+];
+
 export function runImageTests() {
     let testFiles = System.findFiles(System.joinPaths(System.rootDir, 'Tests/Cases/**/*.js'));
     let cmdEmitter: any;
@@ -52,21 +56,18 @@ export function runImageTests() {
             if (process.env.NO_QUIET) {
                 console.log('Restoring test state...');
             }
-            return HTTP.del('/all').then((result) => {
-                    return HTTP.post('/users', {
-                        body: {
-                            name: 'User1',
-                            email: 'username1@domain.com',
-                            username: 'username1',
-                            password: 'password',
-                            token: 'grantme',
-                        }
+            return new Promise<void>((resolve, reject) => {
+                stateRestore().then(resolve).catch(() => {
+                    console.log('Retrying to restore...');
+                    stateRestore().then(resolve).catch(() => {
+                        console.log('Retrying to restore...');
+                        stateRestore().then(resolve).catch(() => {
+                            console.log('Retrying to restore...');
+                            stateRestore().then(resolve).catch(reject);
+                        });
                     });
-                }).then(() => {
-                    if (process.env.NO_QUIET) {
-                        console.log('Finished restoring test state.');
-                    }
                 });
+            });
         });
 
         after(cleanUp);
@@ -95,13 +96,13 @@ export function runImageTests() {
                     promise = promise
                         .then((data: any) => {
                             let webDriverTest = new WebDriverTest(testName, null);
-                            return testFile.test(webDriverTest, data)
+                            let test = testFile.test(webDriverTest, data)
                                 .waitFor('FontFinishedLoading')
                                 .click('UnFocus')
-                                .sleep(3000)
+                                .sleep(3500)
                                 .screenshot()
                                 .getPageURL((URL: string) => {
-                                    pageInfo.URL = URL;
+                                    pageInfo.URL = mask(URL);
                                 })
                                 .getPageTitle((title: string) => {
                                     pageInfo.title = title;
@@ -110,20 +111,25 @@ export function runImageTests() {
                                     pageInfo.description = description;
                                 })
                                 .getPageImage((imageURL: string) => {
-                                    pageInfo.imageURL = imageURL;
-                                })
-                                .end();
+                                    pageInfo.imageURL = mask(imageURL);
+                                });
+
+                            if (!process.env.INTERACTIVE) {
+                                return test.end();
+                            }
+                            return test.currentControlFlow;
                         })
                         .then(() => {
                             let stringifiedPageInfo = JSON.stringify(pageInfo, null, 4);
                             let expectedPageInfo = '';
                             let expectedPageInfoFile = testFilePath.replace('Build/Tests/Cases/', 'Tests/Baselines/Reference/').replace('.js', '.page');
                             let errors: string[] = [];
+                            let pageInfoFile = testFilePath.replace('Build/Tests/Cases/', 'Tests/Baselines/Current/').replace('.js', '.page');
                             if (System.fileExists(expectedPageInfoFile)) {
                                 expectedPageInfo = System.readFile(expectedPageInfoFile);
                             }
-
-                            System.writeFile(testFilePath.replace('Build/Tests/Cases/', 'Tests/Baselines/Current/').replace('.js', '.page'), stringifiedPageInfo);
+                            System.createDir(System.dirname(pageInfoFile));
+                            System.writeFile(pageInfoFile, stringifiedPageInfo);
                             if (stringifiedPageInfo !== expectedPageInfo) {
                                 errors.push('Page info test failed for \'' + testName + '\'');
                             }
@@ -179,6 +185,36 @@ export function runImageTests() {
             cmdEmitter.kill('SIGHUP');
         }
     });
+}
+
+function mask(target: string) {
+    let result: string;
+    for (let m of masks) {
+        m.lastIndex = 0;
+        if (m.test(target)) {
+            return target.replace(m, (str, m1) => str.replace(m1, '-- HIDDEN BY TEST --'));
+        }
+    }
+
+    return target;
+}
+
+function stateRestore() {
+    return HTTP.del('/all').then((result) => {
+            return HTTP.post('/users', {
+                body: {
+                    name: 'User1',
+                    email: 'username1@domain.com',
+                    username: 'username1',
+                    password: 'password',
+                    token: 'grantme',
+                }
+            });
+        }).then(() => {
+            if (process.env.NO_QUIET) {
+                console.log('Finished restoring test state.');
+            }
+        })
 }
 
 function startWebdriver() {
