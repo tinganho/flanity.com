@@ -7,7 +7,7 @@ declare function requireLocalizations(locale: string): typeof l;
 
 
 import { Contents, } from '../Core/ServerComposer';
-import { Model, } from '../Library/Model';
+import { Model, RequestInfo } from '../Library/Model';
 import ReactMod = require('../Library/Element');
 let React: typeof ReactMod = require('/Library/Element');
 import {
@@ -22,11 +22,20 @@ let ContentComponent: typeof ContentComponentType = require('/Library/LayerCompo
 import { DOMElement as DOMElementType } from '../Library/DOMElement';
 let DOMElement: typeof DOMElementType = require('/Library/DOMElement').DOMElement;
 
-interface Page {
-    route: string;
+interface PlatformInfo {
     document: ComponentInfo;
     layout: ComponentInfo;
     contents: ContentComponentInfo[];
+    detect(): boolean;
+}
+
+interface PlatformInfoIndex {
+    [key: string]: PlatformInfo;
+}
+
+interface Page {
+    route: string;
+    platforms: PlatformInfoIndex;
 }
 
 export interface ClassInfo {
@@ -51,6 +60,7 @@ interface Map {
 interface Route {
     matcher: RegExp;
     path: string;
+    params: string[];
 }
 
 interface CurrentContents {
@@ -68,15 +78,23 @@ export class Router {
     public currentRegions: string[] = [];
     public onPushState: (route: string) => void;
 
-    constructor(public appName: string, pages: Page[], public pageComponents: any) {
+    private currentParams: any;
+    private currentPlatform: string;
+
+    constructor(public appName: string, pages: Page[], public pageComponents: any, public platformDetects: any) {
         for (let page of pages) {
+            let routeParams: string[] = [];
             let routePattern = '^' + page.route
-                .replace(/:(\w+)\//, (match, param) => `(${param})`)
-                .replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&') + '$';
+                .replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
+                .replace(/:(\w+)\\\//, (match, param) => {
+                    routeParams.push(param);
+                    return `(.+)\\/`;
+                }) + '$';
 
             let route: Route = {
                 matcher: new RegExp(routePattern),
                 path: page.route,
+                params: routeParams,
             }
             setDefaultXCSRFTokenHeader();
             setDefaultCORSCredentials();
@@ -131,6 +149,16 @@ export class Router {
     private checkRouteAndRenderIfMatch(currentRoute: string): void {
         this.routes.some(route => {
             if (route.matcher.test(currentRoute)) {
+                let matches = route.matcher.exec(currentRoute);
+                for (let i = 0; i < route.params.length; i++) {
+                    this.currentParams[route.params[i]] = matches[i + 1];
+                }
+                for (let i in this.routingInfoIndex[route.path].platforms) {
+                    if (this.platformDetects[i]()) {
+                        this.currentPlatform = i;
+                        break;
+                    }
+                }
                 this.renderPage(this.routingInfoIndex[route.path]);
                 return true;
             }
@@ -138,8 +166,8 @@ export class Router {
         });
     }
 
-    private loadContentFromJsonScripts(placeholderContents: Contents, page: Page): void {
-        for (let content of page.contents) {
+    private loadContentFromJSONScripts(placeholderContents: Contents, page: Page): void {
+        for (let content of page.platforms[this.currentPlatform].contents) {
             let jsonElement = document.getElementById(`composer-content-json-${content.model.className.toLowerCase()}`);
             if (!jsonElement) {
                 throw new Error(
@@ -166,7 +194,7 @@ this component is properly named?`);
     }
 
     private bindLayoutAndContents(page: Page, contents: Contents): void {
-        this.currentLayoutView = new this.pageComponents.Layout[page.layout.view.className](contents);
+        this.currentLayoutView = new this.pageComponents.Layout[page.platforms[this.currentPlatform].layout.view.className](contents);
         this.currentLayoutView.bindDOM();
         this.currentContents = this.currentLayoutView.components as any;
     }
@@ -174,7 +202,7 @@ this component is properly named?`);
     private renderPage(page: Page): void {
         let contents: Contents = {};
         if (this.inInitialPageLoad) {
-            this.loadContentFromJsonScripts(contents, page);
+            this.loadContentFromJSONScripts(contents, page);
             this.bindLayoutAndContents(page, contents);
             this.inInitialPageLoad = false;
         }
@@ -189,7 +217,9 @@ this component is properly named?`);
         let currentNumberOfFetches = 0;
         let expectedNumberOfFetches = 0;
 
-        for (let content of nextPage.contents) {
+        unmarkLoadFinished();
+
+        for (let content of nextPage.platforms[this.currentPlatform].contents) {
 
             // Filter the content that will propogate to the next page.
             if (this.currentContents.hasOwnProperty(toCamelCase(content.view.className))) {
@@ -198,27 +228,41 @@ this component is properly named?`);
 
             let ContentView = this.pageComponents.Contents[content.view.className];
             let ContentModel = this.pageComponents.Contents[content.model.className];
-
+            let requestInfo: RequestInfo<any, any> = {
+                params: this.currentParams,
+                query: location.search,
+            }
             expectedNumberOfFetches++;
 
             ((contentInfo: ContentComponentInfo, ContentModel: typeof Model, ContentView: typeof ContentComponent) => {
-                let model = new ContentModel;
-                model.fetch().then(() => {
+                let ViewClass = this.pageComponents.Contents[contentInfo.view.className];
+                if (ContentModel) {
+                    let model = new ContentModel;
+                    model.fetch(requestInfo).then(() => {
+                        (model.props as any).l = (window as any).localizations;
+                        (model.props as any).model = model;
+                        ViewClass.setPageInfo(model.props, (model.props as any).l, pageInfo);
 
-                    let ViewClass = this.pageComponents.Contents[contentInfo.view.className];
-                    (model.props as any).l = (window as any).localizations;
-                    (model.props as any).model = model;
-                    ViewClass.setPageInfo(model.props, (model.props as any).l, pageInfo);
+                        newContents[contentInfo.region] = React.createElement(ViewClass, model.props, null);
+                        render();
+                    })
+                    .catch((err: Error) => {
+                        console.log(err.stack);
+                    });
+                }
+                else {
+                    ViewClass.setPageInfo({}, (window as any).localizations, pageInfo);
+                    render();
+                }
 
+                function render() {
                     changePageTitle(pageInfo.title || 'NO_PAGE_TITLE');
                     changePageDescription(pageInfo.description);
                     changePageImage(pageInfo.image);
 
-                    newContents[contentInfo.region] = React.createElement(ViewClass, model.props, null);
-
                     currentNumberOfFetches++;
                     if (currentNumberOfFetches === expectedNumberOfFetches) {
-                        let LayoutComponentClass = (this as any).pageComponents.Layout[nextPage.layout.view.className];
+                        let LayoutComponentClass = (this as any).pageComponents.Layout[nextPage.platforms[this.currentPlatform].layout.view.className];
 
                         // If we are not in the same layout, we will replace the current layout region with a new one.
                         if (LayoutComponentClass.name !== this.currentLayoutView.id) {
@@ -274,6 +318,7 @@ this component is properly named?`);
                                         currentRemovals++;
                                         if (currentRemovals === expectedRemovals) {
                                             this.currentContents = this.currentLayoutView.components as CurrentContents;
+                                            markLoadFinished();
                                         }
                                     });
                                 })(outgoingComponent.id);
@@ -293,12 +338,8 @@ this component is properly named?`);
 
                         }
                     }
-                })
-                .catch((err: Error) => {
-                    console.log(err.stack);
-                });
-
-            })(content, ContentView, ContentModel);
+                }
+            })(content, ContentModel, ContentView);
         }
     }
 }

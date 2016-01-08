@@ -102,8 +102,8 @@ export class Document extends DocumentComponent<ComposerDocumentProps, {}, Eleme
                         return (
                             <script
                                 type='application/json'
-                                id={attr.id}>
-                                {JSON.stringify(attr)}
+                                id={attr.id}
+                                html={JSON.stringify(attr)}>
                             </script>
                         );
                     })}

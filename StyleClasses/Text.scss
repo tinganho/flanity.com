@@ -24,11 +24,37 @@
 
 .TextLink {
     color: #2B86CB;
-    font-size: 12px;
     font-weight: 400;
     cursor: pointer;
 
     &:active {
         opacity: 0.3;
     }
+}
+
+.TextLink1 {
+    @extend .TextLink;
+    font-size: 12px;
+}
+
+.TextLink2 {
+    @extend .TextLink;
+    font-size: 14px;
+}
+
+.DialogTitle {
+    font-size: 18px;
+    color: #333;
+    font-weight: 400;
+}
+
+.DialogText {
+    font-size: 14px;
+    color: #666;
+    font-weight: 200;
+}
+
+.Horizontal {
+    border-bottom: 1px solid #DCDCDC;
+    border-top: none;
 }

@@ -1,5 +1,5 @@
 
-import { DOMElement, Debug, isArray, Map } from '../Library/Index';
+import { DOMElement, Debug, isArray, Map, HTMLEncode } from '../Library/Index';
 import { Component, Props } from '../Core/Component';
 
 let id = 0;
@@ -249,7 +249,7 @@ export function createElement(
                     continue;
                 }
                 if (typeof child === 'string') {
-                    frag += child;
+                    frag += HTMLEncode(child);
                 }
                 else if (isArray<JSX.Element[]>(child)) {
                     for (let c of child) {

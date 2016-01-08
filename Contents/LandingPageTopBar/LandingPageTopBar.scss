@@ -1,12 +1,12 @@
 
-#TopBarView {
+#LandingPageTopBarView {
     position: absolute;
     z-index: 1000;
     width: 100%;
     height: 60px;
 }
 
-#TopBarLogoContainer {
+#LandingPageTopBarLogoContainer {
     width: 200px;
     text-align: center;
     margin: 0 auto;
@@ -20,7 +20,7 @@
     }
 }
 
-#TopBarLogo {
+#LandingPageTopBarLogo {
     display: inline-block;
     width: 133px;
     height: 30px;
@@ -28,7 +28,7 @@
     background-size: 133px 30px;
 }
 
-#TopBarLoginButtonContainer {
+#LandingPageTopBarLoginButtonContainer {
     position: absolute;
     right: 0;
     top: 0;
@@ -39,7 +39,7 @@
     @include align-items(center);
 }
 
-#TopBarLoginButton {
+#LandingPageTopBarLoginButton {
     cursor: pointer;
 
     &:active {

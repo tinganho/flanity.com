@@ -1,6 +1,6 @@
 
 import { Express, Request, Response } from 'express';
-import { PageEmitInfo, emitBindings, ModuleKind } from './WebBindingsEmitter';
+import { PageEmitInfo, PlatformEmitIndex, emitBindings, ModuleKind, PlatformDetects } from './WebBindingsEmitter';
 import { createServer, Server } from 'http';
 import * as ts from 'typescript';
 import { ComponentInfo, ContentComponentInfo } from './Router';
@@ -13,7 +13,8 @@ import {
     PageInfo,
     LayoutComponent,
     DocumentComponent,
-    ContentComponent } from '../Library/Index';
+    ContentComponent,
+    RequestInfo } from '../Library/Index';
 
 export interface JsonScriptAttributes {
     id: string;
@@ -70,7 +71,7 @@ interface ProvidedContentDeclarations {
 
 interface ContentViewModelClassAndImport {
     view: ContentViewClassAndImportPathDeclaration;
-    model: ContentModelClassAndImportPathDeclaration;
+    model?: ContentModelClassAndImportPathDeclaration;
 }
 
 interface StoredContentDeclarations {
@@ -87,7 +88,8 @@ export interface PlatformDetect {
     /**
      * Specify a function to detect this platform.
      */
-    detect(req: Request): boolean;
+    serverDetect(req: Request): boolean;
+    clientDetect(): boolean;
 }
 
 export interface Contents {
@@ -208,8 +210,8 @@ export class ServerComposer {
     public pageCount: number;
     public server: Server;
     public defaultDocument: DocumentDeclaration;
-    public defaultPlatform: PlatformDetect;
     public defaultDocumentProps: DocumentProps;
+    public platformDetects: PlatformDetects = {};
 
     /**
      * Storage for all page emit infos.
@@ -283,10 +285,6 @@ export class ServerComposer {
         this.defaultDocumentProps = documentProps;
     }
 
-    public setDefaultPlatform(platform: PlatformDetect): void {
-        this.defaultPlatform = platform;
-    }
-
     public start(callback?: (err?: Error) => void): void {
         this.server = createServer(this.options.app);
         let hasCalled = false;
@@ -320,6 +318,7 @@ export class ServerComposer {
                 this.options.routerOutput,
                 this.getAllImportPaths(this.pageEmitInfos),
                 this.pageEmitInfos,
+                this.platformDetects,
                 writer,
                 { moduleKind: this.options.moduleKind }
             );
@@ -351,28 +350,31 @@ export class ServerComposer {
         let componentEmitInfos: ComponentInfo[] = [];
         let classNames: string[] = []
         for (let pageEmitInfo of pageEmitInfos) {
-            if (classNames.indexOf(pageEmitInfo.document.view.className) === -1) {
-                componentEmitInfos.push(pageEmitInfo.document);
-            }
-
-            if (classNames.indexOf(pageEmitInfo.layout.view.className) === -1) {
-                componentEmitInfos.push(pageEmitInfo.layout);
-            }
-
-            for (let contentEmitInfo of pageEmitInfo.contents) {
-                if (classNames.indexOf(contentEmitInfo.model.className) === -1) {
-                    componentEmitInfos.push({
-                        model: {
-                            className: contentEmitInfo.model.className,
-                            importPath: contentEmitInfo.model.importPath,
-                        },
-                        view: {
-                            className: contentEmitInfo.view.className,
-                            importPath: contentEmitInfo.view.importPath,
-                        },
-                        name: getNormalizedNameFromViewClassName(contentEmitInfo.view.className),
-                    });
+            for (let i in pageEmitInfo.platforms) {
+                if (classNames.indexOf(pageEmitInfo.platforms[i].document.view.className) === -1) {
+                    componentEmitInfos.push(pageEmitInfo.platforms[i].document);
                 }
+
+                if (classNames.indexOf(pageEmitInfo.platforms[i].layout.view.className) === -1) {
+                    componentEmitInfos.push(pageEmitInfo.platforms[i].layout);
+                }
+
+                for (let contentEmitInfo of pageEmitInfo.platforms[i].contents) {
+                    if (classNames.indexOf(contentEmitInfo.model.className) === -1) {
+                        componentEmitInfos.push({
+                            model: {
+                                className: contentEmitInfo.model.className,
+                                importPath: contentEmitInfo.model.importPath,
+                            },
+                            view: {
+                                className: contentEmitInfo.view.className,
+                                importPath: contentEmitInfo.view.importPath,
+                            },
+                            name: getNormalizedNameFromViewClassName(contentEmitInfo.view.className),
+                        });
+                    }
+                }
+
             }
         }
 
@@ -399,13 +401,15 @@ export interface DocumentProps extends Props {
 
 
 interface Platform {
+    name: string;
     imports: string[];
     importNames: string[];
     document?: DocumentDeclaration;
     documentProps?: DocumentProps;
     layout?: LayoutDeclaration;
     contents?: StoredContentDeclarations;
-    detect(req: Request): boolean;
+    serverDetect(req: Request): boolean;
+    clientDetect(): boolean;
 }
 
 /**
@@ -434,10 +438,6 @@ export class Page {
         this.route = route;
         this.serverComposer = serverComposer;
 
-        if (this.serverComposer.defaultPlatform) {
-            this.setPlatform(this.serverComposer.defaultPlatform);
-        }
-
         if (this.serverComposer.defaultDocument) {
             this.currentPlatform.document = this.serverComposer.defaultDocument;
             this.currentPlatform.documentProps = this.serverComposer.defaultDocumentProps;
@@ -455,9 +455,14 @@ export class Page {
 
     private setPlatform(platform: PlatformDetect): void {
         this.platforms[platform.name] = {
+            name: platform.name,
             imports: [],
             importNames: [],
-            detect: platform.detect
+            serverDetect: platform.serverDetect,
+            clientDetect: platform.clientDetect,
+        }
+        if (!this.serverComposer.platformDetects[platform.name]) {
+            this.serverComposer.platformDetects[platform.name] = platform.clientDetect;
         }
         this.currentPlatform = this.platforms[platform.name];
     }
@@ -469,7 +474,6 @@ export class Page {
         if (!this.currentPlatform) {
             Debug.error(`You must define a platform with 'onPlatform(...)' method before you call 'hasDocument(...)'.`);
         }
-
         if (!this.serverComposer.options.defaultDocumentFolder) {
             Debug.error('You have not defined a default document folder.');
         }
@@ -507,17 +511,16 @@ export class Page {
             if (!this.serverComposer.options.defaultContentFolder) {
                 Debug.error('You have not defined a default content folder.');
             }
-            let modelClassName = getClassName(content.model);
-            let viewClassName = getClassName(content.view);
-            newContents[region] = {
-                model: {
+            newContents[region] = {} as ContentViewModelClassAndImport;
+            if (content.model) {
+                newContents[region].model = {
                     class: content.model,
-                    importPath: System.joinPaths(this.serverComposer.options.defaultContentFolder, `${modelClassName.replace('Model', '')}/${modelClassName}`),
-                },
-                view: {
-                    class: content.view,
-                    importPath: System.joinPaths(this.serverComposer.options.defaultContentFolder, `${viewClassName.replace('View', '')}/${viewClassName}`),
-                },
+                    importPath: System.joinPaths(this.serverComposer.options.defaultContentFolder, `/${getClassName(content.model)}`),
+                }
+            }
+            newContents[region].view = {
+                class: content.view,
+                importPath: System.joinPaths(this.serverComposer.options.defaultContentFolder, `/${getClassName(content.view)}`),
             }
         }
         this.currentPlatform.contents = newContents;
@@ -538,50 +541,63 @@ export class Page {
     }
 
     private registerPage(): void {
-        let contentEmitInfos: ContentComponentInfo[] = [];
-        let document = this.currentPlatform.document;
-        let layout = this.currentPlatform.layout;
-        let contents = this.currentPlatform.contents;
+        let platformEmitInfo: PlatformEmitIndex = {};
+        for (let i in this.platforms) {
+            let currentPlatform = this.platforms[i];
 
-        for (let region in contents) {
-            let content = contents[region];
+            let contentEmitInfos: ContentComponentInfo[] = [];
+            let document = currentPlatform.document;
+            let layout = currentPlatform.layout;
+            let contents = currentPlatform.contents;
 
-            contentEmitInfos.push({
-                model: {
-                    className: getClassName(content.model.class),
-                    importPath: content.model.importPath,
+            for (let region in contents) {
+                let content = contents[region];
+
+                let contentEmitInfo: ContentComponentInfo = {
+                    view: {
+                        className: getClassName(content.view.class),
+                        importPath: content.view.importPath,
+                    },
+                    name: getNormalizedNameFromViewClass(content.view.class),
+                    region: region,
+                }
+                if (content.model) {
+                    contentEmitInfo.model = {
+                        className: getClassName(content.model.class),
+                        importPath: content.model.importPath,
+                    }
+                }
+                contentEmitInfos.push(contentEmitInfo);
+            }
+
+            platformEmitInfo[currentPlatform.name] = {
+                document: {
+                    view: {
+                        className: getClassName(document.view.class),
+                        importPath: document.view.importPath,
+                    },
+                    name: getNormalizedNameFromViewClass(document.view.class),
                 },
-                view: {
-                    className: getClassName(content.view.class),
-                    importPath: content.view.importPath,
+                layout: {
+                    view: {
+                        className: getClassName(layout.view.class),
+                        importPath: layout.view.importPath,
+                    },
+                    name: getNormalizedNameFromViewClass(layout.view.class),
                 },
-                name: getNormalizedNameFromViewClass(content.view.class),
-                region: region,
-            });
+                contents: contentEmitInfos,
+            }
         }
 
         this.serverComposer.pageEmitInfos.push({
             route: this.route,
-            document: {
-                view: {
-                    className: getClassName(document.view.class),
-                    importPath: document.view.importPath,
-                },
-                name: getNormalizedNameFromViewClass(document.view.class),
-            },
-            layout: {
-                view: {
-                    className: getClassName(layout.view.class),
-                    importPath: layout.view.importPath,
-                },
-                name: getNormalizedNameFromViewClass(layout.view.class),
-            },
-            contents: contentEmitInfos,
+            platforms: platformEmitInfo,
         });
     }
 
     private handlePageRequest(req: Request, res: Response, next: () => void): void {
         this.getContents(req, res, (contents, jsonScriptData) => {
+            console.log(this.currentPlatform.name)
             this.currentPlatform.documentProps.pageInfo = req.pageInfo;
             this.currentPlatform.documentProps.jsonScriptData = jsonScriptData;
             this.currentPlatform.documentProps.layout = new this.currentPlatform.layout.view.class(contents);
@@ -591,11 +607,22 @@ export class Page {
     }
 
     private getContents(req: Request, res: Response, next: (contents: Contents, jsonScriptData: JsonScriptAttributes[]) => void): void {
+        for (let i in this.platforms) {
+            if (this.platforms[i].serverDetect(req)) {
+                this.currentPlatform = this.platforms[i];
+                break;
+            }
+        }
         let contents = this.currentPlatform.contents;
         let resultContents: Contents = {};
-        let resultJsonScriptData: JsonScriptAttributes[] = [];
+        let resultJSONScriptData: JsonScriptAttributes[] = [];
         let numberOfContentFetchings = 0;
         let finishedContentFetchings = 0;
+        let requestInfo: RequestInfo<any, any> = {
+            params: req.params,
+            query: req.query,
+        }
+
         req.pageInfo = {
             lang: req.language.slice(0, req.language.length - 3),
             language: req.language,
@@ -605,34 +632,46 @@ export class Page {
             numberOfContentFetchings++;
             (function(region: string, ContentModel: typeof Model, ContentView: typeof ContentComponent) {
 
-                let model = new Model();
-                model.fetch().then(() => {
-                        (model.props as any).l = req.localizations;
-                        ContentView.setPageInfo(model.props, (model.props as any).l, req.pageInfo);
+                if (ContentModel) {
+                    let contentModel = new ContentModel();
+                    contentModel.fetch(requestInfo).then(() => {
+                            (contentModel.props as any).l = req.localizations;
+                            ContentView.setPageInfo(contentModel.props, (contentModel.props as any).l, req.pageInfo);
 
-                        resultContents[region] = React.createElement(ContentView as any, model.props, null);
-                        resultJsonScriptData.push({
-                            id: `composer-content-json-${getClassName(contents[region].model.class).toLowerCase()}`,
-                            data: model.toData(),
+                            resultContents[region] = React.createElement(ContentView as any, contentModel.props, null);
+                            resultJSONScriptData.push({
+                                id: `composer-content-json-${getClassName(contents[region].model.class).toLowerCase()}`,
+                                data: contentModel.toData(),
+                            });
+
+                            finishedContentFetchings++;
+
+                            if (numberOfContentFetchings === finishedContentFetchings) {
+                                next(resultContents, resultJSONScriptData);
+                            }
+                        })
+                        .catch((err: Error) => {
+                            console.log(err.stack);
+                            if (process.env.NODE_ENV === 'development') {
+                                res.status(500).send(err.stack);
+                            }
+                            else {
+                                res.status(500).send('');
+                            }
                         });
+                }
+                else {
+                    ContentView.setPageInfo({}, req.localizations, req.pageInfo);
+                    resultContents[region] = React.createElement(ContentView as any, { l: req.localizations }, null);
 
-                        finishedContentFetchings++;
+                    finishedContentFetchings++;
 
-                        if (numberOfContentFetchings === finishedContentFetchings) {
-                            next(resultContents, resultJsonScriptData);
-                        }
-                    })
-                    .catch((err: Error) => {
-                        console.log(err.stack);
-                        if (process.env.NODE_ENV === 'development') {
-                            res.status(500).send(err.stack);
-                        }
-                        else {
-                            res.status(500).send('');
-                        }
-                    });
+                    if (numberOfContentFetchings === finishedContentFetchings) {
+                        next(resultContents, resultJSONScriptData);
+                    }
+                }
 
-            })(region, contents[region].model.class, contents[region].view.class as any);
+            })(region, contents[region].model && contents[region].model.class, contents[region].view.class as any);
         }
     }
 }

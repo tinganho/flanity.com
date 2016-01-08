@@ -1,27 +1,34 @@
 
 /// <reference path='./Library/Component.d.ts'/>
 
-import express = require('express');
+import { Express, Request, Response } from 'express';
 import { Document } from './Documents/Document';
-import { HeroView } from './Contents/Hero/HeroView';
-import { HeroModel } from './Contents/Hero/HeroModel';
-import { TopBarView } from './Contents/TopBar/TopBarView';
-import { TopBarModel } from './Contents/TopBar/TopBarModel';
-import { SignUpFormView } from './Contents/SignUpForm/SignUpFormView';
-import { SignUpFormModel } from './Contents/SignUpForm/SignUpFormModel';
-import { LogInFormModel } from './Contents/LogInForm/LogInFormModel';
-import { LogInFormView } from './Contents/LogInForm/LogInFormView';
+import { ServerComposer, PlatformDetect } from './Core/ServerComposer';
+import { ModuleKind } from './Core/WebBindingsEmitter';
+
+import { WebLandingPage } from './Layouts/WebLandingPage';
+import { WebApp } from './Layouts/WebApp';
+
+import { AppTopBarModel } from './Contents/AppTopBar/AppTopBarModel';
+import { AppTopBarView } from './Contents/AppTopBar/AppTopBarView';
+import { EmailVerificationModel } from './Contents/EmailVerification/EmailVerificationModel';
+import { EmailVerificationView } from './Contents/EmailVerification/EmailVerificationView';
 import { ForgotPasswordFormModel } from './Contents/ForgotPasswordForm/ForgotPasswordFormModel';
 import { ForgotPasswordFormView } from './Contents/ForgotPasswordForm/ForgotPasswordFormView';
+import { HeroView } from './Contents/Hero/HeroView';
+import { HeroModel } from './Contents/Hero/HeroModel';
+import { LogInFormModel } from './Contents/LogInForm/LogInFormModel';
+import { LogInFormView } from './Contents/LogInForm/LogInFormView';
 import { ResetPasswordFormModel } from './Contents/ResetPasswordForm/ResetPasswordFormModel';
 import { ResetPasswordFormView } from './Contents/ResetPasswordForm/ResetPasswordFormView';
-import { ServerComposer } from './Core/ServerComposer';
-import { ModuleKind } from './Core/WebBindingsEmitter';
-import { Body_withHeader } from './Layouts/Body_withHeader';
+import { SignUpFormView } from './Contents/SignUpForm/SignUpFormView';
+import { SignUpFormModel } from './Contents/SignUpForm/SignUpFormModel';
+import { LandingPageTopBarView } from './Contents/LandingPageTopBar/LandingPageTopBarView';
+import { LandingPageTopBarModel } from './Contents/LandingPageTopBar/LandingPageTopBarModel';
 
 let serverComposer: ServerComposer;
 
-export function init(app: express.Express) {
+export function init(app: Express) {
     serverComposer = new ServerComposer({
         app,
         rootPath: __dirname,
@@ -33,35 +40,87 @@ export function init(app: express.Express) {
         defaultContentFolder: 'Contents',
     });
 
-    let webPlatform = {
-        name: 'web',
-        detect: () => true,
+    let onlineServerDetect = (req: Request) => {
+        if (/^\/signup/.test(req.url) ||
+            /^\/login/.test(req.url) ||
+            /^\/reset-password/.test(req.url) ||
+            /^\/forgot-password/.test(req.url)) {
+
+            return false
+        }
+        if (req.cookies.hasAccessToken) {
+            return true;
+        }
+        return false;
+    }
+    let OfflineWeb: PlatformDetect = {
+        name: 'OfflineWeb',
+        serverDetect: (req: Request) => true,
+        clientDetect: () => true,
+    }
+    let OnlineWeb: PlatformDetect = {
+        name: 'OnlineWeb',
+        serverDetect: onlineServerDetect,
+        clientDetect: () => {
+            let URL = window.location.pathname;
+            if (/^\/signup/.test(URL) ||
+                /^\/login/.test(URL) ||
+                /^\/reset-password/.test(URL) ||
+                /^\/forgot-password/.test(URL)) {
+
+                return false;
+            }
+            if (/hasAccessToken/.test(document.cookie)) {
+                return true;
+            }
+            return false;
+        },
     }
 
     serverComposer.setPages({
         '/': page => {
-            page.onPlatform(webPlatform)
+            page.onPlatform(OnlineWeb)
                 .hasDocument(Document, {})
-                .hasLayout(Body_withHeader, {
+                .hasLayout(WebApp, {
                     Header: {
-                        model: TopBarModel,
-                        view: TopBarView,
+                        model: AppTopBarModel,
+                        view: AppTopBarView,
+                    },
+                })
+                .onPlatform(OfflineWeb)
+                .hasDocument(Document, {})
+                .hasLayout(WebLandingPage, {
+                    Header: {
+                        model: LandingPageTopBarModel,
+                        view: LandingPageTopBarView,
                     },
                     Body: {
                         model: HeroModel,
                         view: HeroView,
                     },
                 })
-                .end();
+                .end()
+        },
+
+        '/@:username': page => {
+            page.onPlatform(OnlineWeb)
+                .hasDocument(Document, {})
+                .hasLayout(WebApp, {
+                    Header: {
+                        model: AppTopBarModel,
+                        view: AppTopBarView,
+                    },
+                })
+                .end()
         },
 
         '/forgot-password': page => {
-            page.onPlatform(webPlatform)
+            page.onPlatform(OfflineWeb)
                 .hasDocument(Document, {})
-                .hasLayout(Body_withHeader, {
+                .hasLayout(WebLandingPage, {
                     Header: {
-                        model: TopBarModel,
-                        view: TopBarView,
+                        model: LandingPageTopBarModel,
+                        view: LandingPageTopBarView,
                     },
                     Body: {
                         model: ForgotPasswordFormModel,
@@ -72,12 +131,12 @@ export function init(app: express.Express) {
         },
 
         '/login': page => {
-            page.onPlatform(webPlatform)
+            page.onPlatform(OfflineWeb)
                 .hasDocument(Document, {})
-                .hasLayout(Body_withHeader, {
+                .hasLayout(WebLandingPage, {
                     Header: {
-                        model: TopBarModel,
-                        view: TopBarView,
+                        model: LandingPageTopBarModel,
+                        view: LandingPageTopBarView,
                     },
                     Body: {
                         model: LogInFormModel,
@@ -89,12 +148,12 @@ export function init(app: express.Express) {
 
 
         '/reset-password': page => {
-            page.onPlatform(webPlatform)
+            page.onPlatform(OfflineWeb)
                 .hasDocument(Document, {})
-                .hasLayout(Body_withHeader, {
+                .hasLayout(WebLandingPage, {
                     Header: {
-                        model: TopBarModel,
-                        view: TopBarView,
+                        model: LandingPageTopBarModel,
+                        view: LandingPageTopBarView,
                     },
                     Body: {
                         model: ResetPasswordFormModel,
@@ -105,16 +164,32 @@ export function init(app: express.Express) {
         },
 
         '/signup': page => {
-            page.onPlatform(webPlatform)
+            page.onPlatform(OfflineWeb)
                 .hasDocument(Document, {})
-                .hasLayout(Body_withHeader, {
+                .hasLayout(WebLandingPage, {
                     Header: {
-                        model: TopBarModel,
-                        view: TopBarView,
+                        model: LandingPageTopBarModel,
+                        view: LandingPageTopBarView,
                     },
                     Body: {
                         model: SignUpFormModel,
                         view: SignUpFormView,
+                    },
+                })
+                .end();
+        },
+
+        '/email-verification': page => {
+            page.onPlatform(OfflineWeb)
+                .hasDocument(Document, {})
+                .hasLayout(WebLandingPage, {
+                    Header: {
+                        model: LandingPageTopBarModel,
+                        view: LandingPageTopBarView,
+                    },
+                    Body: {
+                        model: EmailVerificationModel,
+                        view: EmailVerificationView,
                     },
                 })
                 .end();

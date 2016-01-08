@@ -136,7 +136,7 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
     public render() {
         return (
             <div>
-                <form id='SignUpFormForm' class='CentralForm BgWhite'>
+                <form id='SignUpFormForm' class='CentralForm BgWhite2'>
                     <div id='SignUpFormFirstRow'>
                         <div id='SignUpProfileImage' ref='profileImage'>
                             <input id='SignUpProfileImageInput' ref='profileImageInput' name='profileImage' type='file' accept='image/*'/>

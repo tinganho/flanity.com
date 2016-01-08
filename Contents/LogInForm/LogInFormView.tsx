@@ -79,11 +79,11 @@ export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormEleme
     public render() {
         return (
             <div>
-                <form id='LogInFormForm' class='CentralForm BgWhite'>
+                <form id='LogInFormForm' class='CentralForm BgWhite2'>
                     <input id='LogInFormUsernameOrEmail' name='usernameOrEmail' ref='usernameOrEmail' type='text' class='TextInput LogInFormTextInput' placeholder={this.l10ns.usernameOrEmailPlaceholder}/>
                     <input id='LogInFormPassword' name='password' ref='password' type='password' class='TextInput LogInFormTextInput' placeholder={this.l10ns.passwordPlaceholder}/>
                     <FormMessage/>
-                    <a id='LogInFormForgotPasswordLink' ref='passwordLink' class='TextLink'>{this.l10ns.forgotPassword}</a>
+                    <a id='LogInFormForgotPasswordLink' ref='passwordLink' class='TextLink1'>{this.l10ns.forgotPassword}</a>
                     <SubmitButton id='LogInSubmitButton' ref='submitButton' buttonText={this.l10ns.submitButtonText}/>
                 </form>
             </div>
@@ -187,6 +187,7 @@ export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormEleme
             .then((response) => {
                 callback.call(() => {
                     let session = response.body.model;
+                    document.cookie = 'hasAccessToken=1; expires=' + session.expiry;
                     HTTP.post('/session/cookies', {
                             body: {
                                 accessToken: session.accessToken,

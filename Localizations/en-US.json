@@ -1,11 +1,77 @@
 [
   {
     "files": [
+      "Contents/EmailVerification/EmailVerificationView.tsx"
+    ],
+    "id": "MGMg9GXAS8",
+    "key": "EMAIL_VERIFICATION->ERROR_DESCRIPTION",
+    "new": true,
+    "timestamp": "2016-01-07T19:53:50.135Z",
+    "value": "Please resend an email verification from your <a class='TextLink1' href='/settings'>account settings</a>.",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/EmailVerification/EmailVerificationView.tsx"
+    ],
+    "id": "6LjGKLkpSX",
+    "key": "EMAIL_VERIFICATION->ERROR_TITLE",
+    "new": true,
+    "timestamp": "2016-01-07T19:53:50.135Z",
+    "value": "Email Not Verified",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/EmailVerification/EmailVerificationView.tsx"
+    ],
+    "id": "rLjGKLgpSg",
+    "key": "EMAIL_VERIFICATION->SUCCESS_DESCRIPTION",
+    "new": true,
+    "timestamp": "2016-01-07T19:53:50.135Z",
+    "value": "Congratulations! You have been successfully verified your email.",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/EmailVerification/EmailVerificationView.tsx"
+    ],
+    "id": "xRoKERg8Fe",
+    "key": "EMAIL_VERIFICATION->SUCCESS_TITLE",
+    "new": true,
+    "timestamp": "2016-01-07T19:53:50.135Z",
+    "value": "Email Verified",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/EmailVerification/EmailVerificationView.tsx"
+    ],
+    "id": "zEoKL8rBupg",
+    "key": "EMAIL_VERIFICATION->PAGE_DESCRIPTION",
+    "new": false,
+    "timestamp": "2016-01-07T17:00:13.233Z",
+    "value": "You have been successfully verified your email",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/EmailVerification/EmailVerificationView.tsx"
+    ],
+    "id": "jKxALM9yuyq",
+    "key": "EMAIL_VERIFICATION->PAGE_TITLE",
+    "new": false,
+    "timestamp": "2016-01-07T17:00:13.233Z",
+    "value": "Email Verification",
+    "variables": []
+  },
+  {
+    "files": [
       "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
     ],
     "id": "jKxA4y9oIM",
     "key": "RESET_PASSWORD_FORM->PAGE_DESCRIPTION",
-    "new": true,
+    "new": false,
     "timestamp": "2016-01-07T07:45:28.367Z",
     "value": "Please enter your new password.",
     "variables": []
@@ -16,7 +82,7 @@
     ],
     "id": "yxG4XjkoIG",
     "key": "RESET_PASSWORD_FORM->PAGE_TITLE",
-    "new": true,
+    "new": false,
     "timestamp": "2016-01-07T07:45:28.367Z",
     "value": "Reset Password",
     "variables": []

@@ -71,7 +71,7 @@ export class ResetPasswordFormView extends ContentComponent<Props, L10ns, HeroEl
     public render() {
         return (
             <div>
-                <form id='ResetPasswordFormForm' class='CentralForm BgWhite'>
+                <form id='ResetPasswordFormForm' class='CentralForm BgWhite2'>
                     <p id='ResetPasswordFormDescription' class='PromptText'>{this.l10ns.resetPasswordDescription}</p>
                     <input id='ResetPasswordFormNewPasswordInput' name='newPassword' ref='newPasswordInput' type='password' class='TextInput ResetPasswordFormTextInput' placeholder={this.l10ns.newPasswordPlaceholderText}/>
                     <input id='ResetPasswordFormRepeatPasswordInput' name='repeatPassword' ref='repeatPasswordInput' type='password' class='TextInput ResetPasswordFormTextInput' placeholder={this.l10ns.repeatPasswordPlaceholderText}/>

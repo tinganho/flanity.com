@@ -15,16 +15,16 @@ interface L10ns {
     login: string;
 }
 
-export class TopBarView extends ContentComponent<Props, L10ns, FooterElements> {
+export class LandingPageTopBarView extends ContentComponent<Props, L10ns, FooterElements> {
     public render() {
         return (
             <div>
                 <a ref='logoAnchor' href='/'>
-                    <div id='TopBarLogoContainer'>
-                        <i id='TopBarLogo'></i>
+                    <div id='LandingPageTopBarLogoContainer'>
+                        <i id='LandingPageTopBarLogo'></i>
                     </div>
                 </a>
-                <div id='TopBarLoginButtonContainer'>
+                <div id='LandingPageTopBarLoginButtonContainer'>
                     <a ref='loginButton' id='TopBarLoginButton'>{this.l10ns.login}</a>
                 </div>
             </div>

@@ -46,7 +46,7 @@ export function forEach<T, U>(array: T[], callback: (element: T, index: number) 
 
 export interface EmitTextWriter {
     write(s: string): void;
-    writeLine(): void;
+    writeLine(text?: string): void;
     increaseIndent(): void;
     decreaseIndent(): void;
     getText(): string;
@@ -56,6 +56,9 @@ export interface EmitTextWriter {
     getLine(): number;
     getColumn(): number;
     getIndent(): number;
+    record(): void;
+    revertBackToLastRecord(): void;
+    writeFormattedText(text: string): void;
 }
 
 export function createTextWriter(newLine: String): EmitTextWriter {
@@ -64,6 +67,14 @@ export function createTextWriter(newLine: String): EmitTextWriter {
     let lineStart = true;
     let lineCount = 0;
     let linePos = 0;
+
+    let lastRecord = {
+        output,
+        indent,
+        lineStart,
+        lineCount,
+        linePos,
+    }
 
     function write(s: string) {
         if (s && s.length) {
@@ -95,13 +106,56 @@ export function createTextWriter(newLine: String): EmitTextWriter {
         }
     }
 
-    function writeLine() {
+    function writeLine(text?: string) {
+        if (text) {
+            write(text);
+        }
         if (!lineStart) {
             output += newLine;
             lineCount++;
             linePos = output.length;
             lineStart = true;
         }
+    }
+
+    function record() {
+        lastRecord = {
+            output,
+            indent,
+            lineStart,
+            lineCount,
+            linePos,
+        }
+    }
+
+    function revertBackToLastRecord() {
+        output = lastRecord.output;
+        indent = lastRecord.indent;
+        lineStart = lastRecord.lineStart;
+        lineCount = lastRecord.lineCount;
+        linePos = lastRecord.linePos;
+    }
+
+    function writeFormattedText(text: string) {
+        let lines = text.split('\n');
+        forEach(lines, (line, index) => {
+            line = line.trim();
+            if (line === '') {
+                return;
+            }
+            if (line === '}') {
+                indent--;
+            }
+            if (index < lines.length - 1) {
+                writeLine(line);
+            }
+            else {
+                write(line);
+            }
+            if (line[line.length - 1] === '{') {
+                indent++;
+            }
+        });
     }
 
     return {
@@ -116,6 +170,9 @@ export function createTextWriter(newLine: String): EmitTextWriter {
         getLine: () => lineCount + 1,
         getColumn: () => lineStart ? indent * getIndentSize() + 1 : output.length - linePos + 1,
         getText: () => output,
+        record,
+        revertBackToLastRecord,
+        writeFormattedText,
     };
 }
 
@@ -370,4 +427,13 @@ export function extend<T>(first: Map<T>, second: Map<T>): Map<T> {
         }
     }
     return result;
+}
+
+export function HTMLEncode(str: string) {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
 }

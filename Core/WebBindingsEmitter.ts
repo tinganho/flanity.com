@@ -2,6 +2,7 @@
 import { ComponentInfo, ContentComponentInfo, ClassInfo } from './Router';
 import {
     createTextWriter,
+    EmitTextWriter,
     forEach
 } from '../Library/Index';
 
@@ -11,35 +12,34 @@ export const enum ModuleKind {
     CommonJs,
 }
 
-interface EmitTextWriter {
-    write(s: string): void;
-    writeLine(): void;
-    increaseIndent(): void;
-    decreaseIndent(): void;
-    getText(): string;
-    rawWrite(s: string): void;
-    writeLiteral(s: string): void;
-    getTextPos(): number;
-    getLine(): number;
-    getColumn(): number;
-    getIndent(): number;
-}
-
 interface EmitClientComposerOptions {
     moduleKind: ModuleKind;
 }
 
-export interface PageEmitInfo {
-    route: string;
+interface PlatformEmitInfo {
     document: ComponentInfo;
     layout: ComponentInfo;
     contents: ContentComponentInfo[];
+}
+
+export interface PlatformEmitIndex {
+    [name: string]: PlatformEmitInfo;
+}
+
+export interface PageEmitInfo {
+    route: string;
+    platforms: PlatformEmitIndex;
+}
+
+export interface PlatformDetects {
+    [index: string]: () => boolean;
 }
 
 export function emitBindings(
     output: string,
     imports: ComponentInfo[],
     pageInfos: PageEmitInfo[],
+    platformDetects: PlatformDetects,
     writer: EmitTextWriter,
     opt: EmitClientComposerOptions) {
 
@@ -49,14 +49,14 @@ export function emitBindings(
     let layouts: string[] = [];
     let contents: string[] = [];
 
-    let { write, writeLine, increaseIndent, decreaseIndent } = writer;
+    let { write, writeLine, increaseIndent, decreaseIndent, record, revertBackToLastRecord, writeFormattedText } = writer;
 
     writeClientComposer();
     return;
 
     function writeClientComposer(): void {
         if (opt.moduleKind === ModuleKind.Amd) {
-            writeAmdStart();
+            writeAMDStart();
             increaseIndent();
         }
         else {
@@ -64,11 +64,12 @@ export function emitBindings(
         }
 
         writeBindings();
+        writePlatformDetects();
         writeRoutingTable();
         writeRouterInit();
         if (opt.moduleKind === ModuleKind.Amd) {
             decreaseIndent();
-            writeAmdEnd();
+            writeAMDEnd();
         }
     }
 
@@ -84,40 +85,58 @@ export function emitBindings(
         write(`App.Components = { Document: {}, Layout: {}, Contents: {} };`);
         writeLine();
         for (let pageInfo of pageInfos) {
-            let document = pageInfo.document.view.className;
-            if (documents.indexOf(document) === -1) {
-                write(`App.Components.Document.${document} = ${document};`);
-                writeLine();
-                documents.push(document);
-            }
-            let layout = pageInfo.layout.view.className;
-            if (layouts.indexOf(layout) === -1) {
-                write(`App.Components.Layout.${layout} = ${layout};`);
-                writeLine();
-                layouts.push(layout);
-            }
-
-            for (let contentInfo of pageInfo.contents) {
-                let contentView = contentInfo.view.className;
-                if (contents.indexOf(contentView) === -1) {
-                    write(`App.Components.Contents.${contentView} = ${contentView};`);
+            for (let i in pageInfo.platforms) {
+                let document = pageInfo.platforms[i].document.view.className;
+                if (documents.indexOf(document) === -1) {
+                    write(`App.Components.Document.${document} = ${document};`);
                     writeLine();
-                    if (contentInfo.model) {
-                        let contentModel = contentInfo.model.className;
-                        write(`App.Components.Contents.${contentModel} = ${contentModel};`);
-                        writeLine();
-                    }
-                    contents.push(contentView);
+                    documents.push(document);
                 }
+                let layout = pageInfo.platforms[i].layout.view.className;
+                if (layouts.indexOf(layout) === -1) {
+                    write(`App.Components.Layout.${layout} = ${layout};`);
+                    writeLine();
+                    layouts.push(layout);
+                }
+
+                for (let contentInfo of pageInfo.platforms[i].contents) {
+                    let contentView = contentInfo.view.className;
+                    if (contents.indexOf(contentView) === -1) {
+                        write(`App.Components.Contents.${contentView} = ${contentView};`);
+                        writeLine();
+                        if (contentInfo.model) {
+                            let contentModel = contentInfo.model.className;
+                            write(`App.Components.Contents.${contentModel} = ${contentModel};`);
+                            writeLine();
+                        }
+                        contents.push(contentView);
+                    }
+                }
+
             }
         }
         writeLine();
         writeLine();
     }
 
-    function writeRoutingTable(): void {
-        write(`App.RoutingTable = [`);
+    function writePlatformDetects(): void {
+        writeLine('App.PlatformDetects = {');
+        increaseIndent();
+        for (let i in platformDetects) {
+            write(i + ': ');
+            writeFormattedText(platformDetects[i].toString());
+            record();
+            write(',');
+            writeLine();
+        }
+        revertBackToLastRecord();
         writeLine();
+        writeEndIndex();
+        writeLine();
+    }
+
+    function writeRoutingTable(): void {
+        writeLine(`App.RoutingTable = [`);
         increaseIndent();
         forEach(pageInfos, (pageInfo, index) => {
             write('{');
@@ -125,56 +144,70 @@ export function emitBindings(
             increaseIndent();
             write(`route: '${pageInfo.route}',`);
             writeLine();
-            write('document: {');
-            increaseIndent();
-            writeLine();
-            write('view: ');
-            writeClassInfo(pageInfo.document.view);
-            decreaseIndent();
-            writeLine();
-            write('}');
-            write(',');
-            writeLine();
-            write('layout: {');
-            increaseIndent();
-            writeLine();
-            write('view: ');
-            writeClassInfo(pageInfo.layout.view);
-            decreaseIndent();
-            writeLine();
-            write('}');
-            write(',');
-            writeLine();
-            write('contents: [');
-            writeLine();
-            increaseIndent();
-            forEach(pageInfo.contents, (content, index) => {
-                write('{');
+            writeStartIndex('platforms');
+            for (let i in pageInfo.platforms) {
+                let platform = pageInfo.platforms[i];
+
+                write(`${i}: {`);
                 increaseIndent();
                 writeLine();
-                write(`name: '${content.name}',`);
+
+                writeStartIndex('document');
+                    write('view: ');
+                    writeClassInfo(platform.document.view);
+                writeEndIndex('document');
+
+                writeCommaNewLine();
+
+                writeStartIndex('layout');
+                    write('view: ');
+                    writeClassInfo(platform.layout.view);
+                writeEndIndex('layout');
+
+                writeCommaNewLine();
+
+                write('contents: [');
+                increaseIndent();
                 writeLine();
-                write(`region: '${content.region}',`);
-                writeLine();
-                write('model: ');
-                writeClassInfo(content.model);
-                write(',');
-                writeLine();
-                write('view: ');
-                writeClassInfo(content.view);
+                forEach(platform.contents, (content, index) => {
+                    write('{');
+                    increaseIndent();
+                    writeLine();
+                    write(`name: '${content.name}',`);
+                    writeLine();
+                    write(`region: '${content.region}',`);
+                    writeLine();
+                    write('model: ');
+                    writeClassInfo(content.model);
+                    write(',');
+                    writeLine();
+                    write('view: ');
+                    writeClassInfo(content.view);
+                    writeLine();
+                    decreaseIndent();
+                    write('}');
+                    if (index !== pageInfo.platforms[i].contents.length -1) {
+                        write(',');
+                    }
+                    writeLine();
+                });
+                decreaseIndent();
+                write(']');
                 writeLine();
                 decreaseIndent();
                 write('}');
-                if (index !== pageInfo.contents.length -1) {
-                    write(',');
-                }
-                writeLine();
-            });
-            decreaseIndent();
-            write(']');
+                record();
+                writeCommaNewLine();
+            }
+
+            revertBackToLastRecord();
+            writeLine();
+
+            writeEndIndex('platform');
             writeLine();
             decreaseIndent();
             write('}');
+
             if (index !== pageInfos.length -1) {
                 write(',');
             }
@@ -187,8 +220,7 @@ export function emitBindings(
     }
 
     function writeRouterInit() {
-        write(`App.router = window.__Router = new Router.default('App', App.RoutingTable, App.Components);`);
-        writeLine();
+        writeLine(`App.router = window.__Router = new Router.default('App', App.RoutingTable, App.Components, App.PlatformDetects);`);
     }
 
     function writeClassInfo(classInfo: ClassInfo): void {
@@ -206,7 +238,7 @@ export function emitBindings(
     /**
      * Writes `define([...], function(...) {`.
      */
-    function writeAmdStart(): void {
+    function writeAMDStart(): void {
         write('define([');
         for (let i = 0; i<imports.length; i++) {
             writeQuote();
@@ -237,7 +269,7 @@ export function emitBindings(
         writeLine();
     }
 
-    function writeAmdEnd() {
+    function writeAMDEnd() {
         write('});');
         writeLine();
     }
@@ -267,5 +299,22 @@ export function emitBindings(
                 write(',');
             }
         }
+    }
+
+    function writeStartIndex(name: string) {
+        write(`${name}: {`);
+        increaseIndent();
+        writeLine();
+    }
+
+    function writeEndIndex(name?: string) {
+        writeLine();
+        decreaseIndent();
+        write('}');
+    }
+
+    function writeCommaNewLine() {
+        write(',');
+        writeLine();
     }
 }

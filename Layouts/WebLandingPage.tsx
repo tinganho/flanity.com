@@ -4,7 +4,6 @@ import { React, LayoutComponent, ContentComponent, DOMElement } from '../Library
 interface Regions {
     Header: new(props: any, children: any) => ContentComponent<any, any, any>;
     Body: new(props: any, children: any) => ContentComponent<any, any, any>;
-    Footer: new(props: any, children: any) => ContentComponent<any, any, any>;
     Overlay: new(props: any, children: any) => ContentComponent<any, any, any>;
 }
 
@@ -129,7 +128,7 @@ class SineWave {
     };
 }
 
-export class Body_withHeader extends LayoutComponent<Regions, {}, LayoutElements> {
+export class WebLandingPage extends LayoutComponent<Regions, {}, LayoutElements> {
     public render() {
         return (
             <div class='FillParentLayout BgLightGrey'>
@@ -139,9 +138,6 @@ export class Body_withHeader extends LayoutComponent<Regions, {}, LayoutElements
                 <section id='Body'>
                     {this.props.Body}
                 </section>
-                <footer id='Footer'>
-                    {this.props.Footer}
-                </footer>
                 <canvas ref='canvasWave' id='CanvasWave'></canvas>
                 <div id='Overlay' style='display: none;'>{this.props.Overlay}</div>
             </div>

@@ -16,3 +16,4 @@ declare module App {
 
 declare function markLoadFinished(): void;
 declare function unmarkLoadFinished(): void;
+declare let platformDetects: any;

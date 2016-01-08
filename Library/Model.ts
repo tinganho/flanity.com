@@ -7,6 +7,13 @@ interface EventCallbackStore {
     [event: string]: Callback[];
 }
 
+
+interface Map { [index: string]: string; }
+export interface RequestInfo<P, Q> {
+    params: P;
+    query: Q;
+}
+
 class ModelEventEmitter {
     private eventCallbackStore: EventCallbackStore = {
         'change': [],
@@ -15,6 +22,9 @@ class ModelEventEmitter {
     }
 
     public addEventListener(event: string, callback: Callback) {
+        if (!this.eventCallbackStore[event]) {
+            this.eventCallbackStore[event] = [];
+        }
         this.eventCallbackStore[event].push(callback);
     }
 
@@ -27,8 +37,10 @@ class ModelEventEmitter {
     }
 
     public emitEvent(event: string, args: any[]) {
-        for (let callback of this.eventCallbackStore[event]) {
-            callback.apply(null, args);
+        if (this.eventCallbackStore[event]) {
+            for (let callback of this.eventCallbackStore[event]) {
+                callback.apply(null, args);
+            }
         }
     }
 }
@@ -53,7 +65,7 @@ export class Model<T> extends ModelEventEmitter {
     public url: string;
     public fetchMapping: any;
     public saveMapping: any;
-    public relations: ModelRelations;
+    public relations: ModelRelations = {};
     public HTTPSaveOptions: HTTPOptions = {};
     public HTTPFetchOptions: HTTPOptions = {};
     public primaryKey = 'id';
@@ -120,8 +132,8 @@ export class Model<T> extends ModelEventEmitter {
         this.emitEvent('change', [this]);
     }
 
-    public fetch(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+    public fetch(requestInfo: RequestInfo<any, any>): Promise<any> {
+        return new Promise<T>((resolve, reject) => {
             if (!this.url || this.url === '') {
                 return resolve();
             }

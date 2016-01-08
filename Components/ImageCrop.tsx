@@ -81,7 +81,7 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
         let l = (window as any).localizations;
 
         return (
-            <form class='BgWhite Hidden'>
+            <form class='BgWhite2 Hidden'>
                 <canvas id='ImageCropCanvasHelper' ref='imageCropCanvasHelper' width={this.canvasWidth} height={this.canvasHeight}/>
                 <section id='ImageCropCropSection' ref='imageCropSection' style={this.cropContainerStyle}>
                     <div id='ImageCropOverlayTop' class='ImageCropOverlay' style={this.imageCropOverlayTopStyle}></div>
