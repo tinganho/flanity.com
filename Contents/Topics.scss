@@ -1,0 +1,244 @@
+
+#TopicsView {
+    position: relative;
+    margin: 0 100px;
+    overflow: hidden;
+    height: 100%;
+    @include display-flex;
+    @include flex-direction(column);
+    @include justify-content(flex-start);
+    @include flex-grow(2);
+}
+
+#TopicsContentTitle {
+    margin: 40px 0 60px;
+}
+
+#TopicsEmptyView {
+    position: relative;
+    margin-top: 40px;
+    @include display-flex;
+    @include flex-direction(column);
+    @include align-items(center);
+    @include justify-content(flex-start);
+    @include flex-grow(2);
+}
+
+
+#TopicsEmptyViewTitle,
+#TopicsEmptyViewDescription,
+#TopicsEmptyViewAddButton,
+#TopicsEmptyViewHeroImage {
+    @include transition(transform 1s, opacity 0.5s);
+
+    .Revealed & {
+        opacity: 1;
+        @include transform(translateY(0));
+    }
+
+    .Hidden & {
+        @include transform(translateY(1000px));
+        opacity: 0;
+    }
+}
+$transition-delay-step: 0.05s;
+#TopicsEmptyViewTitle {
+    text-align: center;
+    @include transition-delay(#{$transition-delay-step * 3});
+}
+
+#TopicsEmptyViewDescription {
+    text-align: justify;
+    width: 400px;
+    @include transition-delay(#{$transition-delay-step * 2});
+}
+
+#TopicsEmptyViewAddButton {
+    margin-top: 40px;
+    @include transition-delay(#{$transition-delay-step * 1});
+
+    &:active {
+        @include transition(none);
+        opacity: 0.3;
+    }
+}
+
+#TopicsEmptyViewHeroImageContainer {
+    margin-top: 50px;
+    max-width: 900px;
+    width: 100%;
+    @include flex-grow(2);
+}
+
+#TopicsEmptyViewHeroImage {
+    width: 100%;
+    box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2);
+}
+
+$side: 100px;
+.AddButton {
+    position: relative;
+    width: $side;
+    height: $side;
+    border-radius: 23px;
+    border: 2px solid #C6C8D4;
+    background-color: #DDE0EC;
+    cursor: pointer;
+
+    &:active {
+        opacity: 0.3;
+    }
+}
+
+$length: 60px;
+$thickness: 3px;
+$margin: ($side - $length) / 2;
+.AddButtonCross {
+    position: absolute;
+    background-color: #C6C8D4;
+}
+.AddButtonVertical {
+    @extend .AddButtonCross;
+    top: $margin;
+    left: $side / 2;
+    width: $thickness;
+    height: $length;
+}
+
+.AddButtonHorizontal {
+    @extend .AddButtonCross;
+    left: $margin;
+    top: $side / 2;
+    height: $thickness;
+    width: $length;
+}
+
+#CreateTopicForm {
+    position: relative;
+    width: 350px;
+    height: 510px;
+    border-radius: 5px;
+    overflow: hidden;
+    @include transition(transform 0.5s);
+
+    &.Revealed {
+        @include transform(translateY(0));
+    }
+
+    &.Hidden {
+        @include transform(translateY(-200%));
+    }
+}
+
+#CreateTopicFormDropContainer {
+    position: relative;
+    background-color: #44454F;
+    height: 285px;
+    overflow: hidden;
+}
+
+#CreateTopicFormTopicCoverImage {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+$padding: 20px;
+$border-thickness: 3px;
+$calc: calc(100% - #{2 * ($padding + $border-thickness)});
+#CreateTopicFormDropContainerBorder {
+    margin: $padding;
+    height: $calc;
+    width: $calc;
+    border-radius: 10px;
+    border: $border-thickness solid #ACAEB9;
+    cursor: pointer;
+    @include display-flex;
+    @include justify-content(center);
+    @include align-items(center);
+
+    &:active {
+        opacity: 0.3;
+    }
+}
+
+#CreateTopicFormDropText {
+    font-size: 24px;
+    color: #ACAEB9;
+    font-weight: 200;
+}
+
+#CreateTopicFormInputContainer {
+    padding: 20px 10px 0;
+    @include display-flex;
+    @include flex-direction(column);
+}
+
+#CreateTopicFormSubmitButton {
+    position: absolute;
+    bottom: 20px;
+    right: 0;
+}
+
+#TopicsCollectionView {
+    position: relative;
+    margin: 40px 0 0;
+    overflow: hidden;
+    @include display-flex;
+    @include align-items(stretch);
+    @include justify-content(flex-start);
+    @include flex-grow(2);
+}
+
+$transition-delay-step: 0.1s;
+.Topic {
+    position: relative;
+    margin: 0 20px 30px;
+    width: 400px;
+    @include flex-shrink(0);
+    @include transition(opacity 0.5s, transform 0.5s);
+
+    &:nth-child(2) {
+        @include transition-delay(#{$transition-delay-step * 1});
+    }
+
+    &:nth-child(3) {
+        @include transition-delay(#{$transition-delay-step * 2});
+    }
+
+    &:nth-child(4) {
+        @include transition-delay(#{$transition-delay-step * 3});
+    }
+
+    &:nth-child(5) {
+        @include transition-delay(#{$transition-delay-step * 4});
+    }
+
+    #TopicsCollectionView.Revealed & {
+        opacity: 1;
+        @include transform(translateX(0));
+    }
+
+    #TopicsCollectionView.Hidden & {
+        opacity: 0;
+        @include transform(translateX(500px));
+    }
+}
+
+.TopiceCoverImageContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 325px;
+    overflow: hidden;
+}
+
+.TopicCoverImage {
+    height: 100%;
+}
+
+.TopicTitle {
+    position: absolute;
+    top: 0;
+    left: 0;
+}

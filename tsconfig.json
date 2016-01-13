@@ -7,7 +7,6 @@
         "rootDir": ".",
         "experimentalDecorators": true,
         "jsx": "react",
-        "sourceMap": true,
         "removeComments": true
     },
     "exclude": [

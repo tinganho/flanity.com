@@ -7,7 +7,7 @@ declare function requireLocalizations(locale: string): typeof l;
 
 
 import { Contents, } from '../Core/ServerComposer';
-import { Model, RequestInfo } from '../Library/Model';
+import { Model, Collection, RequestInfo } from '../Library/DataStore';
 import ReactMod = require('../Library/Element');
 let React: typeof ReactMod = require('/Library/Element');
 import {
@@ -44,7 +44,8 @@ export interface ClassInfo {
 }
 
 export interface ComponentInfo {
-    model?: ClassInfo;
+    data?: ClassInfo;
+    relations?: string[];
     view: ClassInfo;
     name: string;
 }
@@ -58,7 +59,7 @@ interface Map {
 }
 
 interface Route {
-    matcher: RegExp;
+    pattern: RegExp;
     path: string;
     params: string[];
 }
@@ -78,7 +79,7 @@ export class Router {
     public currentRegions: string[] = [];
     public onPushState: (route: string) => void;
 
-    private currentParams: any;
+    private currentParams: any = {};
     private currentPlatform: string;
 
     constructor(public appName: string, pages: Page[], public pageComponents: any, public platformDetects: any) {
@@ -86,13 +87,14 @@ export class Router {
             let routeParams: string[] = [];
             let routePattern = '^' + page.route
                 .replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
-                .replace(/:(\w+)\\\//, (match, param) => {
+                .replace(/:(\w+)(\/?)/, (match, param, end) => {
                     routeParams.push(param);
-                    return `(.+)\\/`;
+                    let lastChar = match.charAt(match.length - 1);
+                    return '(.+)' + (end || '');
                 }) + '$';
 
             let route: Route = {
-                matcher: new RegExp(routePattern),
+                pattern: new RegExp(routePattern),
                 path: page.route,
                 params: routeParams,
             }
@@ -148,8 +150,8 @@ export class Router {
 
     private checkRouteAndRenderIfMatch(currentRoute: string): void {
         this.routes.some(route => {
-            if (route.matcher.test(currentRoute)) {
-                let matches = route.matcher.exec(currentRoute);
+            if (route.pattern.test(currentRoute)) {
+                let matches = route.pattern.exec(currentRoute);
                 for (let i = 0; i < route.params.length; i++) {
                     this.currentParams[route.params[i]] = matches[i + 1];
                 }
@@ -168,27 +170,35 @@ export class Router {
 
     private loadContentFromJSONScripts(placeholderContents: Contents, page: Page): void {
         for (let content of page.platforms[this.currentPlatform].contents) {
-            let jsonElement = document.getElementById(`composer-content-json-${content.model.className.toLowerCase()}`);
-            if (!jsonElement) {
-                throw new Error(
+            if (content.data) {
+                let jsonElement = document.getElementById(`bd-${content.region}`);
+                if (!jsonElement) {
+                    throw new Error(
 `Could not find JSON file ${content.name}. Are you sure
 this component is properly named?`);
-            }
-            try {
-                this.currentRegions.push(content.region);
-                let props = jsonElement.innerHTML !== '' ? JSON.parse(jsonElement.innerHTML).data : {};
-                props.l = (window as any).localizations;
-                placeholderContents[content.region] = React.createElement(this.pageComponents.Contents[content.view.className], props, null);
-            }
-            catch(err) {
-                console.log(jsonElement.innerHTML)
-                throw new Error(`Could not parse JSON for ${content.name}.\n ${err.message}`)
-            }
-            if (jsonElement.remove) {
-                jsonElement.remove();
+                }
+                try {
+                    this.currentRegions.push(content.region);
+                    let data = jsonElement.innerHTML !== '' ? JSON.parse(jsonElement.innerHTML).data : {};
+                    let props = {
+                        data: new this.pageComponents.Contents[content.data.className](data),
+                        l: (window as any).localizations,
+                    }
+                    placeholderContents[content.region] = React.createElement(this.pageComponents.Contents[content.view.className], props, null);
+                }
+                catch(err) {
+                    console.log(jsonElement.innerHTML)
+                    throw new Error(`Could not parse JSON for ${content.name}.\n ${err.message}`)
+                }
+                if (jsonElement.remove) {
+                    jsonElement.remove();
+                }
+                else {
+                    jsonElement.parentElement.removeChild(jsonElement);
+                }
             }
             else {
-                jsonElement.parentElement.removeChild(jsonElement);
+                placeholderContents[content.region] = React.createElement(this.pageComponents.Contents[content.view.className], { l: (window as any).localizations }, null);
             }
         }
     }
@@ -227,35 +237,17 @@ this component is properly named?`);
             }
 
             let ContentView = this.pageComponents.Contents[content.view.className];
-            let ContentModel = this.pageComponents.Contents[content.model.className];
+            let ContentData = content.data ? this.pageComponents.Contents[content.data.className] : undefined;
             let requestInfo: RequestInfo<any, any> = {
                 params: this.currentParams,
                 query: location.search,
             }
             expectedNumberOfFetches++;
 
-            ((contentInfo: ContentComponentInfo, ContentModel: typeof Model, ContentView: typeof ContentComponent) => {
+            ((contentInfo: ContentComponentInfo, ContentData: new() => Model<any> | Collection<Model<any>>, ContentView: typeof ContentComponent) => {
                 let ViewClass = this.pageComponents.Contents[contentInfo.view.className];
-                if (ContentModel) {
-                    let model = new ContentModel;
-                    model.fetch(requestInfo).then(() => {
-                        (model.props as any).l = (window as any).localizations;
-                        (model.props as any).model = model;
-                        ViewClass.setPageInfo(model.props, (model.props as any).l, pageInfo);
 
-                        newContents[contentInfo.region] = React.createElement(ViewClass, model.props, null);
-                        render();
-                    })
-                    .catch((err: Error) => {
-                        console.log(err.stack);
-                    });
-                }
-                else {
-                    ViewClass.setPageInfo({}, (window as any).localizations, pageInfo);
-                    render();
-                }
-
-                function render() {
+                let render = () => {
                     changePageTitle(pageInfo.title || 'NO_PAGE_TITLE');
                     changePageDescription(pageInfo.description);
                     changePageImage(pageInfo.image);
@@ -267,10 +259,10 @@ this component is properly named?`);
                         // If we are not in the same layout, we will replace the current layout region with a new one.
                         if (LayoutComponentClass.name !== this.currentLayoutView.id) {
                             let layoutComponent = new LayoutComponentClass(newContents);
-                            this.currentLayoutView.remove();
+                            this.currentLayoutView.onRemove();
                             document.getElementById('LayoutRegion').appendChild(layoutComponent.toDOM());
                             layoutComponent.bindDOM();
-                            layoutComponent.show();
+                            layoutComponent.onShow();
                             this.currentLayoutView = layoutComponent;
                         }
 
@@ -300,7 +292,7 @@ this component is properly named?`);
                                     let hasOutgoingTransition = false;
                                     outgoingComponent.root.onTransitionEnd(() => {
                                         if (outgoingComponent.isOutgoing()) {
-                                            outgoingComponent.remove();
+                                            outgoingComponent.onRemove();
                                         }
                                         hasOutgoingTransition = true;
                                     });
@@ -339,7 +331,31 @@ this component is properly named?`);
                         }
                     }
                 }
-            })(content, ContentModel, ContentView);
+
+                if (ContentData) {
+                    let data = new ContentData;
+                    data.fetch(requestInfo, contentInfo.relations).then(() => {
+                        ViewClass.setPageInfo(data, (window as any).localizations, pageInfo);
+
+                        let props = {
+                            l: (window as any).localizations,
+                            data,
+                        }
+                        newContents[contentInfo.region] = React.createElement(ViewClass, props, null);
+                        render();
+                    })
+                    .catch((err: Error) => {
+                        console.log(err.stack || err);
+                    });
+                }
+                else {
+                    newContents[contentInfo.region] = React.createElement(ViewClass, { l: (window as any).localizations }, null);
+                    ViewClass.setPageInfo({}, (window as any).localizations, pageInfo);
+                    render();
+                }
+
+
+            })(content, ContentData, ContentView);
         }
     }
 }

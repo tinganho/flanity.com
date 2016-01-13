@@ -122,6 +122,7 @@ export class Document extends DocumentComponent<ComposerDocumentProps, {}, Eleme
                             }
                         })()
                     }
+                    <div id='Overlay' style='display: none;' class='Hidden'></div>
                     <div id='UnFocus'></div>
                 </body>
             </html>

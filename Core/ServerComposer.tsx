@@ -9,6 +9,7 @@ import {
     Debug,
     React,
     Model,
+    Collection,
     createTextWriter,
     PageInfo,
     LayoutComponent,
@@ -23,13 +24,12 @@ export interface JsonScriptAttributes {
 
 interface ImportPathDeclaration {
     importPath: string;
-
 }
 
 type ContentViewClass = (new<P extends Props, S, E extends Elements>(props?:P, children?: Child[]) => ContentComponent<P, S, E>);
 type LayoutViewClass = (new<P extends Props, S, E extends Elements>(props?:P, children?: Child[]) => LayoutComponent<P, S, E>);
 type DocumentViewClass = (new<P extends Props, S, E extends Elements>(props?:P, children?: Child[]) => DocumentComponent<P, S, E>);
-type ContentModelClass = (new<T>() => Model<T>);
+type ContentDataClass = (new<T>() => Model<T> | Collection<Model<T>>);
 
 interface ContentViewClassAndImportPathDeclaration extends ImportPathDeclaration {
     class: ContentViewClass;
@@ -43,12 +43,12 @@ interface DocumentViewClassAndImportPathDeclaration extends ImportPathDeclaratio
     class: DocumentViewClass;
 }
 
-interface ContentModelClassAndImportPathDeclaration extends ImportPathDeclaration {
-    class: ContentModelClass
+interface ContentDataClassAndImportPathDeclaration extends ImportPathDeclaration {
+    class: ContentDataClass
 }
 
 export interface ContentDeclaration {
-    model: ContentModelClassAndImportPathDeclaration;
+    data?: ContentDataClassAndImportPathDeclaration;
     view: ContentViewClassAndImportPathDeclaration;
 }
 
@@ -61,7 +61,8 @@ export interface LayoutDeclaration {
 }
 
 interface Content {
-    model: ContentModelClass;
+    data?: ContentDataClass;
+    relations?: string[];
     view: ContentViewClass;
 }
 
@@ -71,7 +72,8 @@ interface ProvidedContentDeclarations {
 
 interface ContentViewModelClassAndImport {
     view: ContentViewClassAndImportPathDeclaration;
-    model?: ContentModelClassAndImportPathDeclaration;
+    data?: ContentDataClassAndImportPathDeclaration;
+    relations?: string[];
 }
 
 interface StoredContentDeclarations {
@@ -274,7 +276,6 @@ export class ServerComposer {
         if (!this.options.defaultDocumentFolder) {
             Debug.error('You have not defined a default document folder.');
         }
-        document
         this.defaultDocument = {
             view: {
                 class: document as any,
@@ -360,18 +361,22 @@ export class ServerComposer {
                 }
 
                 for (let contentEmitInfo of pageEmitInfo.platforms[i].contents) {
-                    if (classNames.indexOf(contentEmitInfo.model.className) === -1) {
-                        componentEmitInfos.push({
-                            model: {
-                                className: contentEmitInfo.model.className,
-                                importPath: contentEmitInfo.model.importPath,
-                            },
+                    let className = getNormalizedNameFromViewClassName(contentEmitInfo.view.className);
+                    if (classNames.indexOf(className) === -1) {
+                        let componentEmitInfo: ComponentInfo = {
                             view: {
                                 className: contentEmitInfo.view.className,
                                 importPath: contentEmitInfo.view.importPath,
                             },
-                            name: getNormalizedNameFromViewClassName(contentEmitInfo.view.className),
-                        });
+                            name: className,
+                        }
+                        if (contentEmitInfo.data) {
+                            componentEmitInfo.data = {
+                                className: contentEmitInfo.data.className,
+                                importPath: contentEmitInfo.data.importPath,
+                            }
+                        }
+                        componentEmitInfos.push(contentEmitInfo);
                     }
                 }
 
@@ -512,11 +517,20 @@ export class Page {
                 Debug.error('You have not defined a default content folder.');
             }
             newContents[region] = {} as ContentViewModelClassAndImport;
-            if (content.model) {
-                newContents[region].model = {
-                    class: content.model,
-                    importPath: System.joinPaths(this.serverComposer.options.defaultContentFolder, `/${getClassName(content.model)}`),
+            if (content.data) {
+                newContents[region].data = {
+                    class: content.data,
+                    importPath: System.joinPaths(this.serverComposer.options.defaultContentFolder, `/${getClassName(content.data)}`),
                 }
+            }
+            if (content.relations) {
+                // Check if relations are in content declarationn
+                for (let r of content.relations) {
+                    if (!(r in (content.data as any).relations)) {
+                        throw new TypeError(`No relation ${r} in ${(content.data as any).name}`);
+                    }
+                }
+                newContents[region].relations = content.relations;
             }
             newContents[region].view = {
                 class: content.view,
@@ -561,11 +575,14 @@ export class Page {
                     name: getNormalizedNameFromViewClass(content.view.class),
                     region: region,
                 }
-                if (content.model) {
-                    contentEmitInfo.model = {
-                        className: getClassName(content.model.class),
-                        importPath: content.model.importPath,
+                if (content.data) {
+                    contentEmitInfo.data = {
+                        className: getClassName(content.data.class),
+                        importPath: content.data.importPath,
                     }
+                }
+                if (content.relations) {
+                    contentEmitInfo.relations = content.relations;
                 }
                 contentEmitInfos.push(contentEmitInfo);
             }
@@ -596,24 +613,25 @@ export class Page {
     }
 
     private handlePageRequest(req: Request, res: Response, next: () => void): void {
-        this.getContents(req, res, (contents, jsonScriptData) => {
-            console.log(this.currentPlatform.name)
-            this.currentPlatform.documentProps.pageInfo = req.pageInfo;
-            this.currentPlatform.documentProps.jsonScriptData = jsonScriptData;
-            this.currentPlatform.documentProps.layout = new this.currentPlatform.layout.view.class(contents);
-            let document = new this.currentPlatform.document.view.class(this.currentPlatform.documentProps);
+        this.getContents(req, res, (requestedPlatform, contents, jsonScriptData) => {
+            req.pageInfo.title = req.pageInfo.title || 'NO_PAGE_TITLE';
+            requestedPlatform.documentProps.pageInfo = req.pageInfo;
+            requestedPlatform.documentProps.jsonScriptData = jsonScriptData;
+            requestedPlatform.documentProps.layout = new requestedPlatform.layout.view.class(contents);
+            let document = new requestedPlatform.document.view.class(requestedPlatform.documentProps);
             res.send('<!DOCTYPE html>' + document.toString());
         });
     }
 
-    private getContents(req: Request, res: Response, next: (contents: Contents, jsonScriptData: JsonScriptAttributes[]) => void): void {
+    private getContents(req: Request, res: Response, next: (currentPlatform: Platform, contents: Contents, jsonScriptData: JsonScriptAttributes[]) => void): void {
+        let requestedPlatform: Platform;
         for (let i in this.platforms) {
             if (this.platforms[i].serverDetect(req)) {
-                this.currentPlatform = this.platforms[i];
+                requestedPlatform = this.platforms[i];
                 break;
             }
         }
-        let contents = this.currentPlatform.contents;
+        let contents = requestedPlatform.contents;
         let resultContents: Contents = {};
         let resultJSONScriptData: JsonScriptAttributes[] = [];
         let numberOfContentFetchings = 0;
@@ -621,39 +639,44 @@ export class Page {
         let requestInfo: RequestInfo<any, any> = {
             params: req.params,
             query: req.query,
+            cookies: req.cookies,
         }
 
         req.pageInfo = {
-            lang: req.language.slice(0, req.language.length - 3),
+            lang: req.language.split('-')[0],
             language: req.language,
         }
 
         for (let region in contents) {
             numberOfContentFetchings++;
-            (function(region: string, ContentModel: typeof Model, ContentView: typeof ContentComponent) {
 
-                if (ContentModel) {
-                    let contentModel = new ContentModel();
-                    contentModel.fetch(requestInfo).then(() => {
-                            (contentModel.props as any).l = req.localizations;
-                            ContentView.setPageInfo(contentModel.props, (contentModel.props as any).l, req.pageInfo);
+            (function(region: string, ContentData: new() => Model<any> | Collection<Model<any>>, relations: string[], ContentView: typeof ContentComponent) {
 
-                            resultContents[region] = React.createElement(ContentView as any, contentModel.props, null);
+                if (ContentData) {
+                    let contentData = new ContentData();
+                    contentData.fetch(requestInfo, relations).then(() => {
+                            ContentView.setPageInfo(contentData, req.localizations, req.pageInfo);
+
+                            let props = {
+                                l: req.localizations,
+                                data: contentData,
+                            }
+                            resultContents[region] = React.createElement(ContentView as any, props, null);
                             resultJSONScriptData.push({
-                                id: `composer-content-json-${getClassName(contents[region].model.class).toLowerCase()}`,
-                                data: contentModel.toData(),
+                                id: `bd-${region}`,
+                                data: contentData.toData(),
                             });
 
                             finishedContentFetchings++;
 
                             if (numberOfContentFetchings === finishedContentFetchings) {
-                                next(resultContents, resultJSONScriptData);
+                                next(requestedPlatform, resultContents, resultJSONScriptData);
                             }
                         })
                         .catch((err: Error) => {
-                            console.log(err.stack);
+                            console.log(err.stack || err);
                             if (process.env.NODE_ENV === 'development') {
-                                res.status(500).send(err.stack);
+                                res.status(500).send(err.stack ? err.stack.replace('\n', '<br>') : err);
                             }
                             else {
                                 res.status(500).send('');
@@ -661,17 +684,21 @@ export class Page {
                         });
                 }
                 else {
-                    ContentView.setPageInfo({}, req.localizations, req.pageInfo);
-                    resultContents[region] = React.createElement(ContentView as any, { l: req.localizations }, null);
+                    // We need to put a timeout here because the 'numberOfContentFetchings' will equal
+                    // 'finishedContentFetchings' mulitple times. we want 'numberOfContentFetchings' to
+                    // increment all increments first and then let 'finishedContentFetchings' increment.
+                    setTimeout(() => {
+                        ContentView.setPageInfo({}, req.localizations, req.pageInfo);
+                        resultContents[region] = React.createElement(ContentView as any, { l: req.localizations }, null);
 
-                    finishedContentFetchings++;
+                        finishedContentFetchings++;
 
-                    if (numberOfContentFetchings === finishedContentFetchings) {
-                        next(resultContents, resultJSONScriptData);
-                    }
+                        if (numberOfContentFetchings === finishedContentFetchings) {
+                            next(requestedPlatform, resultContents, resultJSONScriptData);
+                        }
+                    }, 0);
                 }
-
-            })(region, contents[region].model && contents[region].model.class, contents[region].view.class as any);
+            })(region, contents[region].data && contents[region].data.class, contents[region].relations, contents[region].view.class as any);
         }
     }
 }

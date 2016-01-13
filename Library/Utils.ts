@@ -437,3 +437,28 @@ export function HTMLEncode(str: string) {
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
 }
+
+export function autobind(target: Object, key: string, descriptor: TypedPropertyDescriptor<any>): TypedPropertyDescriptor<any> | void {
+    let fn = descriptor.value;
+
+    if (typeof fn !== 'function') {
+        throw new Error(`@autobind decorator can only be applied to methods not: ${typeof fn}`);
+    }
+
+    return {
+        configurable: true,
+        get() {
+        if (this === (target as any).prototype) {
+            return fn;
+        }
+
+        let boundFn = fn.bind(this);
+        Object.defineProperty(this, key, {
+            value: boundFn,
+            configurable: true,
+            writable: true
+        });
+        return boundFn;
+        }
+    }
+}

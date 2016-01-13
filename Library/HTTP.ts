@@ -315,7 +315,7 @@ export class HttpRequest<R> {
     public response: HTTPResponse<R>;
     public clientRequest: NodeHttp.ClientRequest;
     public requestHeaders: HTTPHeaders = {};
-    private serializedBody: string;
+    private serializedBody: string | FormData;
 
     public constructor(public path: string, public options: HTTPOptions) {
         this.response = {};
@@ -347,6 +347,15 @@ export class HttpRequest<R> {
             else if (this.options.bodyType === BodyType.ApplicationXWwwFormUrlEncoded) {
                 this.serializedBody = buildUriEncodedString(this.options.body);
             }
+            else if (this.options.bodyType === BodyType.MultipartFormData) {
+                if (inClient) {
+                    let formData = new FormData();
+                    for (let i in this.options.body) {
+                        formData.append(i, this.options.body[i]);
+                    }
+                    this.serializedBody = formData;
+                }
+            }
         }
     }
 
@@ -363,13 +372,13 @@ export class HttpRequest<R> {
                 if (this.options.bodyType === BodyType.ApplicationJson) {
                     this.options.headers['Content-Type'] = 'application/json';
                     if (inServer) {
-                        this.options.headers['Content-Length'] = Buffer.byteLength(this.serializedBody) + '';
+                        this.options.headers['Content-Length'] = Buffer.byteLength(this.serializedBody as string) + '';
                     }
                 }
                 else if(this.options.bodyType === BodyType.ApplicationXWwwFormUrlEncoded) {
                     this.options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
                     if (inServer) {
-                        this.options.headers['Content-Length'] = Buffer.byteLength(this.serializedBody) + '';
+                        this.options.headers['Content-Length'] = Buffer.byteLength(this.serializedBody as string) + '';
                     }
                 }
                 else if(inServer && this.options.bodyType === BodyType.MultipartFormData) {

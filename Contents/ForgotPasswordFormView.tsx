@@ -1,5 +1,5 @@
 
-import { SubmitButton, FormMessage } from '../../Components/Index';
+import { SubmitButton, FormMessage } from '../Components/Index';
 import {
     DOMElement,
     ContentComponent,
@@ -10,9 +10,10 @@ import {
     ModelResponse,
     ErrorResponse,
     DeferredCallback,
-    PageInfo } from '../../Library/Index';
+    PageInfo,
+    autobind } from '../Library/Index';
 
-interface L10ns {
+interface Text {
     forgotPasswordDescription: string;
     emailPlaceholderText: string;
     sendButtonText: string;
@@ -47,7 +48,7 @@ const enum ForgotPasswordRequestFeedback {
     UserNotFound,
 }
 
-export class ForgotPasswordFormView extends ContentComponent<Props, L10ns, HeroElements> {
+export class ForgotPasswordFormView extends ContentComponent<Props, Text, HeroElements> {
 
     public static setPageInfo(props: Props, l: GetLocalization, pageInfo: PageInfo) {
         this.setPageTitle(l('FORGOT_PASSWORD_FORM->PAGE_TITLE'), pageInfo);
@@ -61,11 +62,11 @@ export class ForgotPasswordFormView extends ContentComponent<Props, L10ns, HeroE
     public render() {
         return (
             <div>
-                <form id='ForgotPasswordFormForm' class='CentralForm BgWhite'>
-                    <p id='ForgotPasswordFormDescription' class='PromptText'>{this.l10ns.forgotPasswordDescription}</p>
-                    <input id='ForgotPasswordEmailInput' name='email' ref='emailInput' type='text' class='TextInput ForgotPasswordFormTextInput' placeholder={this.l10ns.emailPlaceholderText}/>
+                <form id='ForgotPasswordFormForm' class='CentralForm BgWhite2'>
+                    <p id='ForgotPasswordFormDescription' class='PromptText'>{this.text.forgotPasswordDescription}</p>
+                    <input id='ForgotPasswordEmailInput' name='email' ref='emailInput' type='text' class='TextInput ForgotPasswordFormTextInput' placeholder={this.text.emailPlaceholderText}/>
                     <FormMessage/>
-                    <SubmitButton id='ForgotPasswordFormSubmitButton' ref='submitButton' buttonText={this.l10ns.sendButtonText}/>
+                    <SubmitButton id='ForgotPasswordFormSubmitButton' ref='submitButton' buttonText={this.text.sendButtonText}/>
                 </form>
             </div>
         );
@@ -77,16 +78,13 @@ export class ForgotPasswordFormView extends ContentComponent<Props, L10ns, HeroE
     }
 
     public bindInteractions() {
-        this.onSubmit = this.onSubmit.bind(this);
-        this.onEmailInputChange = this.onEmailInputChange.bind(this);
-
         this.onEmailInputChange();
         this.elements.emailInput.addEventListener('change', this.onEmailInputChange);
         this.components.submitButton.addOnSubmitListener(this.onSubmit);
     }
 
-    public setLocalizations(l: GetLocalization) {
-        this.l10ns = {
+    public setText(l: GetLocalization): void {
+        this.text = {
             forgotPasswordDescription: l('FORGOT_PASSWORD_FORM->FORGOT_PASSWORD_DESCRIPTION'),
             emailPlaceholderText: l('DEFAULT->EMAIL_PLACEHOLDER_TEXT'),
             sendButtonText: l('DEFAULT->SEND_BUTTON_TEXT'),
@@ -112,24 +110,27 @@ export class ForgotPasswordFormView extends ContentComponent<Props, L10ns, HeroE
         this.components.formMessage.showSuccessMessage(message);
     }
 
+
+    @autobind
     private onEmailInputChange() {
         this.email = this.elements.emailInput.getValue();
     }
 
     private validateEmail(): boolean {
         if (this.email.length === 0) {
-            this.showErrorMessage(this.l10ns.noEmailErrorMessage);
+            this.showErrorMessage(this.text.noEmailErrorMessage);
             return false;
         }
 
         cf.EMAIL_SYNTAX.index = 0;
         if (!cf.EMAIL_SYNTAX.test(this.email)) {
-            this.showErrorMessage(this.l10ns.invalidEmailErrorMessage);
+            this.showErrorMessage(this.text.invalidEmailErrorMessage);
             return false;
         }
         return true;
     }
 
+    @autobind
     private onSubmit(event: Event) {
         if (this.isRequesting) {
             return;
@@ -154,7 +155,7 @@ export class ForgotPasswordFormView extends ContentComponent<Props, L10ns, HeroE
             })
             .then(() => {
                 callback.call(() => {
-                    this.showSuccessMessage(this.l10ns.successfulMessage);
+                    this.showSuccessMessage(this.text.successfulMessage);
                     markLoadFinished();
                 });
             })
@@ -162,7 +163,7 @@ export class ForgotPasswordFormView extends ContentComponent<Props, L10ns, HeroE
                 if (err instanceof Error) {
                     callback.call(() => {
                         markLoadFinished();
-                        this.showErrorMessage(this.l10ns.unknownErrorErrorMessage);
+                        this.showErrorMessage(this.text.unknownErrorErrorMessage);
                     });
                     throw err;
                 }
@@ -170,10 +171,10 @@ export class ForgotPasswordFormView extends ContentComponent<Props, L10ns, HeroE
                     callback.call(() => {
                         markLoadFinished();
                         if (err.body.feedback.current.code === ForgotPasswordRequestFeedback.UserNotFound) {
-                            this.showErrorMessage(this.l10ns.userNotFoundErrorMessage);
+                            this.showErrorMessage(this.text.userNotFoundErrorMessage);
                         }
                         else {
-                            this.showErrorMessage(this.l10ns.unknownErrorErrorMessage);
+                            this.showErrorMessage(this.text.unknownErrorErrorMessage);
                         }
                     });
                 }

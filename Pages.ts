@@ -9,22 +9,17 @@ import { ModuleKind } from './Core/WebBindingsEmitter';
 import { WebLandingPage } from './Layouts/WebLandingPage';
 import { WebApp } from './Layouts/WebApp';
 
-import { AppTopBarModel } from './Contents/AppTopBar/AppTopBarModel';
-import { AppTopBarView } from './Contents/AppTopBar/AppTopBarView';
-import { EmailVerificationModel } from './Contents/EmailVerification/EmailVerificationModel';
-import { EmailVerificationView } from './Contents/EmailVerification/EmailVerificationView';
-import { ForgotPasswordFormModel } from './Contents/ForgotPasswordForm/ForgotPasswordFormModel';
-import { ForgotPasswordFormView } from './Contents/ForgotPasswordForm/ForgotPasswordFormView';
-import { HeroView } from './Contents/Hero/HeroView';
-import { HeroModel } from './Contents/Hero/HeroModel';
-import { LogInFormModel } from './Contents/LogInForm/LogInFormModel';
-import { LogInFormView } from './Contents/LogInForm/LogInFormView';
-import { ResetPasswordFormModel } from './Contents/ResetPasswordForm/ResetPasswordFormModel';
-import { ResetPasswordFormView } from './Contents/ResetPasswordForm/ResetPasswordFormView';
-import { SignUpFormView } from './Contents/SignUpForm/SignUpFormView';
-import { SignUpFormModel } from './Contents/SignUpForm/SignUpFormModel';
-import { LandingPageTopBarView } from './Contents/LandingPageTopBar/LandingPageTopBarView';
-import { LandingPageTopBarModel } from './Contents/LandingPageTopBar/LandingPageTopBarModel';
+import { AppTopBarView } from './Contents/AppTopBarView';
+import { EmailVerification } from './Contents/EmailVerification';
+import { EmailVerificationView } from './Contents/EmailVerificationView';
+import { ForgotPasswordFormView } from './Contents/ForgotPasswordFormView';
+import { HeroView } from './Contents/HeroView';
+import { LandingPageTopBarView } from './Contents/LandingPageTopBarView';
+import { LogInFormView } from './Contents/LogInFormView';
+import { ResetPasswordFormView } from './Contents/ResetPasswordFormView';
+import { SignUpFormView } from './Contents/SignUpFormView';
+import { TopicsView } from './Contents/TopicsView';
+import { User } from './Contents/User';
 
 let serverComposer: ServerComposer;
 
@@ -83,7 +78,7 @@ export function init(app: Express) {
                 .hasDocument(Document, {})
                 .hasLayout(WebApp, {
                     Header: {
-                        model: AppTopBarModel,
+                        data: User,
                         view: AppTopBarView,
                     },
                 })
@@ -91,11 +86,9 @@ export function init(app: Express) {
                 .hasDocument(Document, {})
                 .hasLayout(WebLandingPage, {
                     Header: {
-                        model: LandingPageTopBarModel,
                         view: LandingPageTopBarView,
                     },
                     Body: {
-                        model: HeroModel,
                         view: HeroView,
                     },
                 })
@@ -107,9 +100,14 @@ export function init(app: Express) {
                 .hasDocument(Document, {})
                 .hasLayout(WebApp, {
                     Header: {
-                        model: AppTopBarModel,
+                        data: User,
                         view: AppTopBarView,
                     },
+                    Body: {
+                        data: User,
+                        relations: ['topics'],
+                        view: TopicsView,
+                    }
                 })
                 .end()
         },
@@ -119,11 +117,9 @@ export function init(app: Express) {
                 .hasDocument(Document, {})
                 .hasLayout(WebLandingPage, {
                     Header: {
-                        model: LandingPageTopBarModel,
                         view: LandingPageTopBarView,
                     },
                     Body: {
-                        model: ForgotPasswordFormModel,
                         view: ForgotPasswordFormView,
                     },
                 })
@@ -135,11 +131,9 @@ export function init(app: Express) {
                 .hasDocument(Document, {})
                 .hasLayout(WebLandingPage, {
                     Header: {
-                        model: LandingPageTopBarModel,
                         view: LandingPageTopBarView,
                     },
                     Body: {
-                        model: LogInFormModel,
                         view: LogInFormView,
                     },
                 })
@@ -152,11 +146,9 @@ export function init(app: Express) {
                 .hasDocument(Document, {})
                 .hasLayout(WebLandingPage, {
                     Header: {
-                        model: LandingPageTopBarModel,
                         view: LandingPageTopBarView,
                     },
                     Body: {
-                        model: ResetPasswordFormModel,
                         view: ResetPasswordFormView,
                     },
                 })
@@ -168,11 +160,9 @@ export function init(app: Express) {
                 .hasDocument(Document, {})
                 .hasLayout(WebLandingPage, {
                     Header: {
-                        model: LandingPageTopBarModel,
                         view: LandingPageTopBarView,
                     },
                     Body: {
-                        model: SignUpFormModel,
                         view: SignUpFormView,
                     },
                 })
@@ -184,11 +174,10 @@ export function init(app: Express) {
                 .hasDocument(Document, {})
                 .hasLayout(WebLandingPage, {
                     Header: {
-                        model: LandingPageTopBarModel,
                         view: LandingPageTopBarView,
                     },
                     Body: {
-                        model: EmailVerificationModel,
+                        data: EmailVerification,
                         view: EmailVerificationView,
                     },
                 })

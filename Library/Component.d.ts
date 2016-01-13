@@ -20,6 +20,7 @@ interface IDOMElement {
     getAttribute(name: string): string;
     setAttribute(name: string, value: string): this;
     removeAttribute(name: string): this;
+    getElement(id: string): IDOMElement;
     findOne(query: string): IDOMElement;
     findAll(query: string): IDOMElement[];
     getText(): string;
@@ -45,17 +46,20 @@ interface IDOMElement {
     onBlur(listener: EventListener): this;
     onSubmit(listener: EventListener): this;
     show(): this;
+    addStyle(rule: string, value: string): this;
+    setHeight(px: number): this;
+    setWidth(px: number): this;
     onTransitionEnd(callback: (...args: any[]) => any): this;
     clone(): IDOMElement;
     appendTo(target: IDOMElement | string): this;
     getValue(): string;
 }
 
-declare abstract class Component<P extends Props, L extends { [index: string]: string }, E> {
+declare abstract class Component<P extends Props, T extends { [index: string]: string }, E> {
     public root: IDOMElement;
     public props: P;
     public id: string;
-    public l10ns: any;
+    public text: T;
     public children: Child[];
     public elements: E;
     public hasBoundDOM: boolean;
@@ -70,11 +74,10 @@ declare abstract class Component<P extends Props, L extends { [index: string]: s
     public setProps(props: P): void;
     public unsetProp(name: string): void;
     public abstract render(): JSX.Element;
-    public remove(): Promise<void>;
-    public hide(): Promise<void>;
-    public show(): Promise<void>;
+    public onRemove(): Promise<void>;
+    public onHide(): Promise<void>;
+    public onShow(): Promise<void>;
     public recursivelyCallMethod(method: string): Promise<void>;
-    public fetch<TRequest, TResult>(req: TRequest): Promise<TResult>;
     public bindDOM(renderId?: number): void;
     public getInstancesOf<R>(...components: string[]): Components;
     public instantiateComponents(renderId: number): void;
@@ -416,6 +419,7 @@ declare namespace JSX {
 
     interface HTMLAttributes extends DOMAttributes {
         ref?: string;
+        bindText?: string;
 
         accept?: string;
         acceptCharset?: string;

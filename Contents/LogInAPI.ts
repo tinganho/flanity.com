@@ -1,5 +1,5 @@
 
-import { HTTP, HTTPResponseType, ModelResponse } from '../../Library/Index';
+import { HTTP, HTTPResponseType, ModelResponse } from '../Library/Index';
 import express = require('express');
 
 interface SessionResponse {
@@ -21,6 +21,8 @@ export function login(req: express.Request, res: express.Response) {
         .then((response) => {
             let body = response.body;
             if (typeof body !== 'string') {
+                res.cookie('accessToken', body.model.accessToken, { expires: new Date(body.model.expiry), httpOnly: true });
+                res.cookie('renewalToken', body.model.renewalToken, { expires: new Date(body.model.expiry), httpOnly: true });
                 res.status(response.status).json(body);
             }
         })

@@ -11,6 +11,7 @@ body {
     padding: 0;
     font-family: Roboto, 'Helvetica Neue', Helvetica, 'Lucida Grande', Arial;
     color: #fff;
+    overflow: hidden;
 
     &:lang(zh) {
         font-family: '微软雅黑', '黑体', Roboto, 'Helvetica Neue', Helvetica, 'Lucida Grande', Arial;

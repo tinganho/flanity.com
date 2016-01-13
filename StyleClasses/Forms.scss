@@ -7,8 +7,9 @@
     border-radius: 5px;
     color: #fff;
     border: none;
+    height: 2em;
     padding: 3px 7px;
-    line-height: 24px;
+    line-height: 14px;
     margin-bottom: 7px;
     outline: none;
     font-size: 12px;
@@ -17,6 +18,13 @@
         color: rgba(255, 255, 255, 0.7);
         font-size: 12px;
     }
+}
+
+.TextAreaInput {
+    @extend .TextInput;
+    resize: none;
+    height: 4em;
+    padding: 7px;
 }
 
 .CentralForm {
@@ -35,4 +43,14 @@
     .Final & {
         opacity: 1;
     }
+}
+
+.FileInput {
+    position: absolute;
+    top: 0;
+    left: 0;
+    line-height: 10000px;
+    width: 10000px;
+    opacity: 0;
+    cursor: pointer;
 }

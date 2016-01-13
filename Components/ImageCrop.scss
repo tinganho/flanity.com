@@ -1,5 +1,8 @@
 
 #ImageCrop {
+    position: absolute;
+    top: 31%;
+    left: 50%;
     display: inline-block;
     border-radius: 5px;
     overflow: hidden;
@@ -27,7 +30,7 @@
 
 .ImageCropOverlay {
     position: absolute;
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: rgba(0, 0, 0, 0.6);
     z-index: 1;
 }
 

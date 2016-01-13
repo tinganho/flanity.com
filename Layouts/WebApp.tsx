@@ -21,8 +21,6 @@ export class WebApp extends LayoutComponent<Regions, {}, LayoutElements> {
                 <section id='Body'>
                     {this.props.Body}
                 </section>
-                <canvas ref='canvasWave' id='CanvasWave'></canvas>
-                <div id='Overlay' style='display: none;'>{this.props.Overlay}</div>
             </div>
         );
     }

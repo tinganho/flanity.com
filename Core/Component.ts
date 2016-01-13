@@ -1,8 +1,11 @@
 
 import {
+    React,
     extend,
     getInstantiatedComponents,
-    DOMElement } from '../Library/Index';
+    DOMElement,
+    Model,
+    Collection } from '../Library/Index';
 
 export interface Props {
     id?: string | number;
@@ -10,10 +13,33 @@ export interface Props {
     [prop: string]: any;
 }
 
+interface Hooks {
+    [event: string]: Hook[];
+}
 type Hook = () => void;
 
-export abstract class Component<P extends Props, L, E> {
+export interface Component {
+    /**
+     * Set the text life cycle method.
+     */
+    setText(l: GetLocalization): void;
+
+    /**
+     * Bind Interactions is the first function to be called during all page loads to bind the
+     * component interactions with the DOM. All elements are already binded so there is no need
+     * to bind them. Please bind any interactions that you find suitable.
+     */
+    bindInteractions(): void;
+
+    /**
+     * Show is fired everytime when you append an external content with `appendRelationComponent`.
+     */
+    show(): void;
+}
+
+export abstract class Component<P extends Props, T, E> {
     private removeHooks: Hook[] = [];
+    private hooks: Hooks = {};
 
     /**
      * Get element by id.
@@ -35,7 +61,7 @@ export abstract class Component<P extends Props, L, E> {
     /**
      * Properties.
      */
-    public props: P & { l?: GetLocalization };
+    public props: P & { l?: GetLocalization, data?: Model<any> & Collection<Model<any>> };
 
     /**
      * Referenced elements from component.
@@ -45,7 +71,7 @@ export abstract class Component<P extends Props, L, E> {
     /**
      * Localization strings storage.
      */
-    public l10ns = {} as L;
+    public text = {} as T;
 
     /* @internal */
     public hasRenderedFirstElement = false;
@@ -67,7 +93,7 @@ export abstract class Component<P extends Props, L, E> {
         props?: P,
         children?: Child[]) {
 
-        this.props = extend({}, extend(props || {}, this.props)) as P & { l: GetLocalization };
+        this.props = extend({}, extend(props || {}, this.props)) as P & { l: GetLocalization, model: Model<any> };
 
         this.children = children;
         (this as any).elements = {}
@@ -113,9 +139,9 @@ export abstract class Component<P extends Props, L, E> {
      * want to remove some components. This remove function is called immediately
      * after fetching of the new page is finished.
      */
-    public remove(): Promise<void> {
+    public onRemove(): Promise<void> {
         this.root.remove();
-        this.hookDown(this.removeHooks);
+        this.hookDownOnce(this.removeHooks);
         return Promise.resolve(undefined);
     }
 
@@ -124,7 +150,7 @@ export abstract class Component<P extends Props, L, E> {
      * component does not belong to the next page. This function is suitable to do
      * some hiding animation or display loadbars before next page is being rendered.
      */
-    public hide(): Promise<void> {
+    public onHide(): Promise<void> {
         return Promise.resolve(undefined);
     }
 
@@ -134,7 +160,7 @@ export abstract class Component<P extends Props, L, E> {
      * it is now suitable to show them with this function. Show is also called whenever
      * a page request failed to unhide components.
      */
-    public show(): Promise<void> {
+    public onShow(): Promise<void> {
         return Promise.resolve(undefined);
     }
 
@@ -166,17 +192,18 @@ export abstract class Component<P extends Props, L, E> {
         this.recurseMethodCalls(target['components'], method, promises);
     }
 
-    /**
-     * Fetch is called everytime we switch to a new page. Each component on each page
-     * needs to be finished loading before the new page is showned.
-     */
-    public fetch<R>(req: Express.Request): Promise<R> {
-        return Promise.resolve(undefined);
-    }
-
     public bindDOM(renderId?: number): void {
         if (!this.hasBoundDOM) {
-            this.setLocalizations(this.props.l);
+            if (this.setText) {
+                this.setText(this.props.l);
+            }
+            if (this.props.data) {
+                this.props.data.on('change', () => {
+                    this.setText(this.props.l);
+                    this.hookDown(this.hooks['change:text']);
+                });
+            }
+
             this.components = {};
             this.lastRenderId = this.renderAndSetComponent().bindDOM(renderId);
             this.hasBoundDOM = true;
@@ -201,7 +228,7 @@ export abstract class Component<P extends Props, L, E> {
     /**
      * Append to
      */
-    public appendTo(id: string): Component<P, L, E> {
+    public appendTo(id: string): Component<P, T, E> {
         let element = document.getElementById(id);
         if (!element) {
             throw new Error('Element not found: ' + id);
@@ -211,17 +238,32 @@ export abstract class Component<P extends Props, L, E> {
     }
 
     /**
-     * This hook will be invoked before the render. Put all your localizations in here.
+     * Append a relation component to element. Omit id if you want it to append to the root element.
      */
-    public setLocalizations(l: GetLocalization) {
-    }
+    public appendRelationComponent(c: new() => Component<any, any, any>, relation: string, id?: string) {
+        let view = React.createElement(c, { l: this.props.l, data: this.props.data.get(relation)});
+        view.setComponent(this);
+        let element: DOMElement;
+        if (!id) {
+            element = this.root;
+        }
+        else {
+            element = this.root.getElement(id);
+        }
+        element.append(view);
 
-    /**
-     * Bind Interactions is the first function to be called during all page loads to bind the
-     * component interactions with the DOM. All elements are already binded so there is no need
-     * to bind them. Please bind any interactions that you find suitable.
-     */
-    public bindInteractions(): void {
+
+        let component = view.getComponent() as Component<any, any, any>;
+        component.bindDOM();
+        component.root.setHeight(element.getHeight());
+        component.root.setWidth(element.getWidth());
+        component.root.addStyle('position', 'absolute');
+        component.root.addStyle('top', '0');
+        component.root.addStyle('left', '0');
+        setTimeout(() => {
+            component.root.addClass('Revealed').removeClass('Hidden');
+        }, 0);
+        return component;
     }
 
     /**
@@ -244,14 +286,24 @@ export abstract class Component<P extends Props, L, E> {
 
     /* @internal */
     public toString(renderId?: number): string {
-        this.setLocalizations(this.props.l);
+        if (this.setText) {
+            this.setText(this.props.l);
+        }
         let s =  this.renderAndSetComponent().toString(renderId || this.lastRenderId);
         return s;
     }
 
     /* @internal */
     public toDOM(renderId?: number): DocumentFragment {
-        this.setLocalizations(this.props.l);
+        if (this.setText) {
+            this.setText(this.props.l);
+        }
+        if (this.props.data) {
+            this.props.data.on('change', () => {
+                this.setText(this.props.l);
+                this.hookDown(this.hooks['change:text']);
+            });
+        }
         let DOMRender = this.renderAndSetComponent().toDOM(renderId || this.lastRenderId);
         this.lastRenderId = DOMRender.renderId;
         return DOMRender.frag;
@@ -269,10 +321,26 @@ export abstract class Component<P extends Props, L, E> {
     }
 
     /**
-     * Call callbacks using FIFO order.
+     * Call hooks using FIFO order and removes the callback.
      */
-    private hookDown(hooks: Hook[]) {
+    private hookDownOnce(hooks: Hook[]) {
         let hook = hooks.shift();
         hook && hook();
+    }
+
+    /**
+     * Call hooks using FIFO order.
+     */
+    public hookDown(hooks: Hook[]) {
+        for (let i = hooks.length - 1; i >= 0; i--) {
+            hooks[i]();
+        }
+    }
+
+    public on(event: string, callback: (...args: any[]) => void): void {
+        if (!this.hooks[event]) {
+            this.hooks[event] = [];
+        }
+        this.hooks[event].push(callback);
     }
 }

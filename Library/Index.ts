@@ -5,5 +5,5 @@ export * from './DOMElement';
 export * from './Element';
 export * from './HTTP';
 export * from './LayerComponents';
-export * from './Model';
+export * from './DataStore';
 export * from './Utils';

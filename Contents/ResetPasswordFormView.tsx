@@ -1,7 +1,7 @@
 
 import {
     SubmitButton,
-    FormMessage } from '../../Components/Index';
+    FormMessage } from '../Components/Index';
 import {
     React,
     ContentComponent,
@@ -12,9 +12,9 @@ import {
     ModelResponse,
     ErrorResponse,
     DeferredCallback,
-    PageInfo } from '../../Library/Index';
+    PageInfo } from '../Library/Index';
 
-interface L10ns {
+interface Text {
     sendButtonText: string;
 
     resetPasswordDescription: string;
@@ -54,7 +54,7 @@ const enum ResetPasswordRequestFeedback {
     ForgotPasswordTokenNotFound,
 }
 
-export class ResetPasswordFormView extends ContentComponent<Props, L10ns, HeroElements> {
+export class ResetPasswordFormView extends ContentComponent<Props, Text, HeroElements> {
 
     public static setPageInfo(props: Props, l: GetLocalization, pageInfo: PageInfo) {
         this.setPageTitle(l('RESET_PASSWORD_FORM->PAGE_TITLE'), pageInfo);
@@ -72,11 +72,11 @@ export class ResetPasswordFormView extends ContentComponent<Props, L10ns, HeroEl
         return (
             <div>
                 <form id='ResetPasswordFormForm' class='CentralForm BgWhite2'>
-                    <p id='ResetPasswordFormDescription' class='PromptText'>{this.l10ns.resetPasswordDescription}</p>
-                    <input id='ResetPasswordFormNewPasswordInput' name='newPassword' ref='newPasswordInput' type='password' class='TextInput ResetPasswordFormTextInput' placeholder={this.l10ns.newPasswordPlaceholderText}/>
-                    <input id='ResetPasswordFormRepeatPasswordInput' name='repeatPassword' ref='repeatPasswordInput' type='password' class='TextInput ResetPasswordFormTextInput' placeholder={this.l10ns.repeatPasswordPlaceholderText}/>
+                    <p id='ResetPasswordFormDescription' class='PromptText'>{this.text.resetPasswordDescription}</p>
+                    <input id='ResetPasswordFormNewPasswordInput' name='newPassword' ref='newPasswordInput' type='password' class='TextInput ResetPasswordFormTextInput' placeholder={this.text.newPasswordPlaceholderText}/>
+                    <input id='ResetPasswordFormRepeatPasswordInput' name='repeatPassword' ref='repeatPasswordInput' type='password' class='TextInput ResetPasswordFormTextInput' placeholder={this.text.repeatPasswordPlaceholderText}/>
                     <FormMessage/>
-                    <SubmitButton id='ResetPasswordFormSubmitButton' ref='submitButton' buttonText={this.l10ns.sendButtonText}/>
+                    <SubmitButton id='ResetPasswordFormSubmitButton' ref='submitButton' buttonText={this.text.sendButtonText}/>
                 </form>
             </div>
         );
@@ -100,8 +100,8 @@ export class ResetPasswordFormView extends ContentComponent<Props, L10ns, HeroEl
         this.components.submitButton.addOnSubmitListener(this.onSubmit);
     }
 
-    public setLocalizations(l: GetLocalization) {
-        this.l10ns = {
+    public setText(l: GetLocalization) {
+        this.text = {
             resetPasswordDescription: l('RESET_PASSWORD_FORM->RESET_PASSWORD_DESCRIPTION'),
             sendButtonText: l('DEFAULT->SEND_BUTTON_TEXT'),
 
@@ -140,15 +140,15 @@ export class ResetPasswordFormView extends ContentComponent<Props, L10ns, HeroEl
 
     private validateNewPassword(): boolean {
         if (this.newPassword.length === 0) {
-            this.showErrorMessage(this.l10ns.noPasswordErrorMessage);
+            this.showErrorMessage(this.text.noPasswordErrorMessage);
             return false;
         }
         if (this.newPassword.length < 6) {
-            this.showErrorMessage(this.l10ns.passwordTooShortErrorMessage);
+            this.showErrorMessage(this.text.passwordTooShortErrorMessage);
             return false;
         }
         if (this.newPassword.length > 100) {
-            this.showErrorMessage(this.l10ns.passwordTooLongErrorMessage);
+            this.showErrorMessage(this.text.passwordTooLongErrorMessage);
             return false;
         }
         return true;
@@ -156,7 +156,7 @@ export class ResetPasswordFormView extends ContentComponent<Props, L10ns, HeroEl
 
     private validateRepeatPassword(): boolean {
         if (this.newPassword !== this.repeatPassword) {
-            this.showErrorMessage(this.l10ns.wrongRepeatPasswordErrorMessage);
+            this.showErrorMessage(this.text.wrongRepeatPasswordErrorMessage);
             return false;
         }
         return true;
@@ -187,7 +187,7 @@ export class ResetPasswordFormView extends ContentComponent<Props, L10ns, HeroEl
             })
             .then(() => {
                 callback.call(() => {
-                    this.showSuccessMessage(this.l10ns.successfulMessage);
+                    this.showSuccessMessage(this.text.successfulMessage);
                     markLoadFinished();
                 });
             })
@@ -195,7 +195,7 @@ export class ResetPasswordFormView extends ContentComponent<Props, L10ns, HeroEl
                 this.isRequesting = false;
                 if (err instanceof Error) {
                     callback.call(() => {
-                        this.showErrorMessage(this.l10ns.unknownErrorErrorMessage);
+                        this.showErrorMessage(this.text.unknownErrorErrorMessage);
                         markLoadFinished();
                     });
                     throw err;
@@ -203,10 +203,10 @@ export class ResetPasswordFormView extends ContentComponent<Props, L10ns, HeroEl
                 else {
                     callback.call(() => {
                         if (err.body.feedback.current.code === ResetPasswordRequestFeedback.ForgotPasswordTokenNotFound) {
-                            this.showErrorMessage(this.l10ns.invalidResetPasswordErrorMessage);
+                            this.showErrorMessage(this.text.invalidResetPasswordErrorMessage);
                         }
                         else {
-                            this.showErrorMessage(this.l10ns.unknownErrorErrorMessage);
+                            this.showErrorMessage(this.text.unknownErrorErrorMessage);
                         }
                         markLoadFinished();
                     });

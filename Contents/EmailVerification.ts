@@ -1,11 +1,11 @@
 
-import { Model, HTTP, HTTPResponse, ErrorResponse, RequestInfo } from '../../Library/Index';
+import { Model, HTTP, HTTPResponse, ErrorResponse, RequestInfo } from '../Library/Index';
 
 const enum DeleteEmailVerificationFeedback {
     VerificationNotFound,
 }
 
-interface EmailVerification {
+interface Props {
     isVerified: boolean;
 }
 
@@ -17,8 +17,11 @@ interface Query {
 interface Params {
 }
 
-export class EmailVerificationModel extends Model<EmailVerification> {
+export class EmailVerification extends Model<Props> {
     public fetch(requestInfo: RequestInfo<Params, Query>) {
+        if (!requestInfo.query.token || !requestInfo.query.userId) {
+            return Promise.reject(new Error('No supplied queries.'));
+        }
         return new Promise((resolve, reject) => {
             HTTP.del(`/users/${requestInfo.query.userId}/email-verification`, {
                     body: {
@@ -26,7 +29,7 @@ export class EmailVerificationModel extends Model<EmailVerification> {
                     }
                 })
                 .then(() => {
-                    this.setProp('isVerified', true);
+                    this.set('isVerified', true);
                     resolve();
                 })
                 .catch((err: Error | HTTPResponse<ErrorResponse> ) => {
@@ -36,7 +39,7 @@ export class EmailVerificationModel extends Model<EmailVerification> {
                     else {
                         if (err.body.feedback.current.code === DeleteEmailVerificationFeedback.VerificationNotFound) {
                             try {
-                                this.setProp('isVerified', false);
+                                this.set('isVerified', false);
                             }
                             catch(err) {
                                 console.log(err.stack);

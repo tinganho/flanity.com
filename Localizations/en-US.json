@@ -1,51 +1,220 @@
 [
   {
     "files": [
-      "Contents/EmailVerification/EmailVerificationView.tsx"
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "jKx4X6e5t7b",
+    "key": "CREATE_TOPIC_FORM->NO_TITLE_ERROR_MESSAGE",
+    "new": true,
+    "timestamp": "2016-01-12T13:13:51.742Z",
+    "value": "Please type in a title.",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "qo65Xkj7tq7",
+    "key": "CREATE_TOPIC_FORM->NO_TOPIC_COVER_IMAGE_ERROR_MESSAGE",
+    "new": true,
+    "timestamp": "2016-01-12T13:13:51.742Z",
+    "value": "Please upload a topic cover image.",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "BKB4angztyg",
+    "key": "CREATE_TOPIC_FORM->TITLE_TOO_LONG_ERROR_MESSAGE",
+    "new": true,
+    "timestamp": "2016-01-12T13:13:51.742Z",
+    "value": "Your title is longer than 100 chars.",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "jKx4ELozI74",
+    "key": "CREATE_TOPIC_FORM->SUBMIT_BUTTON_TEXT",
+    "new": false,
+    "timestamp": "2016-01-12T10:44:07.950Z",
+    "value": "Create",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "ajx4k4pbhe8",
+    "key": "CREATE_TOPIC_FORM->DESCRIPTION_INPUT_PLACEHOLDER",
+    "new": false,
+    "timestamp": "2016-01-12T10:25:36.179Z",
+    "value": "Description",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "rLjRxRb4heM",
+    "key": "CREATE_TOPIC_FORM->TITLE_INPUT_PLACEHOLDER",
+    "new": false,
+    "timestamp": "2016-01-12T10:25:36.179Z",
+    "value": "Title",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "Ryd5nEp5uyq",
+    "key": "CREATE_TOPIC_FORM->DROP_IMAGE_PROMPT_TEXT",
+    "new": false,
+    "timestamp": "2016-01-11T04:45:23.304Z",
+    "value": "Drop a Photo Here",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "gjx4nRd4ten",
+    "key": "TOPICS->PAGE_DESCRIPTION",
+    "new": false,
+    "timestamp": "2016-01-11T04:45:23.304Z",
+    "value": "Topics of {user}.",
+    "variables": [
+      "user"
+    ]
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "6LjRnKrRtee",
+    "key": "TOPICS->PAGE_TITLE",
+    "new": false,
+    "timestamp": "2016-01-11T04:45:23.304Z",
+    "value": "{user}",
+    "variables": [
+      "user"
+    ]
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "dbKp6M8qHpp",
+    "key": "TOPICS->CONTENT_TITLE",
+    "new": false,
+    "timestamp": "2016-01-10T17:10:14.760Z",
+    "value": "Topics",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "6LjRgEqnhe4",
+    "key": "TOPICS->EMPTY_VIEW_DESCRIPTION",
+    "new": false,
+    "timestamp": "2016-01-10T17:06:06.043Z",
+    "value": "Topics are great for people to select the kind of content they like. People have different interests and as a result, people share different kind of content. Flanity is a social network that lets people follow the topics that interests them.",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "ajx4699EFee",
+    "key": "TOPICS->EMPTY_VIEW_TITLE",
+    "new": false,
+    "timestamp": "2016-01-10T17:04:02.393Z",
+    "value": "Add a Topic",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/AppTopBarView.tsx"
+    ],
+    "id": "xRo5RbM6Hb",
+    "key": "APP_TOP_BAR->NOTIFCATIONS",
+    "new": false,
+    "timestamp": "2016-01-09T18:03:34.661Z",
+    "value": "Notifications",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/AppTopBarView.tsx"
+    ],
+    "id": "Lqknqj8xup",
+    "key": "APP_TOP_BAR->HOME",
+    "new": false,
+    "timestamp": "2016-01-09T17:50:44.166Z",
+    "value": "Home",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/SearchView.tsx"
+    ],
+    "id": "oz6AzaAnube",
+    "key": "SEARCH->INPUT_TEXT_PLACEHOLDER",
+    "new": false,
+    "timestamp": "2016-01-09T17:26:58.939Z",
+    "value": "Search Flanity",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/EmailVerificationView.tsx"
     ],
     "id": "MGMg9GXAS8",
     "key": "EMAIL_VERIFICATION->ERROR_DESCRIPTION",
-    "new": true,
+    "new": false,
     "timestamp": "2016-01-07T19:53:50.135Z",
     "value": "Please resend an email verification from your <a class='TextLink1' href='/settings'>account settings</a>.",
     "variables": []
   },
   {
     "files": [
-      "Contents/EmailVerification/EmailVerificationView.tsx"
+      "Contents/EmailVerificationView.tsx"
     ],
     "id": "6LjGKLkpSX",
     "key": "EMAIL_VERIFICATION->ERROR_TITLE",
-    "new": true,
+    "new": false,
     "timestamp": "2016-01-07T19:53:50.135Z",
     "value": "Email Not Verified",
     "variables": []
   },
   {
     "files": [
-      "Contents/EmailVerification/EmailVerificationView.tsx"
+      "Contents/EmailVerificationView.tsx"
     ],
     "id": "rLjGKLgpSg",
     "key": "EMAIL_VERIFICATION->SUCCESS_DESCRIPTION",
-    "new": true,
+    "new": false,
     "timestamp": "2016-01-07T19:53:50.135Z",
     "value": "Congratulations! You have been successfully verified your email.",
     "variables": []
   },
   {
     "files": [
-      "Contents/EmailVerification/EmailVerificationView.tsx"
+      "Contents/EmailVerificationView.tsx"
     ],
     "id": "xRoKERg8Fe",
     "key": "EMAIL_VERIFICATION->SUCCESS_TITLE",
-    "new": true,
+    "new": false,
     "timestamp": "2016-01-07T19:53:50.135Z",
     "value": "Email Verified",
     "variables": []
   },
   {
     "files": [
-      "Contents/EmailVerification/EmailVerificationView.tsx"
+      "Contents/EmailVerificationView.tsx"
     ],
     "id": "zEoKL8rBupg",
     "key": "EMAIL_VERIFICATION->PAGE_DESCRIPTION",
@@ -56,7 +225,7 @@
   },
   {
     "files": [
-      "Contents/EmailVerification/EmailVerificationView.tsx"
+      "Contents/EmailVerificationView.tsx"
     ],
     "id": "jKxALM9yuyq",
     "key": "EMAIL_VERIFICATION->PAGE_TITLE",
@@ -67,7 +236,7 @@
   },
   {
     "files": [
-      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
+      "Contents/ResetPasswordFormView.tsx"
     ],
     "id": "jKxA4y9oIM",
     "key": "RESET_PASSWORD_FORM->PAGE_DESCRIPTION",
@@ -78,7 +247,7 @@
   },
   {
     "files": [
-      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
+      "Contents/ResetPasswordFormView.tsx"
     ],
     "id": "yxG4XjkoIG",
     "key": "RESET_PASSWORD_FORM->PAGE_TITLE",
@@ -89,7 +258,7 @@
   },
   {
     "files": [
-      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx"
+      "Contents/ForgotPasswordFormView.tsx"
     ],
     "id": "6LjGAGynsj9",
     "key": "FORGOT_PASSWORD_FORM->PAGE_DESCRIPTION",
@@ -100,7 +269,7 @@
   },
   {
     "files": [
-      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx"
+      "Contents/ForgotPasswordFormView.tsx"
     ],
     "id": "rLjGAGynsjz",
     "key": "FORGOT_PASSWORD_FORM->PAGE_TITLE",
@@ -111,7 +280,7 @@
   },
   {
     "files": [
-      "Contents/LogInForm/LogInFormView.tsx"
+      "Contents/LogInFormView.tsx"
     ],
     "id": "9xGjEj6rUon",
     "key": "LOG_IN_FORM->PAGE_DESCRIPTION",
@@ -122,7 +291,7 @@
   },
   {
     "files": [
-      "Contents/LogInForm/LogInFormView.tsx"
+      "Contents/LogInFormView.tsx"
     ],
     "id": "7o6xMxkpUo5",
     "key": "LOG_IN_FORM->PAGE_TITLE",
@@ -133,7 +302,7 @@
   },
   {
     "files": [
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "XjE7AKjKH9",
     "key": "SIGN_UP_FORM->PAGE_DESCRIPTION",
@@ -144,7 +313,7 @@
   },
   {
     "files": [
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "E5EobA5AHo",
     "key": "SIGN_UP_FORM->PAGE_TITLE",
@@ -155,7 +324,7 @@
   },
   {
     "files": [
-      "Contents/Hero/HeroView.tsx"
+      "Contents/HeroView.tsx"
     ],
     "id": "dbKgXb6RH54",
     "key": "DEFAULT->APP_TITLE",
@@ -188,7 +357,7 @@
   },
   {
     "files": [
-      "Contents/Hero/HeroView.tsx"
+      "Contents/HeroView.tsx"
     ],
     "id": "ejxMRE8bun",
     "key": "HERO->SIGN_UP_BUTTON_TEXT",
@@ -199,7 +368,7 @@
   },
   {
     "files": [
-      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
+      "Contents/ResetPasswordFormView.tsx"
     ],
     "id": "9xGb9bgaty",
     "key": "RESET_PASSWORD_FORM->INVALID_RESET_PASSWORD_REQUEST_ERROR_MESSAGE",
@@ -210,8 +379,8 @@
   },
   {
     "files": [
-      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx",
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/ResetPasswordFormView.tsx",
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "yxGzy7krFo8",
     "key": "DEFAULT->PASSWORD_TOO_LONG_ERROR_MESSAGE",
@@ -222,8 +391,8 @@
   },
   {
     "files": [
-      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx",
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/ResetPasswordFormView.tsx",
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "nKx5n79aFqg",
     "key": "DEFAULT->PASSWORD_TOO_SHORT_ERROR_MESSAGE",
@@ -234,7 +403,7 @@
   },
   {
     "files": [
-      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
+      "Contents/ResetPasswordFormView.tsx"
     ],
     "id": "BKBzpGerFp",
     "key": "RESET_PASSWORD_FORM->WRONG_REPEAT_PASSWORD_ERROR_MESSAGE",
@@ -245,7 +414,7 @@
   },
   {
     "files": [
-      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
+      "Contents/ResetPasswordFormView.tsx"
     ],
     "id": "Lqkyo5XLtyB",
     "key": "RESET_PASSWORD_FORM->NEW_PASSWORD_PLACEHOLDER_TEXT",
@@ -256,7 +425,7 @@
   },
   {
     "files": [
-      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
+      "Contents/ResetPasswordFormView.tsx"
     ],
     "id": "MGMy67notgj",
     "key": "RESET_PASSWORD_FORM->REPEAT_PASSWORD_PLACEHOLDER_TEXT",
@@ -267,7 +436,7 @@
   },
   {
     "files": [
-      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
+      "Contents/ResetPasswordFormView.tsx"
     ],
     "id": "gjxpgq6bIgy",
     "key": "RESET_PASSWORD_FORM->RESET_PASSWORD_DESCRIPTION",
@@ -278,7 +447,7 @@
   },
   {
     "files": [
-      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
+      "Contents/ResetPasswordFormView.tsx"
     ],
     "id": "zEoRzj64tpR",
     "key": "RESET_PASSWORD_FORM->SUCCESSFUL_MESSAGE",
@@ -289,7 +458,7 @@
   },
   {
     "files": [
-      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx"
+      "Contents/ForgotPasswordFormView.tsx"
     ],
     "id": "Ryd8RrzgSL",
     "key": "FORGOT_PASSWORD_FORM->SUCCESSFUL_MESSAGE",
@@ -300,7 +469,7 @@
   },
   {
     "files": [
-      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx"
+      "Contents/ForgotPasswordFormView.tsx"
     ],
     "id": "ejxMeaB6U6",
     "key": "FORGOT_PASSWORD_FORM->USER_NOT_FOUND_ERROR_MESSAGE",
@@ -311,7 +480,7 @@
   },
   {
     "files": [
-      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx"
+      "Contents/ForgotPasswordFormView.tsx"
     ],
     "id": "XjEMgbGLFd",
     "key": "FORGOT_PASSWORD_FORM->FORGOT_PASSWORD_DESCRIPTION",
@@ -322,7 +491,7 @@
   },
   {
     "files": [
-      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx"
+      "Contents/ForgotPasswordFormView.tsx"
     ],
     "id": "KGKyXdGxSd",
     "key": "DEFAULT->EMAIL_PLACEHOLDER_TEXT",
@@ -333,8 +502,8 @@
   },
   {
     "files": [
-      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx",
-      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx"
+      "Contents/ForgotPasswordFormView.tsx",
+      "Contents/ResetPasswordFormView.tsx"
     ],
     "id": "qo67dno8Fj",
     "key": "DEFAULT->SEND_BUTTON_TEXT",
@@ -345,7 +514,7 @@
   },
   {
     "files": [
-      "Contents/LogInForm/LogInFormView.tsx"
+      "Contents/LogInFormView.tsx"
     ],
     "id": "ajxpgpK6saX",
     "key": "LOG_IN_FORM->FORGOT_PASSWORD_LINK_TEXT",
@@ -356,7 +525,7 @@
   },
   {
     "files": [
-      "Contents/LogInForm/LogInFormView.tsx"
+      "Contents/LogInFormView.tsx"
     ],
     "id": "nKx5y4qjI4",
     "key": "LOG_IN_FORM->USER_NOT_FOUND_ERROR_MESSAGE",
@@ -367,7 +536,7 @@
   },
   {
     "files": [
-      "Contents/LogInForm/LogInFormView.tsx"
+      "Contents/LogInFormView.tsx"
     ],
     "id": "xRonB6GKS5",
     "key": "LOG_IN_FORM->NO_PASSWORD_ERROR_MESSAGE",
@@ -378,7 +547,7 @@
   },
   {
     "files": [
-      "Contents/LogInForm/LogInFormView.tsx"
+      "Contents/LogInFormView.tsx"
     ],
     "id": "8EoRq6X5S5",
     "key": "LOG_IN_FORM->NO_USERNAME_OR_EMAIL_ERROR_MESSAGE",
@@ -389,7 +558,7 @@
   },
   {
     "files": [
-      "Contents/LogInForm/LogInFormView.tsx"
+      "Contents/LogInFormView.tsx"
     ],
     "id": "8EoRqEa9sX",
     "key": "LOG_IN_FORM->PASSWORD_PLACEHOLDER",
@@ -400,7 +569,7 @@
   },
   {
     "files": [
-      "Contents/LogInForm/LogInFormView.tsx"
+      "Contents/LogInFormView.tsx"
     ],
     "id": "kzoeyzaBsy",
     "key": "LOG_IN_FORM->SUBMIT_BUTTON",
@@ -411,7 +580,7 @@
   },
   {
     "files": [
-      "Contents/LogInForm/LogInFormView.tsx"
+      "Contents/LogInFormView.tsx"
     ],
     "id": "ejxMGjrBsR",
     "key": "LOG_IN_FORM->USERNAME_OR_EMAIL_PLACEHOLDER",
@@ -422,7 +591,7 @@
   },
   {
     "files": [
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "9xGbAdLquG",
     "key": "SIGN_UP->SUCCESSFUL_SIGN_UP_MESSAGE",
@@ -433,7 +602,7 @@
   },
   {
     "files": [
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "gjxpreBkf9",
     "key": "SIGN_UP->INVALID_INVITATION_TOKEN_ERROR_MESSAGE",
@@ -444,10 +613,10 @@
   },
   {
     "files": [
-      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx",
-      "Contents/LogInForm/LogInFormView.tsx",
-      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx",
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/ForgotPasswordFormView.tsx",
+      "Contents/LogInFormView.tsx",
+      "Contents/ResetPasswordFormView.tsx",
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "7o6zr5o7tg",
     "key": "DEFAULT->UNKNOW_ERROR_MESSAGE",
@@ -458,7 +627,7 @@
   },
   {
     "files": [
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "G5GzRe8eu4",
     "key": "SIGN_UP->USERNAME_ALREADY_TAKEN_ERROR_MESSAGE",
@@ -469,8 +638,8 @@
   },
   {
     "files": [
-      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx",
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/ForgotPasswordFormView.tsx",
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "KGKyo4pbSL",
     "key": "DEFAULT->INVALID_EMAIL_ERROR_MESSAGE",
@@ -481,8 +650,8 @@
   },
   {
     "files": [
-      "Contents/ForgotPasswordForm/ForgotPasswordFormView.tsx",
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/ForgotPasswordFormView.tsx",
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "dbKe4yBjSe",
     "key": "DEFAULT->NO_EMAIL_ERROR_MESSAGE",
@@ -493,8 +662,8 @@
   },
   {
     "files": [
-      "Contents/ResetPasswordForm/ResetPasswordFormView.tsx",
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/ResetPasswordFormView.tsx",
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "jKx5bydpSL",
     "key": "DEFAULT->NO_PASSWORD_ERROR_MESSAGE",
@@ -505,7 +674,7 @@
   },
   {
     "files": [
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "zEoR4B9pSq",
     "key": "SIGN_UP->INVALID_USERNAME_ERROR_MESSAGE",
@@ -516,7 +685,7 @@
   },
   {
     "files": [
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "bz9e4yBjS4",
     "key": "SIGN_UP->NO_NAME_ERROR_MESSAGE",
@@ -527,7 +696,7 @@
   },
   {
     "files": [
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "5o6z4yqKSx",
     "key": "SIGN_UP->NO_USERNAME_ERROR_MESSAGE",
@@ -538,7 +707,7 @@
   },
   {
     "files": [
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "G5Gzbq7ohG",
     "key": "SIGN_UP->USERNAME_UNIQUE_SUCCESS_MESSAGE",
@@ -549,7 +718,7 @@
   },
   {
     "files": [
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "KGKAKRbKs9",
     "key": "SIGN_UP->EMAIL_ALREADY_TAKEN_ERROR_MESSAGE",
@@ -560,7 +729,7 @@
   },
   {
     "files": [
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "9xGMMnyBIL",
     "key": "SIGN_UP->INVITE_FRIEND_PLACEHOLDER",
@@ -571,7 +740,7 @@
   },
   {
     "files": [
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "7o699RXySd",
     "key": "SIGN_UP->INVITE_FRIEND_PROMPT_TEXT",
@@ -582,7 +751,7 @@
   },
   {
     "files": [
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "4LjMMnyBf8",
     "key": "SIGN_UP->SUBMIT_BUTTON_TEXT",
@@ -593,7 +762,7 @@
   },
   {
     "files": [
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "KGKAAxRXhg",
     "key": "SIGN_UP->USERNAME_PLACEHOLDER",
@@ -604,7 +773,7 @@
   },
   {
     "files": [
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "9xGMzo9KSB",
     "key": "SIGN_UP->EMAIL_PLACEHOLDER",
@@ -615,7 +784,7 @@
   },
   {
     "files": [
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "jKxM7qaduG",
     "key": "SIGN_UP->NAME_PLACEHOLDER",
@@ -626,7 +795,7 @@
   },
   {
     "files": [
-      "Contents/SignUpForm/SignUpFormView.tsx"
+      "Contents/SignUpFormView.tsx"
     ],
     "id": "4LjMK9r7fj",
     "key": "SIGN_UP->PASSWORD_PLACEHOLDER",
@@ -637,7 +806,7 @@
   },
   {
     "files": [
-      "Contents/TopBar/TopBarView.tsx"
+      "Contents/LandingPageTopBarView.tsx"
     ],
     "id": "ejx877nqFX",
     "key": "DEFAULT->LOGIN",
@@ -648,7 +817,7 @@
   },
   {
     "files": [
-      "Contents/Hero/HeroView.tsx"
+      "Contents/HeroView.tsx"
     ],
     "id": "qo69MAqdu8",
     "key": "HERO->DESCRIPTION",

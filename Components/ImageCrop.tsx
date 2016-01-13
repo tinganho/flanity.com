@@ -1,17 +1,17 @@
 
-import { ContentComponent, React } from '../Library/Index';
+import { ContentComponent, React, DOMElement } from '../Library/Index';
 
 interface Props {
     image: HTMLImageElement;
 }
 
 interface ImageCropElements extends Elements {
-    imagePreview: IDOMElement;
-    bullsEye: IDOMElement;
-    imageCropCanvasHelper: IDOMElement;
-    imageCropSection: IDOMElement;
-    doneButton: IDOMElement;
-    zoomHelpTextContainer: IDOMElement;
+    imagePreview: DOMElement;
+    bullsEye: DOMElement;
+    imageCropCanvasHelper: DOMElement;
+    imageCropSection: DOMElement;
+    doneButton: DOMElement;
+    zoomHelpTextContainer: DOMElement;
 }
 
 interface ImageCropDimensions {
@@ -30,7 +30,6 @@ function dataURIToBlob(dataURI: string) {
     }
     return new Blob([ab], { type: 'image/jpeg' });
 }
-
 
 export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
     public imageCropDimensions: ImageCropDimensions;
@@ -62,7 +61,8 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
     private canvasWidth: number;
     private canvasHeight: number;
 
-    private overlay: IDOMElement;
+    private overlay: DOMElement;
+    private removeOverlay: boolean;
 
     private maxZoomHeight = 10000;
     private maxZoomWidth = 10000;
@@ -124,8 +124,10 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
     public setImage(image: HTMLImageElement): this {
         this.originalImageHeight = image.height;
         this.originalImageWidth = image.width;
+        let imageAspectRatio = image.width / image.height;
+        let cropAspectRatio = this.imageCropDimensions.cropWidth / this.imageCropDimensions.cropHeight;
 
-        if (image.height > image.width) {
+        if (imageAspectRatio < cropAspectRatio) {
             this.left = this.imageCropDimensions.paddingHorizontal;
             this.width = this.imageCropDimensions.cropWidth;
             this.height = this.imageCropDimensions.cropWidth / image.width * image.height;
@@ -258,7 +260,7 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
         this.elements.imagePreview.setAttribute('style', `height: ${this.height}px; width: ${this.width}px; top: ${this.top}px; left: ${this.left}px;`);
     }
 
-    public whenDone(done: (imageBlob: Blob, imageUrl: string) => void): this {
+    public onDone(done: (imageBlob: Blob, imageUrl: string) => void): this {
         this.doneHandler = done;
         return this;
     }
@@ -279,11 +281,15 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
             bullsEyeHeight, 0, 0, this.canvasWidth, this.canvasHeight);
         context.scale(2, 2);
 
-        this.overlay.removeClass('Revealed').addClass('Hidden');
+        if (this.removeOverlay) {
+            this.overlay.removeClass('Revealed').addClass('Hidden');
+        }
         this.root.removeClass('Revealed').addClass('Hidden')
             .onTransitionEnd(() => {
                 this.root.remove();
-                this.overlay.hide();
+                if (this.removeOverlay) {
+                    this.overlay.hide();
+                }
             });
 
         let dataURL = canvas.toDataURL('image/jpeg', 1);
@@ -292,6 +298,7 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
 
     public end() {
         this.appendTo('Overlay');
+        this.root.addStyle('margin-left', '-' + (this.imageCropDimensions.cropWidth / 2 + this.imageCropDimensions.paddingHorizontal) + 'px');
         setTimeout(() => {
             this.root.addClass('Revealed').removeClass('Hidden');
             this.elements.imagePreview.addClass('ZoomOut').removeClass('ZoomIn')
@@ -303,7 +310,10 @@ export class ImageCrop extends ContentComponent<Props, {}, ImageCropElements> {
                 });
         }, 0);
         this.overlay = ContentComponent.getElement('Overlay');
-        this.overlay.show().addClass('Revealed').removeClass('Hidden');
+        if (this.overlay.hasClass('Hidden')) {
+            this.overlay.show().addClass('Revealed').removeClass('Hidden');
+            this.removeOverlay = true;
+        }
         this.bindInteractions();
     }
 }

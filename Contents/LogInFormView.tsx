@@ -1,5 +1,5 @@
 
-import { SubmitButton, FormMessage } from '../../Components/Index';
+import { SubmitButton, FormMessage } from '../Components/Index';
 import {
     React,
     DOMElement,
@@ -11,9 +11,10 @@ import {
     ErrorResponse,
     DeferredCallback,
     Feedback,
-    PageInfo } from '../../Library/Index';
+    PageInfo,
+    autobind } from '../Library/Index';
 
-interface L10ns {
+interface Text{
     usernameOrEmailPlaceholder: string;
     passwordPlaceholder: string;
     submitButtonText: string;
@@ -31,7 +32,7 @@ interface L10ns {
 interface Props {
 }
 
-interface LogInFormElements extends Elements {
+interface Elements {
     usernameOrEmail: DOMElement;
     password: DOMElement;
     passwordLink: DOMElement;
@@ -62,7 +63,7 @@ interface Session {
     expiry: string;
 }
 
-export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormElements> {
+export class LogInFormView extends ContentComponent<Props, Text, Elements> {
 
     public static setPageInfo(props: Props, l: GetLocalization, pageInfo: PageInfo) {
         this.setPageTitle(l('LOG_IN_FORM->PAGE_TITLE'), pageInfo);
@@ -80,20 +81,20 @@ export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormEleme
         return (
             <div>
                 <form id='LogInFormForm' class='CentralForm BgWhite2'>
-                    <input id='LogInFormUsernameOrEmail' name='usernameOrEmail' ref='usernameOrEmail' type='text' class='TextInput LogInFormTextInput' placeholder={this.l10ns.usernameOrEmailPlaceholder}/>
-                    <input id='LogInFormPassword' name='password' ref='password' type='password' class='TextInput LogInFormTextInput' placeholder={this.l10ns.passwordPlaceholder}/>
+                    <input id='LogInFormUsernameOrEmail' name='usernameOrEmail' ref='usernameOrEmail' type='text' class='TextInput LogInFormTextInput' placeholder={this.text.usernameOrEmailPlaceholder}/>
+                    <input id='LogInFormPassword' name='password' ref='password' type='password' class='TextInput LogInFormTextInput' placeholder={this.text.passwordPlaceholder}/>
                     <FormMessage/>
-                    <a id='LogInFormForgotPasswordLink' ref='passwordLink' class='TextLink1'>{this.l10ns.forgotPassword}</a>
-                    <SubmitButton id='LogInSubmitButton' ref='submitButton' buttonText={this.l10ns.submitButtonText}/>
+                    <a id='LogInFormForgotPasswordLink' ref='passwordLink' class='TextLink1'>{this.text.forgotPassword}</a>
+                    <SubmitButton id='LogInSubmitButton' ref='submitButton' buttonText={this.text.submitButtonText}/>
                 </form>
             </div>
         );
     }
 
+
     public bindDOM() {
         super.bindDOM();
 
-        this.submit = this.submit.bind(this);
         this.elements.submitButton = this.components.submitButton.elements.container;
 
         this.bindInteractions();
@@ -110,11 +111,13 @@ export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormEleme
         this.elements.password.addEventListener('change', () => {
             this.password = this.elements.password.getValue();
         });
+        this.elements.password.addEventListener('keydown', this.onEnterSubmit);
+        this.elements.password.addEventListener('keydown', this.onEnterSubmit);
         this.elements.passwordLink.addEventListener('click', this.navigateToForgotPasswordPage);
     }
 
-    public setLocalizations(l: GetLocalization) {
-        this.l10ns = {
+    public setText(l: GetLocalization) {
+        this.text = {
             usernameOrEmailPlaceholder: l('LOG_IN_FORM->USERNAME_OR_EMAIL_PLACEHOLDER'),
             passwordPlaceholder: l('LOG_IN_FORM->PASSWORD_PLACEHOLDER'),
             submitButtonText: l('LOG_IN_FORM->SUBMIT_BUTTON'),
@@ -128,6 +131,13 @@ export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormEleme
         }
     }
 
+    @autobind
+    private onEnterSubmit(event: KeyboardEvent) {
+        if(event.which === 13) {
+            this.submit();
+        }
+    }
+
     private showErrorMessage(message: string) {
         this.components.formMessage.showErrorMessage(message);
     }
@@ -138,7 +148,7 @@ export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormEleme
 
     private validateUsernameOrEmail(): boolean {
         if (this.usernameOrEmail.length === 0) {
-            this.showErrorMessage(this.l10ns.noUsernameOrEmailErrorMessage);
+            this.showErrorMessage(this.text.noUsernameOrEmailErrorMessage);
             return false;
         }
 
@@ -147,15 +157,16 @@ export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormEleme
 
     private validatePassword(): boolean {
         if (this.password.length === 0) {
-            this.showErrorMessage(this.l10ns.noPasswordErrorMessage);
+            this.showErrorMessage(this.text.noPasswordErrorMessage);
             return false;
         }
 
         return true;
     }
 
-    private submit(event: Event) {
-        event.preventDefault();
+    @autobind
+    private submit(event?: Event) {
+        event && event.preventDefault();
 
         if (this.isRequesting) {
             return;
@@ -199,7 +210,7 @@ export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormEleme
                             markLoadFinished();
                         })
                         .catch((err: HTTPResponse<ErrorResponse> | Error) => {
-                            this.showErrorMessage(this.l10ns.unknownErrorErrorMessage);
+                            this.showErrorMessage(this.text.unknownErrorErrorMessage);
                         });
                 });
             })
@@ -213,7 +224,7 @@ export class LogInFormView extends ContentComponent<Props, L10ns, LogInFormEleme
                     callback.call(() => {
                         switch (body.feedback.current.code) {
                             case LoginRequestFeedback.UserNotFound:
-                                this.showErrorMessage(this.l10ns.userNotFoundErrorMessage);
+                                this.showErrorMessage(this.text.userNotFoundErrorMessage);
                                 break;
                         }
                         markLoadFinished();

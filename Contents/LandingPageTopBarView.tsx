@@ -1,5 +1,5 @@
 
-import { DOMElement, ContentComponent, React } from '../../Library/Index';
+import { DOMElement, ContentComponent, React } from '../Library/Index';
 
 interface Props {
     changeLangURL: string;
@@ -7,15 +7,15 @@ interface Props {
 }
 
 interface FooterElements extends Elements {
-    loginButton: DOMElement;
+    logInButton: DOMElement;
     logoAnchor: DOMElement;
 }
 
-interface L10ns {
+interface Text {
     login: string;
 }
 
-export class LandingPageTopBarView extends ContentComponent<Props, L10ns, FooterElements> {
+export class LandingPageTopBarView extends ContentComponent<Props, Text, FooterElements> {
     public render() {
         return (
             <div>
@@ -24,8 +24,8 @@ export class LandingPageTopBarView extends ContentComponent<Props, L10ns, Footer
                         <i id='LandingPageTopBarLogo'></i>
                     </div>
                 </a>
-                <div id='LandingPageTopBarLoginButtonContainer'>
-                    <a ref='loginButton' id='TopBarLoginButton'>{this.l10ns.login}</a>
+                <div ref='logInButton' id='LandingPageTopBarLogInButtonContainer'>
+                    <a id='LandingPageTopBarLogInButton'>{this.text.login}</a>
                 </div>
             </div>
         );
@@ -37,12 +37,12 @@ export class LandingPageTopBarView extends ContentComponent<Props, L10ns, Footer
     }
 
     public bindInteractions() {
-        this.elements.loginButton.addEventListener('click', this.navigateToLoginPage);
+        this.elements.logInButton.addEventListener('click', this.navigateToLoginPage);
         this.elements.logoAnchor.addEventListener('click', this.navigateToHomePage);
     }
 
-    public setLocalizations(l: GetLocalization) {
-        this.l10ns = {
+    public setText(l: GetLocalization) {
+        this.text = {
             login: l('DEFAULT->LOGIN'),
         }
     }

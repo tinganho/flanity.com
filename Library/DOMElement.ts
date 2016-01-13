@@ -46,6 +46,10 @@ export class DOMElement implements DOMElement {
         this.nativeElement.id = id;
     }
 
+    public getElement(id: string) {
+        return this.findOne('#' + id);
+    }
+
     public findOne(query: string): DOMElement {
         let el = this.nativeElement.querySelector(query);
         return el ? new DOMElement(el as HTMLElement) : null;
@@ -102,23 +106,43 @@ export class DOMElement implements DOMElement {
         return this;
     }
 
-    public append(element: DOMElement): this {
-        this.nativeElement.appendChild(element.nativeElement);
+    public append(element: DOMElement | JSX.Element): this {
+        if ((element as JSX.Element).toDOM) {
+            this.nativeElement.appendChild((element as JSX.Element).toDOM().frag);
+        }
+        else {
+            this.nativeElement.appendChild((element as DOMElement).nativeElement);
+        }
         return this;
     }
 
-    public prepend(element: DOMElement): this {
-        this.nativeElement.insertBefore(element.nativeElement, this.nativeElement.firstChild);
+    public prepend(element: DOMElement | JSX.Element): this {
+        if ((element as JSX.Element).toDOM) {
+            this.nativeElement.insertBefore((element as JSX.Element).toDOM().frag, this.nativeElement.firstChild);
+        }
+        else {
+            this.nativeElement.insertBefore((element as DOMElement).nativeElement, this.nativeElement.firstChild);
+        }
         return this;
     }
 
-    public before(element: DOMElement): this {
-        this.nativeElement.parentNode.insertBefore(element.nativeElement, this.nativeElement);
+    public before(element: DOMElement | JSX.Element): this {
+        if ((element as JSX.Element).toDOM) {
+            this.nativeElement.parentNode.insertBefore((element as JSX.Element).toDOM().frag, this.nativeElement);
+        }
+        else {
+            this.nativeElement.parentNode.insertBefore((element as DOMElement).nativeElement, this.nativeElement);
+        }
         return this;
     }
 
-    public after(element: DOMElement): this {
-        this.nativeElement.parentNode.insertBefore(element.nativeElement, this.nativeElement.parentNode.lastChild);
+    public after(element: DOMElement | JSX.Element): this {
+        if ((element as JSX.Element).toDOM) {
+            this.nativeElement.parentNode.insertBefore((element as JSX.Element).toDOM().frag, this.nativeElement.parentNode.lastChild);
+        }
+        else {
+            this.nativeElement.parentNode.insertBefore((element as DOMElement).nativeElement, this.nativeElement.parentNode.lastChild);
+        }
         return this;
     }
 
@@ -231,6 +255,21 @@ export class DOMElement implements DOMElement {
             (target as HTMLElement).appendChild(this.nativeElement);
         }
 
+        return this;
+    }
+
+    public addStyle(rule: string, value: string): this {
+        this.nativeElement.style.cssText += `${rule}: ${value};`;
+        return this;
+    }
+
+    public setHeight(px: number): this {
+        this.addStyle('height', px + 'px');
+        return this;
+    }
+
+    public setWidth(px: number): this {
+        this.addStyle('width', px + 'px');
         return this;
     }
 

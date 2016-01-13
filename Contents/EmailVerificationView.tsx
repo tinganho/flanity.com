@@ -1,22 +1,22 @@
 
-import { React, ContentComponent, DOMElement, PageInfo } from '../../Library/Index';
+import { React, ContentComponent, DOMElement, PageInfo } from '../Library/Index';
 
 interface Props {
     isVerified: boolean;
 }
 
-interface HeroElements {
+interface Elements {
     signupButton: DOMElement;
 }
 
-interface L10ns {
+interface Text {
     successTitle: string;
     errorTitle: string;
     successDescription: string;
     errorDescription: string;
 }
 
-export class EmailVerificationView extends ContentComponent<Props, L10ns, HeroElements> {
+export class EmailVerificationView extends ContentComponent<Props, Text, Elements> {
 
     public static setPageInfo(props: Props, l: GetLocalization, pageInfo: PageInfo) {
         this.setPageTitle(l('EMAIL_VERIFICATION->PAGE_TITLE'), pageInfo);
@@ -24,8 +24,8 @@ export class EmailVerificationView extends ContentComponent<Props, L10ns, HeroEl
     }
 
     public render() {
-        let title = this.props.isVerified ? this.l10ns.successTitle : this.l10ns.errorTitle;
-        let description = this.props.isVerified ? this.l10ns.successDescription : this.l10ns.errorDescription;
+        let title = this.props.isVerified ? this.text.successTitle : this.text.errorTitle;
+        let description = this.props.isVerified ? this.text.successDescription : this.text.errorDescription;
         return (
             <div>
                 <div id='EmailVerificationDialog' class='BgWhite2'>
@@ -39,8 +39,8 @@ export class EmailVerificationView extends ContentComponent<Props, L10ns, HeroEl
         );
     }
 
-    public setLocalizations(l: GetLocalization) {
-        this.l10ns = {
+    public setText(l: GetLocalization) {
+        this.text = {
             successTitle: l('EMAIL_VERIFICATION->SUCCESS_TITLE'),
             errorTitle: l('EMAIL_VERIFICATION->ERROR_TITLE'),
             successDescription: l('EMAIL_VERIFICATION->SUCCESS_DESCRIPTION'),

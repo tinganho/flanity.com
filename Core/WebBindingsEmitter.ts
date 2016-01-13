@@ -104,8 +104,8 @@ export function emitBindings(
                     if (contents.indexOf(contentView) === -1) {
                         write(`App.Components.Contents.${contentView} = ${contentView};`);
                         writeLine();
-                        if (contentInfo.model) {
-                            let contentModel = contentInfo.model.className;
+                        if (contentInfo.data) {
+                            let contentModel = contentInfo.data.className;
                             write(`App.Components.Contents.${contentModel} = ${contentModel};`);
                             writeLine();
                         }
@@ -177,10 +177,12 @@ export function emitBindings(
                     writeLine();
                     write(`region: '${content.region}',`);
                     writeLine();
-                    write('model: ');
-                    writeClassInfo(content.model);
-                    write(',');
-                    writeLine();
+                    if (content.data) {
+                        write('data: ');
+                        writeClassInfo(content.data);
+                        write(',');
+                        writeLine();
+                    }
                     write('view: ');
                     writeClassInfo(content.view);
                     writeLine();
@@ -245,7 +247,7 @@ export function emitBindings(
             write(imports[i].view.importPath);
             writeQuote();
             write(', ');
-            if (imports[i].model) {
+            if (imports[i].data) {
                 writeQuote();
                 write(imports[i].view.importPath);
                 writeQuote();
@@ -259,8 +261,8 @@ export function emitBindings(
         for (let i = 0; i<imports.length; i++) {
             write(imports[i].view.className);
             write(', ');
-            if (imports[i].model) {
-                write(imports[i].model.className);
+            if (imports[i].data) {
+                write(imports[i].data.className);
                 write(', ');
             }
         }
@@ -280,8 +282,8 @@ export function emitBindings(
             if (classNames.indexOf(i.view.className) === -1) {
                 write(`var ${i.view.className} = require('${i.view.importPath}').${i.view.className};`);
                 writeLine();
-                if (i.model) {
-                    write(`var ${i.model.className} = require('${i.model.importPath}').${i.model.className};`);
+                if (i.data) {
+                    write(`var ${i.data.className} = require('${i.data.importPath}').${i.data.className};`);
                     writeLine();
                 }
                 classNames.push(i.view.className);

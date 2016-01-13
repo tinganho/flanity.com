@@ -6,14 +6,6 @@ var fs = require('fs');
 var path = require('path');
 var remove = require('remove');
 
-var tscCommand = 'tsc';
-tscCommand += ' --noImplicitAny';
-tscCommand += ' --outDir Build';
-tscCommand += ' --target es5';
-tscCommand += ' --rootDir .';
-tscCommand += ' --jsx react';
-tscCommand += ' --removeComments';
-
 module.exports = function(grunt) {
     grunt.registerTask('tsc', function() {
         var done = this.async();
@@ -28,7 +20,7 @@ module.exports = function(grunt) {
             '--target', 'es5',
             '--rootDir', '.',
             '--jsx', 'react',
-            '--removeComments'
+            '--removeComments',
         ];
 
         console.log(cmd, options.join(' '));

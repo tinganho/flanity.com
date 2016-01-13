@@ -17,7 +17,7 @@ import compression = require('compression');
 import requestLanguage = require('express-request-language');
 import cookieParser = require('cookie-parser');
 import bodyParser = require('body-parser');
-import { login } from './Contents/LogInForm/LogInAPI';
+import { login } from './Contents/LogInAPI';
 import { init as initPages } from './Pages';
 import { ServerComposer } from './Core/ServerComposer';
 import { System, writeClientConfigurations } from './Library/Server/Index';
@@ -39,7 +39,7 @@ export function startServer(quiet = false) {
         });
     }
     if (!quiet) {
-        Server.use(logger('dev'));
+        // Server.use(logger('dev'));
     }
     Server.use(bodyParser.urlencoded({ extended: true }));
     Server.use('/Public', express.static(System.joinPaths(__dirname, 'Public'), { etag: false }));

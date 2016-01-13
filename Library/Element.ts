@@ -109,8 +109,20 @@ export function createElement(
                     root.setAttribute('data-ref', ref);
                     component.elements[ref] = new DOMElement(root);
                 }
+                else if (p === 'bindText') {
+                    innerHTML = HTMLEncode(component.text[props[p]] || '');
+                    component.on('change:text', () => {
+                         component.root.findOne(component.id).setHTML(HTMLEncode(component.text[props[p]]));
+                    });
+                }
+                else if (p === 'bindUnsafeText') {
+                    innerHTML = component.text[props[p]] || '';
+                    component.on('change:text', () => {
+                         component.root.findOne(component.id).setHTML(component.text[props[p]]);
+                    });
+                }
                 else if (p === 'html') {
-                    innerHTML = props[p];
+                    innerHTML = props[p] || '';
                     continue;
                 }
                 else {
@@ -212,7 +224,7 @@ export function createElement(
                 frag += ` id="${component.id}"`;
             }
 
-            let innerHTML: string = null;
+            let innerHTML: string = '';
 
             for (let p in props) {
                 if (typeof props[p] !== 'boolean' && typeof props[p] !== 'string') {
@@ -222,7 +234,7 @@ export function createElement(
                     continue;
                 }
                 if (p === 'html') {
-                    innerHTML = props[p];
+                    innerHTML += props[p] || '';
                     continue;
                 }
                 if (typeof props[p] === 'boolean') {
@@ -230,6 +242,12 @@ export function createElement(
                 }
                 else if (p === 'ref') {
                     frag += ` data-ref="${props[p]}"`;
+                }
+                else if (p === 'bindUnsafeText') {
+                    innerHTML += component.text[props[p]] || '';
+                }
+                else if (p === 'bindText') {
+                    innerHTML += HTMLEncode(component.text[props[p]] || '');
                 }
                 else {
                     frag += ` ${convertCamelCasesToDashes(p)}="${props[p]}"`;
@@ -330,6 +348,16 @@ export function createElement(
                     }
                     component.elements[ref] = new DOMElement(referencedElement);
                 }
+                else if (p === 'bindText') {
+                    component.on('text:change', () => {
+                         component.root.findOne(component.id).setHTML(HTMLEncode(component.text[props[p]]));
+                    });
+                }
+                else if (p === 'bindUnsafeText') {
+                    component.on('text:change', () => {
+                         component.root.findOne(component.id).setHTML(component.text[props[p]]);
+                    });
+                }
             }
 
             for (let child of children) {
@@ -383,8 +411,6 @@ export function createElement(
             }
             else {
                 child.bindDOM(renderId);
-                // let childComponent = child.getChildComponent();
-                // parentComponent.components[childComponent.props.ref || toCamelCase(childComponent.id)] = childComponent;
             }
         }
     }

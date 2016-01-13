@@ -8,9 +8,11 @@
 }
 
 #Body {
-    z-index: 1;
     @extend .Region;
-    height: 100%;
+    z-index: 1;
+    @include display-flex;
+    @include flex-direction(column);
+    @include flex-grow(2);
 
     @media(max-width: 500px) {
         height: 400px;
@@ -31,22 +33,5 @@
 
     @media(max-width: 500px) {
         height: 60px;
-    }
-}
-
-#Overlay {
-    position: absolute;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1000;
-    text-align: center;
-
-    &.Hidden {
-        background-color: rgba(0, 0, 0, 0);
-    }
-
-    &.Revealed {
-        background-color: rgba(0, 0, 0, 0.3);
     }
 }

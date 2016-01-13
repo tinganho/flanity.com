@@ -2,7 +2,7 @@
 import {
     ImageCrop,
     SubmitButton,
-    FormMessage } from '../../Components/Index';
+    FormMessage } from '../Components/Index';
 import {
     DeferredCallback,
     HTTP,
@@ -10,9 +10,10 @@ import {
     DOMElement,
     ContentComponent,
     React,
-    PageInfo } from '../../Library/Index';
+    PageInfo,
+    autobind } from '../Library/Index';
 
-interface L10ns {
+interface Text {
     namePlaceholder: string;
     usernamePlaceholder: string;
     passwordPlaceholder: string;
@@ -108,7 +109,7 @@ interface SignUpComponents {
     [index: string]: Component<any, any, any>;
 }
 
-export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements> {
+export class SignUpFormView extends ContentComponent<Props, Text, FormElements> {
 
     public static setPageInfo(props: Props, l: GetLocalization, pageInfo: PageInfo) {
         this.setPageTitle(l('SIGN_UP_FORM->PAGE_TITLE'), pageInfo);
@@ -139,20 +140,20 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
                 <form id='SignUpFormForm' class='CentralForm BgWhite2'>
                     <div id='SignUpFormFirstRow'>
                         <div id='SignUpProfileImage' ref='profileImage'>
-                            <input id='SignUpProfileImageInput' ref='profileImageInput' name='profileImage' type='file' accept='image/*'/>
+                            <input id='SignUpProfileImageInput' ref='profileImageInput' name='profileImage' type='file' accept='image/*' class='FileInput'/>
                         </div>
                         <div id='SignUpNameAndPasswordContainer'>
-                            <input id='SignUpFormNameInput' name='name' ref='name' type='text' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.namePlaceholder}/>
-                            <input id='SignUpFormUsernameInput' name='username' ref='username' type='text' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.usernamePlaceholder}/>
+                            <input id='SignUpFormNameInput' name='name' ref='name' type='text' class='TextInput SignUpFormTextInput' placeholder={this.text.namePlaceholder}/>
+                            <input id='SignUpFormUsernameInput' name='username' ref='username' type='text' class='TextInput SignUpFormTextInput' placeholder={this.text.usernamePlaceholder}/>
                             <span id='SignUpUsernameFeedback' ref='usernameFeedback' class='Hidden'>&nbsp;</span>
                         </div>
                     </div>
-                    <input id='SignUpFormEmailInput' name='email' ref='email' type='email' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.emailPlaceholder}/>
-                    <input id='SignUpFormPasswordInput' name='password' ref='password' type='password' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.passwordPlaceholder}/>
-                    <p class='PromptText'>{this.l10ns.inviteFriendPromptText}</p>
-                    <input name='friend1Email' ref='friend1Email' type='email' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.inviteFriendPlaceholder}/>
-                    <input name='friend2Email' ref='friend2Email' type='email' class='TextInput SignUpFormTextInput' placeholder={this.l10ns.inviteFriendPlaceholder}/>
-                    <SubmitButton id='SignUpSubmitButton' ref='submitButton' buttonText={this.l10ns.submitButtonText}/>
+                    <input id='SignUpFormEmailInput' name='email' ref='email' type='email' class='TextInput SignUpFormTextInput' placeholder={this.text.emailPlaceholder}/>
+                    <input id='SignUpFormPasswordInput' name='password' ref='password' type='password' class='TextInput SignUpFormTextInput' placeholder={this.text.passwordPlaceholder}/>
+                    <p class='PromptText'>{this.text.inviteFriendPromptText}</p>
+                    <input name='friend1Email' ref='friend1Email' type='email' class='TextInput SignUpFormTextInput' placeholder={this.text.inviteFriendPlaceholder}/>
+                    <input name='friend2Email' ref='friend2Email' type='email' class='TextInput SignUpFormTextInput' placeholder={this.text.inviteFriendPlaceholder}/>
+                    <SubmitButton id='SignUpSubmitButton' ref='submitButton' buttonText={this.text.submitButtonText}/>
                     <FormMessage id='SignUpFormMessage' ref='formMessage'/>
                 </form>
             </div>
@@ -161,9 +162,6 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
 
     public bindDOM() {
         super.bindDOM();
-
-        this.submit = this.submit.bind(this);
-        this.inlineCheckUsername = this.inlineCheckUsername.bind(this);
 
         this.elements.submitButton = this.components.submitButton.elements.container;
         this.bindInteractions();
@@ -194,8 +192,8 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
         });
     }
 
-    public setLocalizations(l: GetLocalization) {
-        this.l10ns = {
+    public setText(l: GetLocalization) {
+        this.text = {
             namePlaceholder: l('SIGN_UP->NAME_PLACEHOLDER'),
             usernamePlaceholder: l('SIGN_UP->USERNAME_PLACEHOLDER'),
             passwordPlaceholder: l('SIGN_UP->PASSWORD_PLACEHOLDER'),
@@ -223,10 +221,6 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
     }
 
     public bindProfileImage() {
-        this.handleFileChange = this.handleFileChange.bind(this);
-        this.handleDragOver = this.handleDragOver.bind(this);
-        this.handleDragLeave = this.handleDragLeave.bind(this);
-
         let fileInput = this.elements.profileImageInput;
         fileInput.addEventListener('change', this.handleFileChange);
         fileInput.addEventListener('dragenter', this.handleDragOver);
@@ -234,6 +228,7 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
         fileInput.addEventListener('drop', this.handleFileChange);
     }
 
+    @autobind
     private handleDragOver(event: DragEvent) {
         event.stopPropagation();
         event.preventDefault();
@@ -241,10 +236,12 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
         this.elements.profileImage.addClass('DragOver');
     }
 
+    @autobind
     private handleDragLeave(event: DragEvent) {
         this.elements.profileImage.removeClass('DragOver');
     }
 
+    @autobind
     private handleFileChange(event: FileChangeEvent) {
         let files = event.target.files;
         for (let i = 0, f: any; f = files[i]; i++) {
@@ -265,7 +262,19 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
                         paddingHorizontal: 40,
                     })
                     .setImage(image)
-                    .whenDone((imageBlob, imageUrl) => {
+                    .onDone((imageBlob, imageUrl) => {
+
+                        if (this.elements.previewImage) {
+                            this.elements.previewImage.remove();
+                        }
+
+                        let image = new Image();
+                        image.src = imageUrl;
+                        image.width = this.profileImageWidth;
+                        image.height = this.profileImageHeight;
+                        this.elements.previewImage = new DOMElement(image);
+                        this.elements.previewImage.id = 'SignUpProfileImagePreview';
+                        this.elements.previewImage.appendTo(this.elements.profileImage);
 
                         // Copy and replace input so that we can use the same image.
                         let input = this.elements.profileImageInput;
@@ -276,13 +285,6 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
                         clone.appendTo(this.elements.profileImage);
                         input.remove();
 
-                        let image = new Image();
-                        image.src = imageUrl;
-                        image.width = this.profileImageWidth;
-                        image.height = this.profileImageHeight;
-                        this.elements.previewImage = new DOMElement(image);
-                        this.elements.previewImage.id = 'SignUpProfileImagePreview';
-                        this.elements.previewImage.appendTo(this.elements.profileImage);
                         container.addClass('HasPicture');
 
                         this.profileImage = imageBlob;
@@ -306,6 +308,7 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
         this.components.formMessage.showSuccessMessage(message);
     }
 
+    @autobind
     private inlineCheckUsername() {
         this.username = this.elements.username.getValue();
 
@@ -321,7 +324,7 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
         }
         else if (!cf.USERNAME_SYNTAX.test(this.username)) {
             this.elements.usernameFeedback
-                .setHTML(this.l10ns.invalidUsernameErrorMessage)
+                .setHTML(this.text.invalidUsernameErrorMessage)
                 .setClass('Error');
         }
         else {
@@ -331,7 +334,7 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
                     .then(() => {
                         if (currentUsername === this.username) {
                             this.elements.usernameFeedback
-                                .setHTML(this.l10ns.usernameAlreadyTakenErrorMessage)
+                                .setHTML(this.text.usernameAlreadyTakenErrorMessage)
                                 .setClass('Error');
                         }
                         markLoadFinished();
@@ -346,7 +349,7 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
                                 currentUsername === this.username) {
 
                                 this.elements.usernameFeedback
-                                    .setHTML(this.l10ns.usernameUniqueSuccessMessage)
+                                    .setHTML(this.text.usernameUniqueSuccessMessage)
                                     .setClass('Success');
                             }
                         }
@@ -361,7 +364,7 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
 
     private validateName(): boolean {
         if (this.name.length === 0) {
-            this.showErrorMessage(this.l10ns.noNameErrorMessage);
+            this.showErrorMessage(this.text.noNameErrorMessage);
             return false;
         }
         return true;
@@ -369,13 +372,13 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
 
     private validateUsername(): boolean {
         if (this.username.length === 0) {
-            this.showErrorMessage(this.l10ns.noUsernameErrorMessage);
+            this.showErrorMessage(this.text.noUsernameErrorMessage);
             return false;
         }
 
         cf.USERNAME_SYNTAX.index = 0;
         if (!cf.USERNAME_SYNTAX.test(this.username)) {
-            this.showErrorMessage(this.l10ns.invalidUsernameErrorMessage);
+            this.showErrorMessage(this.text.invalidUsernameErrorMessage);
             return false;
         }
 
@@ -384,13 +387,13 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
 
     private validateEmail(): boolean {
         if (this.email.length === 0) {
-            this.showErrorMessage(this.l10ns.noEmailErrorMessage);
+            this.showErrorMessage(this.text.noEmailErrorMessage);
             return false;
         }
 
         cf.EMAIL_SYNTAX.index = 0;
         if (!cf.EMAIL_SYNTAX.test(this.email)) {
-            this.showErrorMessage(this.l10ns.invalidEmailErrorMessage);
+            this.showErrorMessage(this.text.invalidEmailErrorMessage);
             return false;
         }
         return true;
@@ -398,15 +401,15 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
 
     private validatePassword(): boolean {
         if (this.password.length === 0) {
-            this.showErrorMessage(this.l10ns.noPasswordErrorMessage);
+            this.showErrorMessage(this.text.noPasswordErrorMessage);
             return false;
         }
         if (this.password.length < 6) {
-            this.showErrorMessage(this.l10ns.passwordTooShortErrorMessage);
+            this.showErrorMessage(this.text.passwordTooShortErrorMessage);
             return false;
         }
         if (this.password.length > 100) {
-            this.showErrorMessage(this.l10ns.passwordTooLongErrorMessage);
+            this.showErrorMessage(this.text.passwordTooLongErrorMessage);
             return false;
         }
         return true;
@@ -423,6 +426,7 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
             .substr(0, this.validInvitationEmails.length - 1);
     }
 
+    @autobind
     private submit(event: Event) {
         event.preventDefault();
 
@@ -466,7 +470,7 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
             })
             .then(() => {
                 callback.call(() => {
-                    this.showSuccessMessage(this.l10ns.signUpSuccessfulMessage);
+                    this.showSuccessMessage(this.text.signUpSuccessfulMessage);
                     this.loginUser();
                     markLoadFinished();
                 });
@@ -480,17 +484,17 @@ export class SignUpFormView extends ContentComponent<Props, L10ns, FormElements>
                     callback.call(() => {
                         switch (err.body.feedback.current.code) {
                             case CreateUserFeedback.UsernameAlreadyTaken:
-                                this.showErrorMessage(this.l10ns.usernameAlreadyTakenErrorMessage);
+                                this.showErrorMessage(this.text.usernameAlreadyTakenErrorMessage);
                                 break;
                             case CreateUserFeedback.EmailAlreadyTaken:
-                                this.showErrorMessage(this.l10ns.emailAlreadyTakenErrorMessage);
+                                this.showErrorMessage(this.text.emailAlreadyTakenErrorMessage);
                                 break;
                             case CreateUserFeedback.MissingInvitationToken:
                             case CreateUserFeedback.InvalidInvitationToken:
-                                this.showErrorMessage(this.l10ns.invalidInvitationTokenErrorMessage);
+                                this.showErrorMessage(this.text.invalidInvitationTokenErrorMessage);
                                 break;
                             default:
-                                this.showErrorMessage(this.l10ns.unknownErrorErrorMessage);
+                                this.showErrorMessage(this.text.unknownErrorErrorMessage);
                         }
 
                         markLoadFinished();

@@ -28,21 +28,19 @@
     background-size: 133px 30px;
 }
 
-#LandingPageTopBarLoginButtonContainer {
+#LandingPageTopBarLogInButtonContainer {
     position: absolute;
     right: 0;
     top: 0;
     width: 100px;
     height: 100%;
+    cursor: pointer;
     @include display-flex;
     @include justify-content(center);
     @include align-items(center);
-}
-
-#LandingPageTopBarLoginButton {
-    cursor: pointer;
 
     &:active {
         color: rgba(255, 255, 255, 0.3);
     }
 }
+

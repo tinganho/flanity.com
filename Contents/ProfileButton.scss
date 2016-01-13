@@ -1,0 +1,33 @@
+
+#ProfileButton {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 150px;
+    height: 100%;
+    cursor: pointer;
+
+    &:active {
+        opacity: 0.3;
+    }
+}
+
+#ProfileButtonImage {
+    float: right;
+    width: 22px;
+    height: 22px;
+    line-height: 51px;
+}
+
+#ProfileButtonContainer {
+    height: 100%;
+    padding: 0 20px 0 10px;
+    line-height: 51px;
+    @include display-flex;
+    @include align-items(center);
+    @include justify-content(flex-end);
+}
+
+#ProfileButtonName {
+    margin-left: 10px;
+}
