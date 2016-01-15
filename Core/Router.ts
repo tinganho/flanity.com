@@ -11,12 +11,19 @@ import { Model, Collection, RequestInfo } from '../Library/DataStore';
 import ReactMod = require('../Library/Element');
 let React: typeof ReactMod = require('/Library/Element');
 import {
-    setDefaultHttpRequestOptions as setOption,
+    setDefaultHttpRequestOptions as setDefaultHttpRequestOptionsType,
     setDefaultXCSRFTokenHeader as setDefaultXCSRFTokenHeaderType,
-    setDefaultCORSCredentials as setDefaultCORSCredentialsType } from '../Library/HTTP';
-let setDefaultHttpRequestOptions: typeof setOption = require('/Library/HTTP').setDefaultHttpRequestOptions;
+    setDefaultCORSCredentials as setDefaultCORSCredentialsType,
+    HTTPResponse,
+    ErrorResponse,
+    HTTP as HTTPType,
+    HTTPError as HTTPErrorType } from '../Library/HTTP';
+let setDefaultHttpRequestOptions: typeof setDefaultHttpRequestOptionsType = require('/Library/HTTP').setDefaultHttpRequestOptions;
 let setDefaultXCSRFTokenHeader: typeof setDefaultXCSRFTokenHeaderType = require('/Library/HTTP').setDefaultXCSRFTokenHeader;
 let setDefaultCORSCredentials: typeof setDefaultCORSCredentialsType = require('/Library/HTTP').setDefaultCORSCredentials;
+let HTTP: typeof HTTPType = require('/Library/HTTP').HTTP;
+let HTTPError: typeof HTTPErrorType = require('/Library/HTTP').HTTPError;
+
 import { ContentComponent as ContentComponentType, LayoutComponent, PageInfo } from '../Library/LayerComponents';
 let ContentComponent: typeof ContentComponentType = require('/Library/LayerComponents');
 import { DOMElement as DOMElementType } from '../Library/DOMElement';
@@ -62,6 +69,13 @@ interface Route {
     pattern: RegExp;
     path: string;
     params: string[];
+}
+
+const enum AutenticationError {
+    AuthorizationHeaderNotProvided,
+    AccessTokenExpired,
+    InvalidAccessToken,
+    NoXCsrfToken,
 }
 
 interface CurrentContents {
@@ -324,7 +338,6 @@ this component is properly named?`);
                                 // Because children component should not have component reference
                                 // in their create element closure. If we don't reset the component
                                 // reference there will be a component property referencing itself.
-                                // content.resetComponent();
                                 ingoingComponent.bindDOM();
                             }
 
@@ -344,8 +357,27 @@ this component is properly named?`);
                         newContents[contentInfo.region] = React.createElement(ViewClass, props, null);
                         render();
                     })
-                    .catch((err: Error) => {
-                        console.log(err.stack || err);
+                    .catch((error: Error | HTTPResponse<ErrorResponse>) => {
+                        if (error instanceof Error) {
+                            console.log(error.stack || error);
+                        }
+                        else {
+                            let HTTPErrorCode = error.body.code;
+                            if (HTTPErrorCode === HTTPError.UnAuthorizedAccessError) {
+                                let errorCode = error.body.feedback.current.code;
+                                if (errorCode === AutenticationError.InvalidAccessToken
+                                || errorCode === AutenticationError.AccessTokenExpired) {
+                                    HTTP.del('/session/cookies')
+                                        .then(() => {
+                                            this.navigateTo('/');
+                                        });
+                                }
+                            }
+
+                            else if (HTTPErrorCode === HTTPError.NotFoundError) {
+
+                            }
+                        }
                     });
                 }
                 else {

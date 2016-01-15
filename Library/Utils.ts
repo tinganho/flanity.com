@@ -416,17 +416,21 @@ export function map<T, U>(array: T[], f: (x: T) => U): U[]{
     return result;
 }
 
-export function extend<T>(first: Map<T>, second: Map<T>): Map<T> {
-    let result: Map<T> = {};
+export function extend<T1, T2>(first: T1, second: T2): Map<T1 & T2> {
+    let result: any = {};
     for (let id in first) {
-        result[id] = first[id];
+        result[id] = (first as any)[id];
     }
     for (let id in second) {
         if (!hasProperty(result, id)) {
-            result[id] = second[id];
+            result[id] = (first as any)[id];
         }
     }
     return result;
+}
+
+export function clone<T>(x: T): T {
+    return extend({} as any, x) as T;
 }
 
 export function HTMLEncode(str: string) {
@@ -461,4 +465,28 @@ export function autobind(target: Object, key: string, descriptor: TypedPropertyD
         return boundFn;
         }
     }
+}
+
+export function deepEqual(x: any, y: any) {
+    if ((typeof x === 'object' && x !== null) && (typeof y === 'object' && y !== null)) {
+        if (Object.keys(x).length !== Object.keys(y).length) {
+            return false;
+        }
+
+        for (let prop in x) {
+            if (y.hasOwnProperty(prop)) {
+                if (!deepEqual(x[prop], y[prop])) {
+                    return false;
+                }
+            }
+            else {
+                return false;
+            }
+        }
+        return true;
+    }
+    else if (x !== y) {
+        return false;
+    }
+    return true;
 }

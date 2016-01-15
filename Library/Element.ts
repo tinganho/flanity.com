@@ -82,6 +82,7 @@ export function createElement(
         else {
             handleCustomElement(element as any, renderId);
         }
+
         return renderId;
     }
 
@@ -109,17 +110,78 @@ export function createElement(
                     root.setAttribute('data-ref', ref);
                     component.elements[ref] = new DOMElement(root);
                 }
+
                 else if (p === 'bindText') {
-                    innerHTML = HTMLEncode(component.text[props[p]] || '');
-                    component.on('change:text', () => {
-                         component.root.findOne(component.id).setHTML(HTMLEncode(component.text[props[p]]));
-                    });
+                    ((text: string) => {
+                        let [attr, value] = text.split(':');
+                        if (!value) {
+                            value = attr;
+                            attr = undefined;
+                        }
+                        component.on('change:text', () => {
+                            let element = component.root.findOne(`[data-b-t=${value}]`);
+                            if (attr) {
+                                element.setAttribute(attr, HTMLEncode(component.text[value]));
+                            }
+                            else {
+                                element.setHTML(HTMLEncode(component.text[value]));
+                            }
+                        });
+                    })(props[p]);
                 }
                 else if (p === 'bindUnsafeText') {
-                    innerHTML = component.text[props[p]] || '';
-                    component.on('change:text', () => {
-                         component.root.findOne(component.id).setHTML(component.text[props[p]]);
-                    });
+                    ((text: string) => {
+                        let [attr, value] = text.split(':');
+                        if (!value) {
+                            value = attr;
+                            attr = undefined;
+                        }
+                        component.on('change:text', () => {
+                            let element = component.root.findOne(`[data-b-t=${value}]`);
+                            if (attr) {
+                                element.setAttribute(attr, component.text[value]);
+                            }
+                            else {
+                                element.setHTML(component.text[value]);
+                            }
+                        });
+                    })(props[p]);
+                }
+                else if (p === 'bindText') {
+                    ((text: string) => {
+                        let [attr, value] = text.split(':');
+                        if (!value) {
+                            value = attr;
+                            attr = undefined;
+                        }
+                        root.setAttribute('data-b-t', value);
+                        component.on('change:text', () => {
+                            if (attr) {
+                                root.setAttribute(attr, HTMLEncode(component.text[value]));
+                            }
+                            else {
+                                root.innerHTML = HTMLEncode(component.text[value]);
+                            }
+                        });
+                    })(props[p]);
+                }
+                else if (p === 'bindUnsafeText') {
+                    ((text: string) => {
+                        let [attr, value] = text.split(':');
+                        if (!value) {
+                            value = attr;
+                            attr = undefined;
+                        }
+                        root.setAttribute('data-b-t', value);
+                        component.on('change:text', () => {
+                            if (attr) {
+                                root.setAttribute(attr, component.text[value]);
+                            }
+                            else {
+                                root.innerHTML = component.text[value];
+                            }
+                        });
+                    })(props[p]);
                 }
                 else if (p === 'html') {
                     innerHTML = props[p] || '';
@@ -182,6 +244,19 @@ export function createElement(
             }
             else {
                 elementComponent = new element(props, children);
+
+                if (props.data) {
+                    elementComponent.data = props.data;
+                }
+                if (props.l) {
+                    elementComponent.l = props.l;
+                }
+                else if (component.l) {
+                    elementComponent.l = component.l;
+                }
+                else if (inClient) {
+                    elementComponent.l = (window as any).localizations;
+                }
                 instantiatedComponents[renderId][elementComponent.id] = elementComponent;
             }
 
@@ -243,11 +318,25 @@ export function createElement(
                 else if (p === 'ref') {
                     frag += ` data-ref="${props[p]}"`;
                 }
-                else if (p === 'bindUnsafeText') {
-                    innerHTML += component.text[props[p]] || '';
-                }
                 else if (p === 'bindText') {
-                    innerHTML += HTMLEncode(component.text[props[p]] || '');
+                    let [attr, value] = (props[p] as string).split(':');
+                    if (!value) {
+                        innerHTML += HTMLEncode(component.text[attr] || '');
+                    }
+                    else {
+                        frag += ` ${attr}="${HTMLEncode(component.text[value])}"`;
+                    }
+                    frag += ` data-b-t="${value || attr}"`;
+                }
+                else if (p === 'bindUnsafeText') {
+                    let [attr, value] = (props[p] as string).split(':');
+                    if (!value) {
+                        innerHTML += component.text[attr] || '';
+                    }
+                    else {
+                        frag += ` ${attr}="${component.text[value]}"`;
+                    }
+                    frag += ` data-b-t="${value || attr}"`;
                 }
                 else {
                     frag += ` ${convertCamelCasesToDashes(p)}="${props[p]}"`;
@@ -302,6 +391,16 @@ export function createElement(
             }
             else {
                 elementComponent = new (element as ComponentConstruct)(props, children);
+
+                if (props.data) {
+                    elementComponent.data = props.data;
+                }
+                if (props.l) {
+                    elementComponent.l = props.l;
+                }
+                else if (component.l) {
+                    elementComponent.l = component.l;
+                }
             }
             frag += elementComponent.toString(renderId);
         }
@@ -309,8 +408,8 @@ export function createElement(
         return frag;
 
         function renderChildToString(child: JSX.Element): string {
+            child.setComponent(component);
             if (child.isIntrinsic) {
-                child.setComponent(component);
                 child.markAsChildOfRootElement();
             }
             return child.toString();
@@ -349,14 +448,40 @@ export function createElement(
                     component.elements[ref] = new DOMElement(referencedElement);
                 }
                 else if (p === 'bindText') {
-                    component.on('text:change', () => {
-                         component.root.findOne(component.id).setHTML(HTMLEncode(component.text[props[p]]));
-                    });
+                    ((text: string) => {
+                        let [attr, value] = text.split(':');
+                        if (!value) {
+                            value = attr;
+                            attr = undefined;
+                        }
+                        component.on('change:text', () => {
+                            let element = component.root.findOne(`[data-b-t=${value}]`);
+                            if (attr) {
+                                element.setAttribute(attr, HTMLEncode(component.text[value]));
+                            }
+                            else {
+                                element.setHTML(HTMLEncode(component.text[value]));
+                            }
+                        });
+                    })(props[p]);
                 }
                 else if (p === 'bindUnsafeText') {
-                    component.on('text:change', () => {
-                         component.root.findOne(component.id).setHTML(component.text[props[p]]);
-                    });
+                    ((text: string) => {
+                        let [attr, value] = text.split(':');
+                        if (!value) {
+                            value = attr;
+                            attr = undefined;
+                        }
+                        component.on('change:text', () => {
+                            let element = component.root.findOne(`[data-b-t=${value}]`);
+                            if (attr) {
+                                element.setAttribute(attr, component.text[value]);
+                            }
+                            else {
+                                element.setHTML(component.text[value]);
+                            }
+                        });
+                    })(props[p]);
                 }
             }
 
@@ -387,6 +512,19 @@ export function createElement(
             }
             else {
                 elementComponent = new ElementComponent(props, children);
+
+                if (props.data) {
+                    elementComponent.data = props.data;
+                }
+                if (props.l) {
+                    elementComponent.l = props.l;
+                }
+                else if (component.l) {
+                    elementComponent.l = component.l;
+                }
+                else if (inClient) {
+                    elementComponent.l = (window as any).localizations;
+                }
                 instantiatedComponents[renderId][elementComponent.id] = elementComponent;
             }
 
@@ -451,6 +589,7 @@ export function createElement(
     }
 
     return {
+        name: typeof element === 'string' ? element : (element as any).name,
         isIntrinsic: typeof element === 'string',
         isCustomElement: typeof element !== 'string',
         getComponent: () => component,

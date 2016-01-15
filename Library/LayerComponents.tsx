@@ -38,7 +38,7 @@ export abstract class DocumentComponent<P, L, E> extends ComposerComponent<P, L,
     public manifestExists: boolean;
 
     constructor (
-        props?: P,
+        props?: P & { data?: any },
         children?: Child[]) {
 
         super(props, children);

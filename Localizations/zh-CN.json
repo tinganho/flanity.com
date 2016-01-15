@@ -3,9 +3,66 @@
     "files": [
       "Contents/TopicsView.tsx"
     ],
+    "id": "4LjRKeEeFpx",
+    "key": "CREATE_TOPIC_FORM->EDIT_BUTTON_TEXT",
+    "new": true,
+    "timestamp": "2016-01-15T14:04:26.246Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "qo65zA6aSqR",
+    "key": "CREATE_TOPIC_FORM->DELETE_BUTTON_TEXT",
+    "new": false,
+    "timestamp": "2016-01-15T13:44:37.442Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "KGKRX7zrHpr",
+    "key": "CREATE_TOPIC_FORM->DESCRIPTION_TOO_LONG_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2016-01-14T20:31:09.546Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "yxGXjLXeuj8",
+    "key": "TOPIC->EDIT_BUTTON_TEXT",
+    "new": false,
+    "timestamp": "2016-01-13T16:41:56.692Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "G5G4674puj9",
+    "key": "TOPIC->FOLLOWERS_TEXT",
+    "new": false,
+    "timestamp": "2016-01-13T16:41:56.692Z",
+    "value": "",
+    "variables": [
+      "followers"
+    ]
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
     "id": "jKx4X6e5t7b",
     "key": "CREATE_TOPIC_FORM->NO_TITLE_ERROR_MESSAGE",
-    "new": true,
+    "new": false,
     "timestamp": "2016-01-12T13:13:51.742Z",
     "value": "",
     "variables": []
@@ -16,7 +73,7 @@
     ],
     "id": "qo65Xkj7tq7",
     "key": "CREATE_TOPIC_FORM->NO_TOPIC_COVER_IMAGE_ERROR_MESSAGE",
-    "new": true,
+    "new": false,
     "timestamp": "2016-01-12T13:13:51.742Z",
     "value": "",
     "variables": []
@@ -27,7 +84,7 @@
     ],
     "id": "BKB4angztyg",
     "key": "CREATE_TOPIC_FORM->TITLE_TOO_LONG_ERROR_MESSAGE",
-    "new": true,
+    "new": false,
     "timestamp": "2016-01-12T13:13:51.742Z",
     "value": "",
     "variables": []
@@ -37,7 +94,7 @@
       "Contents/TopicsView.tsx"
     ],
     "id": "jKx4ELozI74",
-    "key": "CREATE_TOPIC_FORM->SUBMIT_BUTTON_TEXT",
+    "key": "CREATE_TOPIC_FORM->CREATE_BUTTON_TEXT",
     "new": false,
     "timestamp": "2016-01-12T10:44:07.950Z",
     "value": "",
@@ -616,7 +673,8 @@
       "Contents/ForgotPasswordFormView.tsx",
       "Contents/LogInFormView.tsx",
       "Contents/ResetPasswordFormView.tsx",
-      "Contents/SignUpFormView.tsx"
+      "Contents/SignUpFormView.tsx",
+      "Contents/TopicsView.tsx"
     ],
     "id": "7o6zr5o7tg",
     "key": "DEFAULT->UNKNOW_ERROR_MESSAGE",

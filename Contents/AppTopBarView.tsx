@@ -22,7 +22,7 @@ export class AppTopBarView extends ContentComponent<Props, Text, Elements> {
                     <i id='AppTopBarLogo'/>
                 </div>
                 <div id='AppTopBarCenterContainer'>
-                    <Search l={this.props.l}/>
+                    <Search/>
                     <ul id='AppTopBarMenu'>
                         <li class='AppTopBarMenuItem'>
                             <a class='AppTopBarMenuItemAnchor'>
@@ -36,7 +36,7 @@ export class AppTopBarView extends ContentComponent<Props, Text, Elements> {
                         </li>
                     </ul>
                 </div>
-                <ProfileButton data={this.props.data}/>
+                <ProfileButton data={this.data}/>
             </div>
         );
     }

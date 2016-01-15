@@ -51,8 +51,14 @@ interface IDOMElement {
     setWidth(px: number): this;
     onTransitionEnd(callback: (...args: any[]) => any): this;
     clone(): IDOMElement;
-    appendTo(target: IDOMElement | string): this;
+    appendTo(target: IDOMElement | HTMLElement | string): this;
+    prependTo(target: IDOMElement | HTMLElement | string): this;
     getValue(): string;
+    setValue(value: string): this;
+    getParentElement(): IDOMElement;
+    getFirstChildElement(): IDOMElement;
+    getStyle(rule: string): any;
+    getStyleInPixels(rule: string): number;
 }
 
 declare abstract class Component<P extends Props, T extends { [index: string]: string }, E> {
@@ -92,6 +98,7 @@ declare type Child = JSX.Element | JSX.Element[] | IDOMElement | HTMLElement | s
 
 declare namespace JSX {
     export interface Element {
+        name: string;
         isIntrinsic: boolean;
         isCustomElement: boolean;
         toString(renderId?: number): string;

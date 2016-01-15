@@ -35,6 +35,11 @@ export interface Component {
      * Show is fired everytime when you append an external content with `appendRelationComponent`.
      */
     show(): void;
+
+    /**
+     * Bind data.
+     */
+    bindData(): void;
 }
 
 export abstract class Component<P extends Props, T, E> {
@@ -51,17 +56,25 @@ export abstract class Component<P extends Props, T, E> {
 
     public parentComponent: Component<any, any, any>;
 
-    public localizations: GetLocalization;
-
     /**
      * Root element of the component view.
      */
     public root: DOMElement;
 
     /**
+     * Data store.
+     */
+    public data: Model<any> | Collection<Model<any>>;
+
+    /**
+     *  Localization getter.
+     */
+    public l: GetLocalization;
+
+    /**
      * Properties.
      */
-    public props: P & { l?: GetLocalization, data?: Model<any> & Collection<Model<any>> };
+    public props: P & { l?: GetLocalization, data?: Model<any> | Collection<Model<any>> };
 
     /**
      * Referenced elements from component.
@@ -90,10 +103,10 @@ export abstract class Component<P extends Props, T, E> {
     public lastRenderId: number;
 
     constructor(
-        props?: P,
+        props?: P & { data?:  Model<any> | Collection<Model<any>> },
         children?: Child[]) {
 
-        this.props = extend({}, extend(props || {}, this.props)) as P & { l: GetLocalization, model: Model<any> };
+        this.props = extend(props, {}) as P & { data:  Model<any> | Collection<Model<any>> };
 
         this.children = children;
         (this as any).elements = {}
@@ -194,20 +207,41 @@ export abstract class Component<P extends Props, T, E> {
 
     public bindDOM(renderId?: number): void {
         if (!this.hasBoundDOM) {
-            if (this.setText) {
-                this.setText(this.props.l);
-            }
             if (this.props.data) {
-                this.props.data.on('change', () => {
-                    this.setText(this.props.l);
+                this.data = this.props.data;
+            }
+            if (this.setText) {
+
+                // We prefer to provide the localization getter with just `this.l`.
+                // When we render a content component, we need to provide the localization
+                // getter in `this.props.l`, i.e. in the contructor.
+                //
+                // There also exists sometimes when we render in the client manually.
+                // Where we can provide the localization getter via `this.props.l`.
+                // Which mean instantiating a component with the correct properties.
+                // But for convenience, not having to provide the localization getter
+                // as an argument to the constructor everytime we would just
+                // automatically provide it with `window.localizations`.
+                this.setText(this.l || this.props.l || (typeof window !== 'undefined' && (window as any).localizations));
+            }
+            if (this.data) {
+                this.data.on('change', () => {
+                    this.setText(this.l || this.props.l || (typeof window !== 'undefined' && (window as any).localizations));
                     this.hookDown(this.hooks['change:text']);
                 });
+            }
+
+            if (this.bindData) {
+                this.bindData();
             }
 
             this.components = {};
             this.lastRenderId = this.renderAndSetComponent().bindDOM(renderId);
             this.hasBoundDOM = true;
         }
+    }
+
+    public setText(l: GetLocalization): void {
     }
 
     public getElement(id: string) {
@@ -241,7 +275,7 @@ export abstract class Component<P extends Props, T, E> {
      * Append a relation component to element. Omit id if you want it to append to the root element.
      */
     public appendRelationComponent(c: new() => Component<any, any, any>, relation: string, id?: string) {
-        let view = React.createElement(c, { l: this.props.l, data: this.props.data.get(relation)});
+        let view = React.createElement(c, { data: this.data.get(relation)});
         view.setComponent(this);
         let element: DOMElement;
         if (!id) {
@@ -251,7 +285,6 @@ export abstract class Component<P extends Props, T, E> {
             element = this.root.getElement(id);
         }
         element.append(view);
-
 
         let component = view.getComponent() as Component<any, any, any>;
         component.bindDOM();
@@ -286,8 +319,11 @@ export abstract class Component<P extends Props, T, E> {
 
     /* @internal */
     public toString(renderId?: number): string {
+        if (this.props.data && !this.data) {
+            this.data = this.props.data;
+        }
         if (this.setText) {
-            this.setText(this.props.l);
+            this.setText(this.l || this.props.l || (typeof window !== 'undefined' && (window as any).localizations));
         }
         let s =  this.renderAndSetComponent().toString(renderId || this.lastRenderId);
         return s;
@@ -295,12 +331,13 @@ export abstract class Component<P extends Props, T, E> {
 
     /* @internal */
     public toDOM(renderId?: number): DocumentFragment {
+        this.data = this.props.data;
         if (this.setText) {
-            this.setText(this.props.l);
+            this.setText(this.l || this.props.l || (typeof window !== 'undefined' && (window as any).localizations));
         }
-        if (this.props.data) {
-            this.props.data.on('change', () => {
-                this.setText(this.props.l);
+        if (this.data) {
+            this.data.on('change', () => {
+                this.setText(this.l || this.props.l || (typeof window !== 'undefined' && (window as any).localizations));
                 this.hookDown(this.hooks['change:text']);
             });
         }
@@ -324,6 +361,9 @@ export abstract class Component<P extends Props, T, E> {
      * Call hooks using FIFO order and removes the callback.
      */
     private hookDownOnce(hooks: Hook[]) {
+        if (!hooks) {
+            return;
+        }
         let hook = hooks.shift();
         hook && hook();
     }
@@ -332,6 +372,9 @@ export abstract class Component<P extends Props, T, E> {
      * Call hooks using FIFO order.
      */
     public hookDown(hooks: Hook[]) {
+        if (!hooks) {
+            return;
+        }
         for (let i = hooks.length - 1; i >= 0; i--) {
             hooks[i]();
         }

@@ -4,6 +4,25 @@
     outline: none;
     display: inline-block;
     cursor: pointer;
+    @include user-select(none);
+}
+
+.CircularButton {
+    @extend .Button;
+    padding: 6px 18px;
+    border-radius: 1000px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.RedButton {
+    @extend .CircularButton;
+    background-color: #E27575;
+    color: #fff;
+
+    &:active {
+        color: rgba(255, 255, 255, 0.3);
+    }
 }
 
 .PurpleButton {
@@ -47,4 +66,9 @@
     &:active {
         opacity: 0.3;
     }
+}
+
+.WhiteTransparentButton {
+    @extend .CircularButton;
+    background-color: rgba(255, 255, 255, 0.7);
 }

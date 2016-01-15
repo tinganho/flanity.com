@@ -28,7 +28,7 @@ export class ProfileButton extends ContentComponent<Props, Text, Elements> {
     }
 
     public setText(l: GetLocalization) {
-        let data = this.props.data;
+        let data = this.data;
         this.text = {
             image: data.get('image') ? data.get('image').tiny.url : '/Public/Images/ProfileImagePlaceholder.png',
             name: data.get('name'),

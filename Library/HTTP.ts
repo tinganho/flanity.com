@@ -81,8 +81,17 @@ interface Feedback {
 
 export interface ErrorResponse {
     type: HTTPResponseType;
+    code: HTTPError;
     name: string;
     feedback: Feedback;
+}
+
+export enum HTTPError {
+    UnAuthorizedAccessError = 1000,
+    AuthenticationError = 1001,
+    MissingArgumentError = 1002,
+    ArgumentValidationError = 1003,
+    NotFoundError = 1004,
 }
 
 interface DefaultHttpRequestOptions {

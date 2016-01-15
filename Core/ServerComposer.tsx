@@ -15,7 +15,9 @@ import {
     LayoutComponent,
     DocumentComponent,
     ContentComponent,
-    RequestInfo } from '../Library/Index';
+    RequestInfo,
+    HTTPResponse,
+    ErrorResponse } from '../Library/Index';
 
 export interface JsonScriptAttributes {
     id: string;
@@ -404,6 +406,12 @@ export interface DocumentProps extends Props {
     pageInfo?: PageInfo;
 }
 
+const enum AutenticationError {
+    AuthorizationHeaderNotProvided,
+    AccessTokenExpired,
+    InvalidAccessToken,
+    NoXCsrfToken,
+}
 
 interface Platform {
     name: string;
@@ -613,17 +621,20 @@ export class Page {
     }
 
     private handlePageRequest(req: Request, res: Response, next: () => void): void {
-        this.getContents(req, res, (requestedPlatform, contents, jsonScriptData) => {
+        this.getContents(req, res, (err, requestedPlatform, contents, jsonScriptData) => {
+            if (err) {
+                return;
+            }
             req.pageInfo.title = req.pageInfo.title || 'NO_PAGE_TITLE';
             requestedPlatform.documentProps.pageInfo = req.pageInfo;
             requestedPlatform.documentProps.jsonScriptData = jsonScriptData;
-            requestedPlatform.documentProps.layout = new requestedPlatform.layout.view.class(contents);
+            requestedPlatform.documentProps.layout = React.createElement(requestedPlatform.layout.view.class, contents);
             let document = new requestedPlatform.document.view.class(requestedPlatform.documentProps);
             res.send('<!DOCTYPE html>' + document.toString());
         });
     }
 
-    private getContents(req: Request, res: Response, next: (currentPlatform: Platform, contents: Contents, jsonScriptData: JsonScriptAttributes[]) => void): void {
+    private getContents(req: Request, res: Response, next: (err: any, currentPlatform?: Platform, contents?: Contents, jsonScriptData?: JsonScriptAttributes[]) => void): void {
         let requestedPlatform: Platform;
         for (let i in this.platforms) {
             if (this.platforms[i].serverDetect(req)) {
@@ -641,7 +652,6 @@ export class Page {
             query: req.query,
             cookies: req.cookies,
         }
-
         req.pageInfo = {
             lang: req.language.split('-')[0],
             language: req.language,
@@ -670,20 +680,45 @@ export class Page {
                             finishedContentFetchings++;
 
                             if (numberOfContentFetchings === finishedContentFetchings) {
-                                next(requestedPlatform, resultContents, resultJSONScriptData);
+                                next(null, requestedPlatform, resultContents, resultJSONScriptData);
                             }
                         })
-                        .catch((err: Error) => {
-                            console.log(err.stack || err);
-                            if (process.env.NODE_ENV === 'development') {
-                                res.status(500).send(err.stack ? err.stack.replace('\n', '<br>') : err);
+                        .catch((error: Error | HTTPResponse<ErrorResponse>) => {
+                            if (error instanceof Error) {
+                                if (process.env.NODE_ENV === 'development') {
+                                    res.status(500).send(error.stack ? error.stack.replace('\n', '<br>') : error);
+                                }
+                                else {
+                                    res.status(500).send('');
+                                }
                             }
                             else {
-                                res.status(500).send('');
+                                let errorCode = error.body.feedback.current.code;
+                                if (errorCode === AutenticationError.InvalidAccessToken
+                                || errorCode === AutenticationError.AccessTokenExpired) {
+
+                                    res.clearCookie('accessToken');
+                                    res.clearCookie('renewalToken');
+                                    res.clearCookie('hasAccessToken');
+                                    res.redirect('/');
+                                }
+                                else {
+                                    console.log(requestInfo);
+                                    console.log(error.body);
+                                    if (process.env.NODE_ENV === 'development') {
+                                        res.status(500).json(error.body);
+                                    }
+                                    else {
+                                        res.status(500).send('');
+                                    }
+                                }
                             }
+
+                            next(error);
                         });
                 }
                 else {
+
                     // We need to put a timeout here because the 'numberOfContentFetchings' will equal
                     // 'finishedContentFetchings' mulitple times. we want 'numberOfContentFetchings' to
                     // increment all increments first and then let 'finishedContentFetchings' increment.
@@ -694,7 +729,7 @@ export class Page {
                         finishedContentFetchings++;
 
                         if (numberOfContentFetchings === finishedContentFetchings) {
-                            next(requestedPlatform, resultContents, resultJSONScriptData);
+                            next(null, requestedPlatform, resultContents, resultJSONScriptData);
                         }
                     }, 0);
                 }

@@ -1,6 +1,6 @@
 
 import { HTTP, HTTPOptions, ModelResponse, CollectionResponse } from './HTTP';
-import { isArray } from './Utils';
+import { isArray, extend, deepEqual, clone } from './Utils';
 
 type Callback = (...args: any[]) => any;
 
@@ -117,15 +117,26 @@ export abstract class Model<P> extends DataStore {
         relations: ModelRelations;
     }
 
+    public collection: Collection<Model<any>>
     public id: string;
-    public isNew = true;
+    private _isNew = true;
+    private _hasChanged: boolean;
     public props = {} as P & { id?: string, [index: string]: any };
+    public previousProps = {} as P & { id?: string, [index: string]: any };
 
     constructor(props?: P) {
         super();
         if (props) {
-            this.setAll(props);
+            this.setProps(props);
         }
+    }
+
+    public get hasChanged(): boolean {
+        return this._hasChanged;
+    }
+
+    public get isNew(): boolean {
+        return this._isNew;
     }
 
     public get(prop: string): any {
@@ -149,46 +160,61 @@ export abstract class Model<P> extends DataStore {
         (this.props as any)[prop][relation.reverseProp] = this;
     }
 
-    public set(prop: string, value: any) {
-        let relations = this.constructor.relations;
-        if (prop === 'id') {
-            this.isNew = false;
-        }
-        if (prop in relations) {
-            if (relations[prop].type === RelationType.HasOne) {
-                let Model = relations[prop].model;
-                if (value instanceof Model) {
-                    this.props[prop] = value;
+    public set(props: any): this;
+    public set(prop: string, value: any): this;
+    public set(prop: any, value?: any): this {
+        if (typeof prop === 'string') {
+            let relations = this.constructor.relations;
+            if (prop === 'id') {
+                this._isNew = false;
+            }
+            if (relations && prop in relations) {
+                if (relations[prop].type === RelationType.HasOne) {
+                    let Model = relations[prop].model;
+                    if (value instanceof Model) {
+                        this.props[prop] = value;
+                    }
+                    else {
+                        this.props[prop] = new Model(value);
+                    }
+                    this.setRelations(prop, value);
                 }
                 else {
-                    this.props[prop] = new Model(value);
+                    let Collection = relations[prop].collection;
+                    if (value instanceof Model) {
+                        this.props[prop] = value;
+                    }
+                    else {
+                        this.props[prop] = new Collection(value);
+                    }
+                    this.setRelations(prop, value);
                 }
-                this.setRelations(prop, value);
             }
             else {
-                let Collection = relations[prop].collection;
-                if (value instanceof Model) {
-                    this.props[prop] = value;
-                }
-                else {
-                    this.props[prop] = new Collection(value);
-                }
-                this.setRelations(prop, value);
+                (this.props as any)[prop] = value;
+            }
+
+            if (!this.previousProps[prop] || this.previousProps[prop] !== this.props[prop]) {
+                this.emit('change:' + prop, [this, value]);
+                this.emit('change', [this, prop, value]);
+                this._hasChanged = true;
+            }
+
+            if (!this._isNew) {
+                this.previousProps = this.props;
             }
         }
         else {
-            (this.props as any)[prop] = value;
+            this.setProps(prop);
         }
-        this.emit('change:' + prop, [this, value]);
-        this.emit('change', [this, prop, value]);
+
+        return this;
     }
 
-    public setAll(props: any) {
+    private setProps(props: any) {
+        let hasChanges = false;
         for (let p in props) {
             if (props.hasOwnProperty(p)) {
-                if (p === 'id') {
-                    this.isNew = false;
-                }
                 let relations = this.constructor.relations;
                 if (relations && p in relations) {
                     let value = props[p];
@@ -215,17 +241,36 @@ export abstract class Model<P> extends DataStore {
                 else {
                     (this.props as any)[p] = props[p];
                 }
-                this.emit('change:' + p, [this, props[p]]);
+
+                if (!this.previousProps[p] || !deepEqual(this.previousProps[p], props[p])) {
+                    this.emit('change:' + p, [this, props[p]]);
+                    hasChanges = true;
+                    this._hasChanged = true;
+                }
             }
         }
-        this.emit('change', [this]);
+
+        if (hasChanges) {
+            this.emit('change', [this]);
+        }
+
+        if (props.id) {
+            this.previousProps = clone(this.props);
+            this._hasChanged = false;
+            this._isNew = false;
+        }
+        else {
+            this._isNew = true;
+        }
+
+        return this;
     }
 
     public setSaveOptions(options: HTTPOptions) {
         this.HTTPSaveOptions = options;
     }
 
-    private getFetchURL() {
+    private getModelURL() {
         let URL: string;
         let constructor = this.constructor as any;
         let modelName = constructor.name.toLowerCase();
@@ -239,7 +284,7 @@ export abstract class Model<P> extends DataStore {
     }
 
     public add(relation: string, props: any): this {
-        let URL = this.getFetchURL();
+        let URL = this.getModelURL();
 
         let collection = this.props[relation] as Collection<Model<any>>;
         collection.add(props);
@@ -249,7 +294,7 @@ export abstract class Model<P> extends DataStore {
     public fetch(requestInfo?: RequestInfo<any, any>, relations?: string[], parentURL?: string): Promise<any> {
         return new Promise<P>((resolve, reject) => {
             let constructor = this.constructor as any;
-            let URL = this.getFetchURL();
+            let URL = this.getModelURL();
             if (!constructor.noParentURL && parentURL) {
                 URL = parentURL + URL;
             }
@@ -288,47 +333,78 @@ export abstract class Model<P> extends DataStore {
                         data[relations[i]] = relationData[i];
                     }
                 }
-                this.setAll(data);
+                this.setProps(data);
                 resolve();
             })
             .catch(reject);
         });
     }
 
-    public save(parentURL?: string): Promise<any> {
-        let URL: string;
-        let constructor = this.constructor as any;
-        let modelName = constructor.name.toLowerCase();
-        if (constructor.URL) {
-            URL = constructor.URL;
+    public save(): Promise<any>;
+    public save(parentURL: string): Promise<any>;
+    public save(newProps: Object): Promise<any>;
+    public save(newProps: Object, parentURL: string): Promise<any>;
+    public save(propsOrURL?: string | Object, parentURL?: string): Promise<any> {
+
+        let newProps: Object;
+        if (typeof propsOrURL === 'string') {
+            parentURL = propsOrURL;
         }
         else {
-            URL = '/' + modelName + 's';
-        }
-        if (!constructor.noParentURL && parentURL) {
-            URL = parentURL + URL;
+            newProps = propsOrURL;
         }
 
         let promises: Promise<any>[] = [];
-        if (this.isNew) {
+        if (this._isNew || newProps) {
             let options = this.HTTPSaveOptions || {};
             if (!options.bodyType) {
                 options.bodyType = HTTP.BodyType.MultipartFormData;
             }
             if (!options.body) {
-                options.body = this.toData();
+                if (newProps) {
+                    options.body = extend(newProps, this.toData());
+                }
+                else {
+                    options.body = this.toData();
+                }
             }
             this.onSave(options);
-            promises.push(HTTP.post<any>(URL, options)
-                .then((response) => {
-                    this.setAll(response.body.model);
-                }));
+            let constructor = this.constructor as any;
+            let modelName = constructor.name.toLowerCase();
+            if (this._isNew) {
+                let URL: string;
+                if (constructor.URL) {
+                    URL = constructor.URL;
+                }
+                else {
+                    URL = '/' + modelName + 's';
+                }
+                if (!constructor.noParentURL && parentURL) {
+                    URL = parentURL + URL;
+                }
+
+                promises.push(HTTP.post<any>(URL, options)
+                    .then((response) => {
+                        this.setProps(response.body.model);
+                    }));
+            }
+            else {
+                let URL = this.getModelURL();
+                if (!constructor.noParentURL && parentURL) {
+                    URL = parentURL + URL;
+                }
+
+                promises.push(HTTP.put<any>(URL, options)
+                    .then((response) => {
+                        this.setProps(response.body.model);
+                    }));
+            }
         }
 
         let relations = this.constructor.relations;
         for (let r in relations) {
             if (relations.hasOwnProperty(r)) {
-                promises.push(this.props[r].save(this.getFetchURL()));
+                promises.push(this.props[r].save(this.getModelURL()));
             }
         }
 
@@ -408,7 +484,6 @@ export class Collection<M extends Model<any>> extends DataStore {
     }
 
     private addModel(model: M | ModelData) {
-        let arrayWithModels = model;
         if (model.id && this.ids.indexOf(model.id) !== -1) {
             throw new TypeError(`Model with id '${model.id}'' is already added`);
         }
@@ -416,6 +491,7 @@ export class Collection<M extends Model<any>> extends DataStore {
         if (!isModelInstance(model)) {
             model = new this.constructor.Model(model);
         }
+        (model as M).collection = this;
         let m = model as M;
         this.store.push(m);
         m.on('change', (model, prop, value) => {

@@ -258,6 +258,21 @@ export class DOMElement implements DOMElement {
         return this;
     }
 
+    public prependTo(target: DOMElement | HTMLElement | string): this {
+        if (typeof target === 'string') {
+            let element = DOMElement.getElement(target);
+            element.prepend(this);
+        }
+        else if ((target as DOMElement).append){
+            (target as DOMElement).prepend(this);
+        }
+        else {
+            (target as HTMLElement).insertBefore(this.nativeElement, (target as HTMLElement).firstChild);
+        }
+
+        return this;
+    }
+
     public addStyle(rule: string, value: string): this {
         this.nativeElement.style.cssText += `${rule}: ${value};`;
         return this;
@@ -275,5 +290,26 @@ export class DOMElement implements DOMElement {
 
     public getValue(): string {
         return (this.nativeElement as any).value;
+    }
+
+    public setValue(value: string): this {
+        (this.nativeElement as any).value = value;
+        return this;
+    }
+
+    public getParentElement(): DOMElement {
+        return new DOMElement(this.nativeElement.parentElement);
+    }
+
+    public getFirstChildElement(): DOMElement {
+        return new DOMElement(this.nativeElement.firstChild as HTMLElement);
+    }
+
+    public getStyle(rule: string): any {
+        return (getComputedStyle(this.nativeElement) as any)[rule];
+    }
+
+    public getStyleInPixels(rule: string): number {
+        return parseFloat(this.getStyle(rule).replace('px', ''));
     }
 }
