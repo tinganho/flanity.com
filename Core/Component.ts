@@ -260,7 +260,7 @@ export abstract class Component<P extends Props, T, E> {
     }
 
     /**
-     * Append to
+     * Append component to element.
      */
     public appendTo(id: string): Component<P, T, E> {
         let element = document.getElementById(id);
@@ -268,14 +268,30 @@ export abstract class Component<P extends Props, T, E> {
             throw new Error('Element not found: ' + id);
         }
         element.appendChild(this.toDOM());
+        this.bindDOM();
         return this;
+    }
+
+    /**
+     * Insert component before an element.
+     */
+    public insertComponentBefore(c: new() => Component<any, any, any>, props: any, element: DOMElement) {
+        let view = React.createElement(c, props);
+        view.setComponent(this);
+        element.insertBefore(view);
+        let component = view.getComponent() as Component<any, any, any>;
+        component.bindDOM();
+        setTimeout(() => {
+            component.root.addClass('Revealed').removeClass('Hidden');
+        }, 0);
+        return component;
     }
 
     /**
      * Append a relation component to element. Omit id if you want it to append to the root element.
      */
-    public appendRelationComponent(c: new() => Component<any, any, any>, relation: string, id?: string) {
-        let view = React.createElement(c, { data: this.data.get(relation)});
+    public stackComponent(c: new() => Component<any, any, any>, props: any, id?: string) {
+        let view = React.createElement(c, props);
         view.setComponent(this);
         let element: DOMElement;
         if (!id) {
@@ -293,6 +309,29 @@ export abstract class Component<P extends Props, T, E> {
         component.root.addStyle('position', 'absolute');
         component.root.addStyle('top', '0');
         component.root.addStyle('left', '0');
+        setTimeout(() => {
+            component.root.addClass('Revealed').removeClass('Hidden');
+        }, 0);
+        return component;
+    }
+
+    /**
+     * Append a relation component to element. Omit id if you want it to append to the root element.
+     */
+    public appendComponent(c: new() => Component<any, any, any>, props: any, id?: string) {
+        let view = React.createElement(c, props);
+        view.setComponent(this);
+        let element: DOMElement;
+        if (!id) {
+            element = this.root;
+        }
+        else {
+            element = this.root.getElement(id);
+        }
+        element.append(view);
+
+        let component = view.getComponent() as Component<any, any, any>;
+        component.bindDOM();
         setTimeout(() => {
             component.root.addClass('Revealed').removeClass('Hidden');
         }, 0);
@@ -385,5 +424,9 @@ export abstract class Component<P extends Props, T, E> {
             this.hooks[event] = [];
         }
         this.hooks[event].push(callback);
+    }
+
+    public remove(): void {
+        this.root.remove();
     }
 }

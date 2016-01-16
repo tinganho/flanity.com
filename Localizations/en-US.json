@@ -3,9 +3,55 @@
     "files": [
       "Contents/TopicsView.tsx"
     ],
+    "id": "LqknEzMjtpA",
+    "key": "CREATE_TOPIC_FORM->CONFIRM_DELETE_DESCRIPTION",
+    "new": false,
+    "timestamp": "2016-01-15T18:20:05.783Z",
+    "value": "You are about to delete your topic, \"{topic}\". Please confirm your intention. A deletion cannot be undone.",
+    "variables": [
+      "topic"
+    ]
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "xRo58jqXtqE",
+    "key": "CREATE_TOPIC_FORM->CONFIRM_DELETE_TITLE",
+    "new": false,
+    "timestamp": "2016-01-15T18:20:05.783Z",
+    "value": "Confirm Delete of Topic",
+    "variables": []
+  },
+  {
+    "files": [
+      "Components/Dialogs.tsx"
+    ],
+    "id": "ejx48yXnFE",
+    "key": "DEFAULT->CANCEL_BUTTON_TEXT",
+    "new": false,
+    "timestamp": "2016-01-15T18:20:05.783Z",
+    "value": "Cancel",
+    "variables": []
+  },
+  {
+    "files": [
+      "Components/Dialogs.tsx"
+    ],
+    "id": "KGKRA4MjS6",
+    "key": "DEFAULT->CONFIRM_BUTTON_TEXT",
+    "new": false,
+    "timestamp": "2016-01-15T18:20:05.783Z",
+    "value": "Confirm",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
     "id": "4LjRKeEeFpx",
     "key": "CREATE_TOPIC_FORM->EDIT_BUTTON_TEXT",
-    "new": true,
+    "new": false,
     "timestamp": "2016-01-15T14:04:26.246Z",
     "value": "Edit",
     "variables": []

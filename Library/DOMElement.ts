@@ -106,44 +106,45 @@ export class DOMElement implements DOMElement {
         return this;
     }
 
-    public append(element: DOMElement | JSX.Element): this {
-        if ((element as JSX.Element).toDOM) {
-            this.nativeElement.appendChild((element as JSX.Element).toDOM().frag);
+    public append(element: DOMElement | JSX.Element | Node): this {
+        let nativeElement = this.getNativeElement(element);
+        this.nativeElement.appendChild(nativeElement as Node);
+        return this;
+    }
+
+    public prepend(element: DOMElement | JSX.Element | Node): this {
+        let nativeElement = this.getNativeElement(element);
+        this.nativeElement.insertBefore(nativeElement, this.nativeElement.firstChild);
+        return this;
+    }
+
+    public insertBefore(element: DOMElement | JSX.Element | Node): this {
+        let nativeElement = this.getNativeElement(element);
+        this.nativeElement.parentNode.insertBefore(nativeElement, this.nativeElement);
+        return this;
+    }
+
+    public insertAfter(element: DOMElement | JSX.Element | Node): this {
+        let nativeElement = this.getNativeElement(element);
+        if (this.nativeElement.nextSibling) {
+            this.nativeElement.parentNode.insertBefore(nativeElement, this.nativeElement.nextSibling);
         }
         else {
-            this.nativeElement.appendChild((element as DOMElement).nativeElement);
+            this.nativeElement.parentNode.appendChild(nativeElement);
         }
         return this;
     }
 
-    public prepend(element: DOMElement | JSX.Element): this {
-        if ((element as JSX.Element).toDOM) {
-            this.nativeElement.insertBefore((element as JSX.Element).toDOM().frag, this.nativeElement.firstChild);
+    private getNativeElement(element: DOMElement | JSX.Element | Node): Node {
+        if ((element as DOMElement).insertBefore){
+            return (element as DOMElement).nativeElement;
+        }
+        else if ((element as JSX.Element).resetComponent) {
+            return (element as JSX.Element).toDOM().frag;
         }
         else {
-            this.nativeElement.insertBefore((element as DOMElement).nativeElement, this.nativeElement.firstChild);
+            return element as Node;
         }
-        return this;
-    }
-
-    public before(element: DOMElement | JSX.Element): this {
-        if ((element as JSX.Element).toDOM) {
-            this.nativeElement.parentNode.insertBefore((element as JSX.Element).toDOM().frag, this.nativeElement);
-        }
-        else {
-            this.nativeElement.parentNode.insertBefore((element as DOMElement).nativeElement, this.nativeElement);
-        }
-        return this;
-    }
-
-    public after(element: DOMElement | JSX.Element): this {
-        if ((element as JSX.Element).toDOM) {
-            this.nativeElement.parentNode.insertBefore((element as JSX.Element).toDOM().frag, this.nativeElement.parentNode.lastChild);
-        }
-        else {
-            this.nativeElement.parentNode.insertBefore((element as DOMElement).nativeElement, this.nativeElement.parentNode.lastChild);
-        }
-        return this;
     }
 
     public hide(): this {
@@ -311,5 +312,22 @@ export class DOMElement implements DOMElement {
 
     public getStyleInPixels(rule: string): number {
         return parseFloat(this.getStyle(rule).replace('px', ''));
+    }
+
+    public getChildren(): DOMElement[] {
+        let children: DOMElement[] = [];
+        for (let i = 0; i < this.nativeElement.childNodes.length; i++) {
+            children.push(new DOMElement(this.nativeElement.childNodes[i] as HTMLElement));
+        }
+        return children;
+    }
+
+    public getPosition() {
+        let { left, top } = this.nativeElement.getBoundingClientRect();
+        return { left, top};
+    }
+
+    public getOffset() {
+        return { left: this.nativeElement.offsetLeft, top: this.nativeElement.offsetTop };
     }
 }

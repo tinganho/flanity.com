@@ -1,7 +1,6 @@
 
 #TopicsView {
     position: relative;
-    margin: 0 100px;
     overflow: hidden;
     height: 100%;
     @include display-flex;
@@ -84,9 +83,11 @@ $side: 100px;
     border: 2px solid #C6C8D4;
     background-color: #DDE0EC;
     cursor: pointer;
+    @include flex-shrink(0);
 
     &:active {
-        opacity: 0.3;
+        transition: none !important;
+        opacity: 0.3 !important;
     }
 }
 
@@ -119,14 +120,16 @@ $margin: ($side - $length) / 2;
     height: 510px;
     border-radius: 5px;
     overflow: hidden;
-    @include transition(transform 0.5s);
+    @include transition(transform 0.5s, opacity 0.5s);
 
     &.Revealed {
+        opacity: 1;
         @include transform(translateY(0));
     }
 
     &.Hidden {
-        @include transform(translateY(-200%));
+        opacity: 0;
+        @include transform(translateY(-800px));
     }
 }
 
@@ -174,21 +177,24 @@ $calc: calc(100% - #{2 * ($padding + $border-thickness)});
     @include flex-direction(column);
 }
 
+#TopicFormButtonContainer {
+    position: absolute;
+    bottom: 20px;
+    right: 0;
+}
+
 #TopicFormDeleteButton {
     position: absolute;
     bottom: 20px;
     left: 10px;
 }
 
-#TopicFormSubmitButton {
-    position: absolute;
-    bottom: 20px;
-    right: 0;
+#TopicFormCancelButton{
+    margin-right: -6px;
 }
 
 #TopicsCollectionView {
     position: relative;
-    margin: 40px 0 0;
     overflow: hidden;
     @include display-flex;
     @include align-items(stretch);
@@ -196,13 +202,24 @@ $calc: calc(100% - #{2 * ($padding + $border-thickness)});
     @include flex-grow(2);
 }
 
+#TopicCollectionViewList {
+    @include display-flex;
+    @include align-items(stretch);
+    @include justify-content(flex-start);
+    @include flex-grow(2);
+}
+
 $transition-delay-step: 0.1s;
-.Topic {
-    position: relative;
-    margin: 0 20px 30px 0;
-    width: 400px;
-    @include flex-shrink(0);
-    @include transition(opacity 0.5s, transform 0.5s);
+#TopicsCollectionViewAddButton {
+    margin-top: 310px;
+    margin-left: 20px;
+    @include transform(translateX(0px));
+    @include transition(transform 0.5s, opacity 0.5s);
+
+    #TopicsCollectionView.Revealed &.Shifted {
+        @include transition-delay(0 s);
+        @include transform(translateX(400px));
+    }
 
     &:nth-child(2) {
         @include transition-delay(#{$transition-delay-step * 1});
@@ -231,6 +248,55 @@ $transition-delay-step: 0.1s;
     }
 }
 
+$transition-delay-step: 0.1s;
+.Topic {
+    position: relative;
+    margin: 40px 20px 30px 0;
+    width: 400px;
+    border-radius: 5px;
+    overflow: hidden;
+    @include flex-shrink(0);
+    @include transition(opacity 0.5s, transform 0.5s);
+
+    &:nth-child(2) {
+        @include transition-delay(#{$transition-delay-step * 1});
+    }
+
+    &:nth-child(3) {
+        @include transition-delay(#{$transition-delay-step * 2});
+    }
+
+    &:nth-child(4) {
+        @include transition-delay(#{$transition-delay-step * 3});
+    }
+
+    &:nth-child(5) {
+        @include transition-delay(#{$transition-delay-step * 4});
+    }
+
+    #TopicsCollectionView.Revealed & {
+        opacity: 1;
+        @include transform(translateX(0));
+    }
+
+    #TopicsCollectionView.Hidden & {
+        opacity: 0;
+        @include transform(translateX(500px));
+    }
+
+    #TopicsCollectionView.Revealed &.Hidden {
+        opacity: 0;
+        @include transition-delay(0 s);
+        @include transform(translateY(-200%));
+    }
+
+    #TopicsCollectionView.Revealed &.Revealed {
+        opacity: 1;
+        @include transition-delay(0 s);
+        @include transform(translateY(0));
+    }
+}
+
 .TopicCoverImageContainer {
     position: absolute;
     top: 0;
@@ -238,11 +304,21 @@ $transition-delay-step: 0.1s;
     width: 400px;
     height: 325px;
     overflow: hidden;
+    background-color: #666;
 }
 
 .TopicCoverImage {
     height: 100%;
+    @include transition(opacity 0.5s);
     @include user-select(none);
+
+    &.Hidden {
+        opacity: 0;
+    }
+
+    &.Revealed {
+        opacity: 1;
+    }
 }
 
 .TopicCoverImageMask {
@@ -251,6 +327,7 @@ $transition-delay-step: 0.1s;
     top: 0;
     width: 100%;
     height: 100%;
+    @include transition(opacity 3s);
     @include user-select(none);
     @include background(
         linear-gradient(
@@ -260,6 +337,14 @@ $transition-delay-step: 0.1s;
             rgba(0, 0, 0, 0.6)
         )
     );
+
+    &.Hidden {
+        opacity: 0;
+    }
+
+    &.Revealed {
+        opacity: 1;
+    }
 }
 
 .TopicHeaders {
@@ -294,4 +379,49 @@ $transition-delay-step: 0.1s;
     &:active {
         opacity: 0.3;
     }
+}
+
+#TopicsCollectionViewScrollBarDecratorLeft {
+    position: absolute;
+    left: 0;
+    bottom: 30px;
+    width: 5px;
+    height: calc(100% - 70px);
+    z-index: 1;
+
+    &.Active {
+        box-shadow: #A9ACB9 6px 0 6px -6px inset;
+    }
+}
+
+#TopicsCollectionViewScrollBarDecratorRight {
+    position: absolute;
+    right: 0;
+    bottom: 30px;
+    width: 5px;
+    height: calc(100% - 70px);
+    z-index: 1;
+
+    &.Active {
+        box-shadow: #A9ACB9 -6px 0 6px -6px inset;
+    }
+}
+
+.HorizontalScrollBar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background-color: #D4D7E6;
+    z-index: 2;
+}
+
+.HorizontalScrollBarCursor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 300px;
+    background-color: #B4B7C7;
 }

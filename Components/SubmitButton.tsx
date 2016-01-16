@@ -3,11 +3,13 @@ import { Gaussian, ContentComponent, DOMElement, React } from '../Library/Index'
 
 interface Props {
     buttonText: string;
+    class: string;
 }
 
 interface SubmitButtonElements {
     loadingCanvas: DOMElement;
     container: DOMElement;
+    button: DOMElement;
 }
 
 interface Point {
@@ -103,8 +105,10 @@ export class SineWave {
 }
 
 export class SubmitButton extends ContentComponent<Props, {}, SubmitButtonElements> {
+
     private sineWave: SineWave;
-    render() {
+
+    public render() {
         return (
             <div ref='container' class='SubmitButtonContainer Idle'>
                 <input class='SubmitButtonButton TextButton' type='submit' ref='button' value={this.props.buttonText} disabled/>
@@ -113,25 +117,33 @@ export class SubmitButton extends ContentComponent<Props, {}, SubmitButtonElemen
         );
     }
 
-    bindDOM() {
+    public bindDOM() {
         super.bindDOM();
         let container = this.elements.container;
-        let height = container.getHeight();
-        let width = container.getWidth();
-        this.elements.loadingCanvas.setAttribute('style', `height: ${height}px; width: ${width}px; display: block;`);
-        this.sineWave = new SineWave(this.elements.loadingCanvas.nativeElement as HTMLCanvasElement, { width: width, height: height });
+        setTimeout(() => {
+            let height = container.getHeight();
+            let width = container.getWidth();
+            let left = 0;
+            let maxWidth = 100;
+            if (width > maxWidth) {
+                left = (width - maxWidth) / 2;
+                width = maxWidth;
+            }
+            this.elements.loadingCanvas.setAttribute('style', `height: ${height}px; width: ${width}px; display: block; right: 0px;`);
+            this.sineWave = new SineWave(this.elements.loadingCanvas.nativeElement as HTMLCanvasElement, { width: width, height: height });
+        }, 0)
     }
 
-    addOnSubmitListener(callback: EventListener) {
+    public addOnSubmitListener(callback: EventListener) {
         this.elements.container.addEventListener('click', callback);
     }
 
-    startLoading() {
+    public startLoading() {
         this.elements.container.addClass('Loading').removeClass('Idle');
         this.sineWave.start();
     }
 
-    stopLoading() {
+    public stopLoading() {
         this.elements.container.addClass('Idle').removeClass('Loading');
         this.sineWave.stop();
     }

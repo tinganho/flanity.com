@@ -1,6 +1,8 @@
 
+'use strict';
+
 import { HTTP, HTTPOptions, ModelResponse, CollectionResponse } from './HTTP';
-import { isArray, extend, deepEqual, clone } from './Utils';
+import { isArray, extend, deepEqual, clone, autobind } from './Utils';
 
 type Callback = (...args: any[]) => any;
 
@@ -93,6 +95,7 @@ export abstract class DataStore extends DataEventEmitter {
     public url: string;
     public HTTPSaveOptions: HTTPOptions;
     public HTTPFetchOptions: HTTPOptions;
+    public HTTPDeleteOptions: HTTPOptions;
 
     public setFetchOptions(options: HTTPOptions) {
         this.HTTPFetchOptions = options;
@@ -118,7 +121,6 @@ export abstract class Model<P> extends DataStore {
     }
 
     public collection: Collection<Model<any>>
-    public id: string;
     private _isNew = true;
     private _hasChanged: boolean;
     public props = {} as P & { id?: string, [index: string]: any };
@@ -156,6 +158,12 @@ export abstract class Model<P> extends DataStore {
         let relation = this.constructor.relations[prop];
         (this.props as any)[prop].on('add', (model: any) => {
             this.emit('add:' + prop, model);
+        });
+        (this.props as any)[prop].on('delete', (model: any) => {
+            this.emit('delete:' + prop, model);
+        });
+        (this.props as any)[prop].on('remove', (model: any) => {
+            this.emit('remove:' + prop, model);
         });
         (this.props as any)[prop][relation.reverseProp] = this;
     }
@@ -411,6 +419,19 @@ export abstract class Model<P> extends DataStore {
         return Promise.all(promises);
     }
 
+    public delete(): Promise<void> {
+        if (!this.isNew) {
+            let options = this.HTTPDeleteOptions || {};
+            return HTTP.del(this.getModelURL(), options).then((response) => {
+                this.emit('delete', [this.props.id]);
+            });
+        }
+        else {
+            this.emit('delete', [this.props.id]);
+            return Promise.resolve<void>();
+        }
+    }
+
     public toData(props?: string[]): P {
         let result = {} as P;
         for (let p in this.props) {
@@ -439,7 +460,7 @@ export function model<T>(model: new() => Model<T>) {
 }
 
 interface ModelData {
-    id: string;
+    id?: string;
 
     [index: string]: any;
 }
@@ -484,10 +505,17 @@ export class Collection<M extends Model<any>> extends DataStore {
     }
 
     private addModel(model: M | ModelData) {
-        if (model.id && this.ids.indexOf(model.id) !== -1) {
-            throw new TypeError(`Model with id '${model.id}'' is already added`);
+        let id: string;
+        if ((model as M).get) {
+            id = (model as M).get('id');
         }
-        this.ids.push(model.id);
+        else {
+            id = (model as any).id;
+        }
+        if (id && this.ids.indexOf(id) !== -1) {
+            throw new TypeError(`Model with id '${id}'' is already added`);
+        }
+        this.ids.push(id);
         if (!isModelInstance(model)) {
             model = new this.constructor.Model(model);
         }
@@ -497,6 +525,7 @@ export class Collection<M extends Model<any>> extends DataStore {
         m.on('change', (model, prop, value) => {
             this.emit('change', [model, prop, value]);
         });
+        m.on('delete', this.remove);
         this.emit('add', [m]);
     }
 
@@ -512,6 +541,7 @@ export class Collection<M extends Model<any>> extends DataStore {
         return this.store[index];
     }
 
+    @autobind
     public remove(id: string) {
         let index = this.ids.indexOf(id);
         this.ids.splice(index, 1);

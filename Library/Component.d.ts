@@ -34,10 +34,10 @@ interface IDOMElement {
     position(): { left: number, top: number };
     getWidth(): number;
     getHeight(): number;
-    append(element: IDOMElement): this;
-    prepend(element: IDOMElement): this;
-    before(element: IDOMElement): this;
-    after(element: IDOMElement): this;
+    append(element: IDOMElement | JSX.Element | Node): this;
+    prepend(element: IDOMElement | JSX.Element | Node): this;
+    insertBefore(element: IDOMElement | JSX.Element | Node): this;
+    insertAfter(element: IDOMElement | JSX.Element | Node): this;
     remove(): void;
     hide(): this;
     onClick(listener: EventListener): this;
@@ -59,6 +59,9 @@ interface IDOMElement {
     getFirstChildElement(): IDOMElement;
     getStyle(rule: string): any;
     getStyleInPixels(rule: string): number;
+    getChildren(): IDOMElement[];
+    getPosition(): { left: number, top: number };
+    getOffset(): { left: number, top: number };
 }
 
 declare abstract class Component<P extends Props, T extends { [index: string]: string }, E> {
@@ -92,6 +95,7 @@ declare abstract class Component<P extends Props, T extends { [index: string]: s
     public toString(renderId?: number): string;
     public getInstancesOf<R>(...components: string[]): Components;
     public renderAndSetComponent(): JSX.Element;
+    public remove(): void;
 }
 
 declare type Child = JSX.Element | JSX.Element[] | IDOMElement | HTMLElement | string;

@@ -1,0 +1,35 @@
+
+$width: 350px;
+.Dialog {
+    position: absolute;
+    left: 50%;
+    top: 40%;
+    margin-left: -($width / 2 + 20px);
+    width: $width;
+    height: 200px;
+    border-radius: 5px;
+    padding: 0 20px;
+    @include transition(transform 0.5s, opacity 0.5s);
+
+    &.Revealed {
+        opacity: 1;
+        @include transform(translateY(0));
+    }
+
+    &.Hidden {
+        opacity: 0;
+        @include transform(translateY(-800px));
+    }
+}
+
+.DialogActionContainer {
+    position: absolute;
+    bottom: 20px;
+    right: 10px;
+    float: right;
+}
+
+.DialogCancelButton {
+    font-size: 28px;
+    margin-right: -10px;
+}

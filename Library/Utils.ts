@@ -15,7 +15,7 @@ export class Gaussian {
 export class DeferredCallback {
     private start: number;
 
-    constructor(private time: number, private callback: (...args: any[]) => any) {
+    constructor(private time: number, private callback?: (...args: any[]) => any) {
         this.start = Date.now();
     }
 
@@ -23,10 +23,10 @@ export class DeferredCallback {
         let now = Date.now();
         let diff = now - this.start;
         if (diff < this.time) {
-            setTimeout(() => { this.callback(); callback && callback(); }, this.time - diff);
+            setTimeout(() => { this.callback && this.callback(); callback && callback(); }, this.time - diff);
         }
         else {
-            this.callback();
+            this.callback && this.callback();
             callback && callback();
         }
     }
@@ -442,7 +442,7 @@ export function HTMLEncode(str: string) {
         .replace(/>/g, '&gt;');
 }
 
-export function autobind(target: Object, key: string, descriptor: TypedPropertyDescriptor<any>): TypedPropertyDescriptor<any> | void {
+export function autobind(target: any, key: string, descriptor: TypedPropertyDescriptor<any>): TypedPropertyDescriptor<any> | void {
     let fn = descriptor.value;
 
     if (typeof fn !== 'function') {

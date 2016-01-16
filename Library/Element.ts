@@ -110,7 +110,6 @@ export function createElement(
                     root.setAttribute('data-ref', ref);
                     component.elements[ref] = new DOMElement(root);
                 }
-
                 else if (p === 'bindText') {
                     ((text: string) => {
                         let [attr, value] = text.split(':');
@@ -118,15 +117,13 @@ export function createElement(
                             value = attr;
                             attr = undefined;
                         }
-                        component.on('change:text', () => {
-                            let element = component.root.findOne(`[data-b-t=${value}]`);
-                            if (attr) {
-                                element.setAttribute(attr, HTMLEncode(component.text[value]));
-                            }
-                            else {
-                                element.setHTML(HTMLEncode(component.text[value]));
-                            }
-                        });
+                        if (attr) {
+                            root.setAttribute(attr, HTMLEncode(component.text[value]));
+                        }
+                        else {
+                            root.innerHTML = HTMLEncode(component.text[value]);
+                        }
+                        root.setAttribute('data-b-t', value);
                     })(props[p]);
                 }
                 else if (p === 'bindUnsafeText') {
@@ -136,51 +133,13 @@ export function createElement(
                             value = attr;
                             attr = undefined;
                         }
-                        component.on('change:text', () => {
-                            let element = component.root.findOne(`[data-b-t=${value}]`);
-                            if (attr) {
-                                element.setAttribute(attr, component.text[value]);
-                            }
-                            else {
-                                element.setHTML(component.text[value]);
-                            }
-                        });
-                    })(props[p]);
-                }
-                else if (p === 'bindText') {
-                    ((text: string) => {
-                        let [attr, value] = text.split(':');
-                        if (!value) {
-                            value = attr;
-                            attr = undefined;
+                        if (attr) {
+                            root.setAttribute(attr, component.text[value]);
                         }
-                        root.setAttribute('data-b-t', value);
-                        component.on('change:text', () => {
-                            if (attr) {
-                                root.setAttribute(attr, HTMLEncode(component.text[value]));
-                            }
-                            else {
-                                root.innerHTML = HTMLEncode(component.text[value]);
-                            }
-                        });
-                    })(props[p]);
-                }
-                else if (p === 'bindUnsafeText') {
-                    ((text: string) => {
-                        let [attr, value] = text.split(':');
-                        if (!value) {
-                            value = attr;
-                            attr = undefined;
+                        else {
+                            root.innerHTML = component.text[value];
                         }
-                        root.setAttribute('data-b-t', value);
-                        component.on('change:text', () => {
-                            if (attr) {
-                                root.setAttribute(attr, component.text[value]);
-                            }
-                            else {
-                                root.innerHTML = component.text[value];
-                            }
-                        });
+                        root.setAttribute('data-b-ut', value);
                     })(props[p]);
                 }
                 else if (p === 'html') {

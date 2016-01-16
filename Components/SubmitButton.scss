@@ -1,5 +1,6 @@
 
 .SubmitButtonContainer {
+    position: relative;
     display: inline-block;
     padding: 0 10px 0 30px;
     cursor: pointer;
@@ -26,7 +27,7 @@
 .SubmitButtonLoadingCanvas {
     position: absolute;
     top: 0;
-    left: 0;
+    right: 0;
     @include transition(opacity 1s);
     @include transition-delay(0.2s);
 
