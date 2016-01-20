@@ -6,12 +6,21 @@ html {
 }
 
 body {
+    position: relative;
     height: 100%;
     margin: 0;
     padding: 0;
+    overflow: hidden;
     font-family: Roboto, 'Helvetica Neue', Helvetica, 'Lucida Grande', Arial;
     color: #fff;
-    overflow: hidden;
+    @include background(
+        linear-gradient(
+            rgba(0, 0, 0, 0.6),
+            rgba(0, 0, 0, 0) 45%,
+            rgba(0, 0, 0, 0) 75%,
+            rgba(0, 0, 0, 0.6)
+        )
+    );
 
     &:lang(zh) {
         font-family: '微软雅黑', '黑体', Roboto, 'Helvetica Neue', Helvetica, 'Lucida Grande', Arial;

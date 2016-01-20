@@ -1,5 +1,5 @@
 
-import { DOMElement, Debug, isArray, Map, HTMLEncode } from '../Library/Index';
+import { DOMElement, Debug, isArray, Map, encodeHTML } from '../Library/Index';
 import { Component, Props } from '../Core/Component';
 
 let id = 0;
@@ -118,10 +118,10 @@ export function createElement(
                             attr = undefined;
                         }
                         if (attr) {
-                            root.setAttribute(attr, HTMLEncode(component.text[value]));
+                            root.setAttribute(attr, encodeHTML(component.text[value]));
                         }
                         else {
-                            root.innerHTML = HTMLEncode(component.text[value]);
+                            root.innerHTML = encodeHTML(component.text[value]);
                         }
                         root.setAttribute('data-b-t', value);
                     })(props[p]);
@@ -280,10 +280,10 @@ export function createElement(
                 else if (p === 'bindText') {
                     let [attr, value] = (props[p] as string).split(':');
                     if (!value) {
-                        innerHTML += HTMLEncode(component.text[attr] || '');
+                        innerHTML += encodeHTML(component.text[attr] || '');
                     }
                     else {
-                        frag += ` ${attr}="${HTMLEncode(component.text[value])}"`;
+                        frag += ` ${attr}="${encodeHTML(component.text[value])}"`;
                     }
                     frag += ` data-b-t="${value || attr}"`;
                 }
@@ -315,7 +315,7 @@ export function createElement(
                     continue;
                 }
                 if (typeof child === 'string') {
-                    frag += HTMLEncode(child);
+                    frag += encodeHTML(child);
                 }
                 else if (isArray<JSX.Element[]>(child)) {
                     for (let c of child) {
@@ -416,10 +416,10 @@ export function createElement(
                         component.on('change:text', () => {
                             let element = component.root.findOne(`[data-b-t=${value}]`);
                             if (attr) {
-                                element.setAttribute(attr, HTMLEncode(component.text[value]));
+                                element.setAttribute(attr, encodeHTML(component.text[value]));
                             }
                             else {
-                                element.setHTML(HTMLEncode(component.text[value]));
+                                element.setHTML(encodeHTML(component.text[value]));
                             }
                         });
                     })(props[p]);

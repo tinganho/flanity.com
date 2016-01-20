@@ -131,7 +131,7 @@ class SineWave {
 export class WebLandingPage extends LayoutComponent<Regions, {}, LayoutElements> {
     public render() {
         return (
-            <div class='FillParentLayout BgLightGrey'>
+            <div class={'FillParentLayout BgLightGrey' + (inServer ? ' Final' : ' Ingoing')}>
                 <header id='Header'>
                     {this.props.Header}
                 </header>
@@ -150,5 +150,15 @@ export class WebLandingPage extends LayoutComponent<Regions, {}, LayoutElements>
             let sinusWave = new SineWave(this.elements.canvasWave.nativeElement as HTMLCanvasElement, canvas.getWidth(), canvas.getHeight());
             sinusWave.start();
         }
+    }
+
+    public onRemove(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            this.root.addClass('Outgoing').removeClass('Final')
+                .onTransitionEnd(() => {
+                    resolve();
+                    super.onRemove();
+                });
+        });
     }
 }

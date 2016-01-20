@@ -10,7 +10,7 @@ import {
     autobind,
     HTTPResponse,
     ErrorResponse,
-    DeferredCallback } from '../Library/Index';
+    TimedCallback } from '../Library/Index';
 import {
     SubmitButton,
     FormMessage,
@@ -33,6 +33,7 @@ interface TopicsText {
 interface TopicsComponents {
     topicsCollectionView: TopicsCollectionView;
     scrollBar: HorizontalScrollBar;
+    collection: TopicsCollectionView;
     topicsEmptyView?: TopicsEmptyView;
 
     [index: string]: Component<any, any, any>;
@@ -82,9 +83,11 @@ export class TopicsView extends ContentComponent<TopicsProps, TopicsText, Topics
 
         return (
             <div>
+                <div id='TopicsCollectionViewScrollBarDecratorLeft'/>
+                <div id='TopicsCollectionViewScrollBarDecratorRight'/>
                 {topics.length > 0 ? [
-                    <TopicsCollectionView data={topics}/>,
-                    <HorizontalScrollBar ref='scrollBar' contentListClass='Topic' scrollBarLeft='TopicsCollectionViewScrollBarDecratorLeft' scrollBarRight='TopicsCollectionViewScrollBarDecratorRight'/>
+                    <TopicsCollectionView ref='collection' data={topics}/>,
+                    <HorizontalScrollBar ref='scrollBar' scrollBarLeft='TopicsCollectionViewScrollBarDecratorLeft' scrollBarRight='TopicsCollectionViewScrollBarDecratorRight'/>
                 ] : <TopicsEmptyView/>}
             </div>
         );
@@ -97,38 +100,40 @@ export class TopicsView extends ContentComponent<TopicsProps, TopicsText, Topics
                     .onTransitionEnd(() => {
                         this.components.topicsEmptyView.remove();
                         delete this.components.topicsEmptyView;
+                        let collection = this.appendComponent(TopicsCollectionView, { ref:'collection', data: this.data.get('topics') }) as TopicsCollectionView;
+                        let scrollBar = this.appendComponent(HorizontalScrollBar, {
+                            ref: 'scrollBar',
+                            scrollBarLeft: 'TopicsCollectionViewScrollBarDecratorLeft',
+                            scrollBarRight: 'TopicsCollectionViewScrollBarDecratorRight'
+                        });
+                        collection.components.scrollBar = scrollBar as HorizontalScrollBar;
                     });
-                let component = this.stackComponent(TopicsCollectionView, { data: this.data.get('topics') });
-                this.appendComponent(HorizontalScrollBar, {
-                    ref: 'scrollBar',
-                    contentListClass: 'Topic',
-                    scrollBarLeft: 'TopicsCollectionViewScrollBarDecratorLeft',
-                    scrollBarRight: 'TopicsCollectionViewScrollBarDecratorRight'
-                });
             }
-            setTimeout(this.components.scrollBar.recalculate, 0);
+            else {
+            }
         });
         this.data.on('remove:topics', () => {
             if (this.data.get('topics').length === 0) {
                 let component = this.stackComponent(TopicsEmptyView, {});
                 this.components.topicsEmptyView.elements.addButton.addEventListener('click', this.showCreateTopicForm);
-                this.components.topicsCollectionView.remove();
-                delete this.components.topicsCollectionView;
+                this.components.collection.remove();
+                delete this.components.collection;
                 this.components.scrollBar.remove();
                 delete this.components.scrollBar;
             }
             else {
-                setTimeout(this.components.scrollBar.recalculate, 0);
             }
         });
     }
 
     public bindDOM() {
         super.bindDOM();
+
         if (this.components.topicsEmptyView) {
             this.components.topicsEmptyView.elements.addButton.addEventListener('click', this.showCreateTopicForm);
         }
         else {
+            this.components.collection.components.scrollBar = this.components.scrollBar;
         }
     }
 
@@ -177,6 +182,14 @@ class TopicsEmptyView extends ContentComponent<TopicsEmptyViewProps, TopicsEmpty
             emptyViewDescription: l('TOPICS->EMPTY_VIEW_DESCRIPTION'),
         }
     }
+
+    public bindDOM() {
+        super.bindDOM();
+
+        setTimeout(() => {
+            this.root.addClass('Revealed').removeClass('Hidden');
+        }, 0);
+    }
 }
 
 interface TopicsCollectionViewProps {
@@ -187,9 +200,17 @@ interface TopicsCollectionViewText {
 
 interface TopicsCollectionViewElements {
     addButton: DOMElement;
+    collection: DOMElement;
+}
+
+interface TopicsCollectionViewComponents {
+    scrollBar: HorizontalScrollBar;
+
+    [index: string]: Component<any, any, any>;
 }
 
 class TopicsCollectionView extends ContentComponent<TopicsCollectionViewProps, TopicsCollectionViewText, TopicsCollectionViewElements> {
+    public components: TopicsCollectionViewComponents;
     public data: Topics;
 
     public render() {
@@ -201,10 +222,8 @@ class TopicsCollectionView extends ContentComponent<TopicsCollectionViewProps, T
 
         return (
             <div id='TopicsCollectionView' class={inServer ? 'Revealed' : 'Hidden'}>
-                <div id='TopicsCollectionViewScrollBarDecratorLeft'/>
-                <div id='TopicsCollectionViewScrollBarDecratorRight'/>
-                <ul id='TopicCollectionViewList'>
-                {topicViews}
+                <ul ref='collection' id='TopicsCollection'>
+                    {topicViews}
                 </ul>
                 {getAddButton('TopicsCollectionViewAddButton')}
             </div>
@@ -219,32 +238,36 @@ class TopicsCollectionView extends ContentComponent<TopicsCollectionViewProps, T
         });
     }
 
-    public addTopic(topic: Topic) {
-        let addButton = this.elements.addButton;
-        let { left, top } = addButton.getOffset();
-        addButton.addStyle('position', 'absolute')
-            .addStyle('left', left + 'px')
-            .addStyle('top', top + 'px')
-            .addStyle('margin-left', '0')
-            .addStyle('margin-top', '0')
-            .addClass('Shifted')
-            .onTransitionEnd(() => {
-                addButton.removeAttribute('style');
-                addButton.addStyle('transition', 'none');
-                addButton.removeClass('Shifted');
+    private addTopic(topic: Topic) {
+        let component = this.appendComponent(TopicView, { id: 'Topic' + topic.get('id'), data: topic }, this.elements.collection) as TopicView;
+        component.components.scrollBar = this.components.scrollBar;
 
-                // Remove transition: none;
-                setTimeout(() => {
-                    addButton.removeAttribute('style');
-                }, 0);
-            });
-        this.insertComponentBefore(TopicView, { id: 'Topic' + topic.get('id'), data: topic }, addButton);
+        setTimeout(() => {
+            component.root.addClass('Revealed').removeClass('ZeroWidth').removeClass('Hidden')
+                .onTransitionEnd(() => {
+                    this.components.scrollBar.recalculate();
+                });
+        }, 0);
     }
 
     public bindDOM() {
         super.bindDOM();
 
         this.elements.addButton.addEventListener('click', this.showCreateTopicForm);
+
+        setTimeout(() => {
+            this.root.addClass('Revealed').removeClass('ZeroWidth').removeClass('Hidden');
+        }, 0);
+
+        for (let t in this.components) {
+            if (/^topic/.test(t)) {
+                ((t: string) => {
+                    setTimeout(() => {
+                        (this.components[t] as TopicView).components.scrollBar = this.components.scrollBar;
+                    }, 0);
+                })(t)
+            }
+        }
     }
 
     @autobind
@@ -272,12 +295,19 @@ interface TopicText {
     followers: string;
 }
 
+interface TopicComponents {
+    scrollBar: HorizontalScrollBar;
+
+    [index: string]: Component<any, any, any>;
+}
+
 class TopicView extends ContentComponent<TopicProps, TopicText, TopicElements> {
+    public components: TopicComponents;
     public data: Topic;
 
     public render() {
         return (
-            <li class={'Topic BgWhite1' + (inServer || this.props.isRevealed ? '' : ' Hidden')}>
+            <li class={'Topic BgWhite1' + (inServer || this.props.isRevealed ? ' Revealed' : ' Hidden ZeroWidth')}>
                 <div class='TopicCoverImageContainer'>
                     <div ref='mask' class='TopicCoverImageMask Hidden'/>
                     <img ref='image' class='TopicCoverImage Hidden' bindText='src:imageURL'/>
@@ -294,14 +324,20 @@ class TopicView extends ContentComponent<TopicProps, TopicText, TopicElements> {
 
     public bindData() {
         this.data.on('delete', () => {
-            this.remove();
+            this.components.scrollBar.scrollOneTopicForwardIfNecessary();
+            this.root.addClass('Hidden').addClass('ZeroWidth').removeClass('Revealed')
+                .onTransitionEnd(() => {
+                    this.remove();
+                    this.components.scrollBar.recalculate();
+                });
         });
     }
 
     public setText(l: GetLocalization) {
+        let coverImage = this.data.get('coverImage') && this.data.get('coverImage').medium.url;
         this.text = {
             editButtonText: l('TOPIC->EDIT_BUTTON_TEXT'),
-            imageURL: encodeURI(this.data.get('coverImage').medium.url),
+            imageURL: encodeURI(coverImage || ''),
             title: this.data.get('title'),
             description: this.data.get('description'),
             followers: l('TOPIC->FOLLOWERS_TEXT', { followers: this.data.get('followers') }),
@@ -355,6 +391,7 @@ interface CreateTopicFormText {
     descriptionTooLongErrorMessage: string;
     noTopicCoverImageErrorMessage: string;
     unknownErrorErrorMessage: string;
+    onDeleteTopic_TopicNotFoundErrorMessage: string;
 
     confirmDeleteTitle: string;
     confirmDeleteDescription: string;
@@ -377,6 +414,10 @@ interface CreateTopicFormComponents {
     formMessage: FormMessage;
 
     [index: string]: Component<any, any, any>;
+}
+
+const enum DeleteTopicFeedback {
+    TopicNotFound,
 }
 
 class TopicForm extends ContentComponent<CreateTopicFormProps, CreateTopicFormText, CreateTopicFormElements> {
@@ -475,25 +516,35 @@ class TopicForm extends ContentComponent<CreateTopicFormProps, CreateTopicFormTe
             return;
         }
 
-
         ConfirmDialog.confirm(
             this.text.confirmDeleteTitle,
             this.text.confirmDeleteDescription,
             (dialog: ConfirmDialog) => {
-                let callback = new DeferredCallback(2000);
+                let timedCallback = new TimedCallback(2000);
                 return new Promise<void>((resolve) => {
                     dialog.isRequesting = true;
-                    this.data.delete().then(() => {
-                        callback.call(() => {
+                    this.data.delete((emitEvent) => {
+                        timedCallback.stop(() => {
                             dialog.stopLoading();
-                            dialog.remove().then(() => {
-                                this.remove();
+                            dialog.remove();
+                            this.remove().then(() => {
+                                emitEvent();
                             });
                         });
                     })
                     .catch((err: Error | HTTPResponse<ErrorResponse>) => {
-                        console.log((err as any).stack || err);
-                        dialog.isRequesting = false;
+                        timedCallback.stop(() => {
+                            dialog.isRequesting = false;
+                            if ((err as HTTPResponse<ErrorResponse>).body &&
+                                (err as HTTPResponse<ErrorResponse>).body.feedback.current.code === DeleteTopicFeedback.TopicNotFound) {
+
+                                dialog.showErrorMessage(this.text.onDeleteTopic_TopicNotFoundErrorMessage);
+                            }
+                            else {
+                                dialog.showErrorMessage(this.text.unknownErrorErrorMessage);
+                                console.log((err as any).stack || err);
+                            }
+                        });
                     });
                 });
             })
@@ -528,6 +579,7 @@ class TopicForm extends ContentComponent<CreateTopicFormProps, CreateTopicFormTe
             descriptionTooLongErrorMessage: l('CREATE_TOPIC_FORM->DESCRIPTION_TOO_LONG_ERROR_MESSAGE'),
             noTopicCoverImageErrorMessage: l('CREATE_TOPIC_FORM->NO_TOPIC_COVER_IMAGE_ERROR_MESSAGE'),
             unknownErrorErrorMessage: l('DEFAULT->UNKNOW_ERROR_MESSAGE'),
+            onDeleteTopic_TopicNotFoundErrorMessage: l('CREATE_TOPIC_FORM->ON_DELETE_TOPIC->TOPIC_NOT_FOUND_ERROR_MESSAGE'),
 
             confirmDeleteTitle: l('CREATE_TOPIC_FORM->CONFIRM_DELETE_TITLE'),
             confirmDeleteDescription: l('CREATE_TOPIC_FORM->CONFIRM_DELETE_DESCRIPTION', { topic: topicTitle }),
@@ -552,21 +604,20 @@ class TopicForm extends ContentComponent<CreateTopicFormProps, CreateTopicFormTe
     }
 
     @autobind
-    public remove(event?: Event) {
-        if (event && (event.target as HTMLElement).id !== 'Overlay') {
-            return;
-        }
+    public remove(event?: Event): Promise<void> {
+        return new Promise<void>((resolve) => {
+            if (event && (event.target as HTMLElement).id !== 'Overlay') {
+                return resolve();
+            }
 
-        if (this.root.hasClass('Hidden')) {
-            this.overlay.hide().setHTML('');
-            super.remove();
-        }
-        this.overlay.addClass('Hidden').removeClass('Revealed');
-        this.root.addClass('Hidden').removeClass('Revealed')
-            .onTransitionEnd(() => {
-                this.overlay.hide().setHTML('');
-                super.remove();
-            });
+            this.root.addClass('Hidden').removeClass('Revealed')
+            this.overlay.addClass('Hidden').removeClass('Revealed')
+                .onTransitionEnd(() => {
+                    this.overlay.hide().setHTML('');
+                    super.remove();
+                    resolve();
+                });
+        });
     }
 
     @autobind
@@ -698,7 +749,7 @@ class TopicForm extends ContentComponent<CreateTopicFormProps, CreateTopicFormTe
         this.isRequesting = true;
 
 
-        let callback = new DeferredCallback(2000, () => {
+        let callback = new TimedCallback(2000, () => {
             markLoadFinished();
             this.isRequesting = false;
             this.components.submitButton.stopLoading();
@@ -710,7 +761,7 @@ class TopicForm extends ContentComponent<CreateTopicFormProps, CreateTopicFormTe
                 coverImage: this.topicCoverImage,
                 order: isNew ? this.props.topics.length : this.data.get('order'),
             }).then(() => {
-                callback.call(() => {
+                callback.stop(() => {
                     if (isNew) {
                         this.props.topics.add(data);
                     }
@@ -718,7 +769,7 @@ class TopicForm extends ContentComponent<CreateTopicFormProps, CreateTopicFormTe
                 });
             })
             .catch(err => {
-                callback.call(() => {
+                callback.stop(() => {
                     this.showErrorMessage(this.text.unknownErrorErrorMessage);
                 });
                 console.log(err.stack || err);
@@ -740,14 +791,20 @@ interface Elements {
     cursor: DOMElement;
 }
 
+interface ScrollEvent {
+    deltaX: number;
+}
+
 export class HorizontalScrollBar extends ContentComponent<Props, any, Elements> {
+    public parentComponent: TopicsView;
     private container: DOMElement;
+    private collection: DOMElement;
 
     private containerWidth: number;
     private contentWidth: number;
     private cursorWidth: number;
     private cursorPosition = 0;
-    private contentPosition = 0;
+    public contentPosition = 0;
     private firstContentElement: DOMElement;
 
     private scrollBarLeft: DOMElement;
@@ -755,7 +812,7 @@ export class HorizontalScrollBar extends ContentComponent<Props, any, Elements> 
 
     public render() {
         return (
-            <div class='HorizontalScrollBar'>
+            <div class='HorizontalScrollBar' style='display: none;'>
                 <div ref='cursor' class='HorizontalScrollBarCursor'/>
             </div>
         );
@@ -767,7 +824,8 @@ export class HorizontalScrollBar extends ContentComponent<Props, any, Elements> 
         this.scrollBarLeft = DOMElement.getElement(this.props.scrollBarLeft);
         this.scrollBarRight = DOMElement.getElement(this.props.scrollBarRight);
 
-        this.container = this.root.getParentElement();
+        this.container = this.parentComponent.root;
+        this.collection = this.parentComponent.components.collection.elements.collection;
         this.setScrollBarCursorDimensions();
 
         window.addEventListener('resize', this.recalculate);
@@ -776,6 +834,55 @@ export class HorizontalScrollBar extends ContentComponent<Props, any, Elements> 
     @autobind
     public recalculate() {
         this.setScrollBarCursorDimensions();
+    }
+
+    public scrollOneTopicForwardIfNecessary() {
+        if (this.contentWidth < this.containerWidth) {
+            this.collection.addStyle('margin-left', '0px');
+            this.contentPosition = 0;
+            this.container.removeEventListener('wheel', this.scroll);
+            return;
+        }
+
+        if (this.contentPosition > 0) {
+            let duration = 500;
+            let start = this.contentPosition;
+            let end: number;
+            if (this.contentPosition > 420) {
+                end = this.contentPosition - 420;
+            }
+            else {
+                end = 0;
+            }
+            let change = end - start;
+            let originalTime = Date.now();
+            let elapsedTime: number;
+
+            let self = this;
+            function animateScroll() {
+                elapsedTime = Date.now() - originalTime;
+                self.collection.addStyle('margin-left', -easeInOut(elapsedTime, start, change, duration) + 'px');
+                if (elapsedTime < duration) {
+                    requestAnimationFrame(animateScroll);
+                }
+                else {
+                    self.contentPosition = end;
+                    if (end === 0) {
+                        self.container.removeEventListener('wheel', self.scroll);
+                    }
+                }
+            }
+
+            function easeInOut(currentTime: number, start: number, change: number, duration: number) {
+                currentTime /= duration / 2;
+                if (currentTime < 1) {
+                    return change / 2 * currentTime * currentTime + start;
+                }
+                currentTime -= 1;
+                return -change / 2 * (currentTime * (currentTime - 2) - 1) + start;
+            }
+            requestAnimationFrame(animateScroll);
+        }
     }
 
     @autobind
@@ -797,7 +904,7 @@ export class HorizontalScrollBar extends ContentComponent<Props, any, Elements> 
         let contentPercentagePosition =  this.contentPosition / this.contentWidth
         this.cursorPosition = contentPercentagePosition * this.containerWidth;
 
-        this.firstContentElement.addStyle('margin-left', -this.contentPosition + 'px');
+        this.collection.addStyle('margin-left', -this.contentPosition + 'px');
         this.elements.cursor.addStyle('margin-left', this.cursorPosition + 'px');
 
         if (this.contentPosition > 0) {
@@ -818,30 +925,31 @@ export class HorizontalScrollBar extends ContentComponent<Props, any, Elements> 
     private setScrollBarCursorDimensions(): void {
         this.container.removeEventListener('wheel', this.scroll);
 
-        let content = this.container.getFirstChildElement();
-
         this.containerWidth = this.container.getWidth();
-        let contentListElements = this.container.findAll('.' + this.props.contentListClass);
-        if (contentListElements.length === 0) {
+        let topics = this.collection.getChildren();
+
+        if (topics.length === 0) {
             this.root.hide();
             this.scrollBarLeft.removeClass('Active');
             this.scrollBarRight.removeClass('Active');
+            this.contentPosition = 0;
             return;
         }
         this.contentWidth = 0;
-        this.firstContentElement = contentListElements[0];
-        let marginRight = contentListElements[0].getStyleInPixels('marginRight');
-        for (let e of contentListElements) {
-            this.contentWidth += e.getWidth() + marginRight;
+        this.firstContentElement = this.collection.getFirstChildElement();
+        let width = this.firstContentElement.getWidth();
+        let marginRight = this.firstContentElement.getStyleInPixels('marginRight');
+        for (let e of topics) {
+            this.contentWidth += width + marginRight;
         }
         this.contentWidth += 124;
-        let maxWidth = DOMElement.getElement('Body').getWidth() - 200;
 
-        if (this.contentWidth <= this.containerWidth || this.containerWidth < maxWidth) {
+        if (this.contentWidth <= this.containerWidth) {
             this.root.hide();
             this.scrollBarLeft.removeClass('Active');
             this.scrollBarRight.removeClass('Active');
-            contentListElements[0].addStyle('margin-left', '0px');
+            this.contentPosition = 0;
+            this.collection.addStyle('margin-left', '0px');
             return;
         }
         this.root.show();
@@ -852,11 +960,12 @@ export class HorizontalScrollBar extends ContentComponent<Props, any, Elements> 
 
         let containerWidthPercentageOfContent = this.containerWidth / this.contentWidth;
         this.cursorWidth = containerWidthPercentageOfContent * this.containerWidth;
-
         cursor.setWidth(this.cursorWidth);
 
         let contentPercentagePosition =  this.contentPosition / this.contentWidth
         this.cursorPosition = contentPercentagePosition * this.containerWidth;
+
+        this.collection.addStyle('margin-left', -this.contentPosition + 'px');
         this.elements.cursor.addStyle('margin-left', this.cursorPosition + 'px');
 
         if (this.contentPosition > 0) {

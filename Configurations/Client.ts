@@ -24,21 +24,21 @@ export let ClientConfigurations = {
      *
      * @type string
      */
-    DEFAULT_HTTP_REQUEST_HOST: System.config.backend.host,
+    DEFAULT_HTTP_REQUEST_HOST: process.env.NODE_ENV === 'development' ? 'api.flanity.local' : System.config.backend.host,
 
     /**
      * Default page timeout in seconds.
      *
      * @type number
      */
-    DEFAULT_HTTP_REQUEST_PORT: System.config.backend.port,
+    DEFAULT_HTTP_REQUEST_PORT: process.env.NODE_ENV === 'development' ? System.config.server.port : System.config.backend.port,
 
     /**
      * Default page timeout in seconds.
      *
      * @type boolean
      */
-    DEFAULT_HTTP_REQUEST_HTTPS: System.config.backend.https,
+    DEFAULT_HTTP_REQUEST_HTTPS: process.env.NODE_ENV === 'development' ? false : System.config.backend.https,
 
     /**
      * Default HTTP request timeout.
@@ -70,6 +70,5 @@ export let ClientConfigurations = {
 }
 
 ClientConfigurations = formatConfiguration(ClientConfigurations);
-ClientConfigurations = mergeConfigurations(ClientConfigurations, ServerConfigurations);
 
 export default ClientConfigurations;

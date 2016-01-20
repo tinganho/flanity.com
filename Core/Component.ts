@@ -318,17 +318,13 @@ export abstract class Component<P extends Props, T, E> {
     /**
      * Append a relation component to element. Omit id if you want it to append to the root element.
      */
-    public appendComponent(c: new() => Component<any, any, any>, props: any, id?: string) {
+    public appendComponent(c: new() => Component<any, any, any>, props: any, inElement?: DOMElement) {
         let view = React.createElement(c, props);
         view.setComponent(this);
-        let element: DOMElement;
-        if (!id) {
-            element = this.root;
+        if (!inElement) {
+            inElement = this.root;
         }
-        else {
-            element = this.root.getElement(id);
-        }
-        element.append(view);
+        inElement.append(view);
 
         let component = view.getComponent() as Component<any, any, any>;
         component.bindDOM();

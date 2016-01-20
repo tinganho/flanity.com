@@ -24,5 +24,6 @@ export function test(test: WebDriverTest, response: HTTPResponse<ModelResponse<F
     return test.get('/reset-password?token=' + response.body.model.token)
         .input('ResetPasswordFormNewPasswordInput', 'password')
         .input('ResetPasswordFormRepeatPasswordInput', 'password')
-        .click('ResetPasswordFormSubmitButton');
+        .click('ResetPasswordFormSubmitButton')
+        .waitFor('FinishedLoading')
 }

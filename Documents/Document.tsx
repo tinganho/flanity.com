@@ -109,7 +109,7 @@ export class Document extends DocumentComponent<ComposerDocumentProps, {}, Eleme
                     })}
 
                 </head>
-                <body id="LayoutRegion">
+                <body id="LayoutRegion" data-error="none">
                     {this.props.layout}
 
                     {

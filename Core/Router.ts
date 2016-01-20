@@ -138,7 +138,7 @@ export class Router {
         this.checkRouteAndRenderIfMatch(document.location.pathname);
 
         if (this.hasPushState) {
-            window.onpopstate = () => {
+            window.onpopstate = (event) => {
                 this.checkRouteAndRenderIfMatch(document.location.pathname);
             }
             this.onPushState = this.checkRouteAndRenderIfMatch;
@@ -266,18 +266,25 @@ this component is properly named?`);
                     changePageDescription(pageInfo.description);
                     changePageImage(pageInfo.image);
 
-                    currentNumberOfFetches++;
                     if (currentNumberOfFetches === expectedNumberOfFetches) {
                         let LayoutComponentClass = (this as any).pageComponents.Layout[nextPage.platforms[this.currentPlatform].layout.view.className];
 
                         // If we are not in the same layout, we will replace the current layout region with a new one.
                         if (LayoutComponentClass.name !== this.currentLayoutView.id) {
-                            let layoutComponent = new LayoutComponentClass(newContents);
+                            this.currentLayoutView.root.addStyle('z-index', '10000000');
                             this.currentLayoutView.onRemove();
+                            let layoutComponent = new LayoutComponentClass(newContents);
                             document.getElementById('LayoutRegion').appendChild(layoutComponent.toDOM());
                             layoutComponent.bindDOM();
                             layoutComponent.onShow();
-                            this.currentLayoutView = layoutComponent;
+                            setTimeout(() => {
+                                layoutComponent.root.addClass('Final').removeClass('Ingoing')
+                                    .onTransitionEnd(() => {
+                                        this.currentContents = layoutComponent.components as CurrentContents;
+                                        this.currentLayoutView = layoutComponent;
+                                        markLoadFinished();
+                                    });
+                            }, 0);
                         }
 
                         // If we are in the same layout, we will remove irrelevant content and bind the new content.
@@ -340,7 +347,6 @@ this component is properly named?`);
                                 // reference there will be a component property referencing itself.
                                 ingoingComponent.bindDOM();
                             }
-
                         }
                     }
                 }
@@ -355,6 +361,7 @@ this component is properly named?`);
                             data,
                         }
                         newContents[contentInfo.region] = React.createElement(ViewClass, props, null);
+                        currentNumberOfFetches++;
                         render();
                     })
                     .catch((error: Error | HTTPResponse<ErrorResponse>) => {
@@ -367,10 +374,7 @@ this component is properly named?`);
                                 let errorCode = error.body.feedback.current.code;
                                 if (errorCode === AutenticationError.InvalidAccessToken
                                 || errorCode === AutenticationError.AccessTokenExpired) {
-                                    HTTP.del('/session/cookies')
-                                        .then(() => {
-                                            this.navigateTo('/');
-                                        });
+                                    this.navigateTo('/');
                                 }
                             }
 
@@ -383,7 +387,12 @@ this component is properly named?`);
                 else {
                     newContents[contentInfo.region] = React.createElement(ViewClass, { l: (window as any).localizations }, null);
                     ViewClass.setPageInfo({}, (window as any).localizations, pageInfo);
-                    render();
+
+                    // Add timeout so 'currentNumberOfFetches' doesn't equal 'expectedNumberOfFetches' more than once.
+                    setTimeout(() => {
+                        currentNumberOfFetches++;
+                        render();
+                    }, 0);
                 }
 
 
@@ -487,5 +496,9 @@ function unmarkLoadFinished() {
     }
 }
 (window as any).unmarkLoadFinished = unmarkLoadFinished;
+
+window.onerror = (error) => {
+    document.body.setAttribute('data-error', (error as any).stack || error);
+}
 
 export default Router;

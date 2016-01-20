@@ -45,6 +45,10 @@ if (fs.existsSync('/etc/flanity.com')) {
         console.error('You have not configured backend server correctly.');
         process.exit();
     }
+    if (!config.server || !config.server.port) {
+        console.error('You have not configured your server correctly.');
+        process.exit();
+    }
 }
 else {
     checkEnvExist([

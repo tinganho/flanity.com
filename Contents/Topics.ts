@@ -11,8 +11,10 @@ interface Query {
 @model(Topic)
 export class Topics extends Collection<Topic> {
     public onFetch(requestInfo: RequestInfo<Params, Query>) {
-        this.setFetchOptions({
-            accessToken: requestInfo.cookies.accessToken,
-        });
+        if (inServer) {
+            this.setFetchOptions({
+                accessToken: requestInfo.cookies.accessToken,
+            });
+        }
     }
 }

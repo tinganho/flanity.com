@@ -6,9 +6,10 @@
 import webdriver = require('selenium-webdriver');
 import { ServerConfigurations as cf } from '../Configurations/Server';
 import { System } from '../Library/Server/Index';
+import { decodeHTML } from '../Library/Index';
 
-export { HTTP, HTTPResponse, ModelResponse, CollectionResponse } from '../Library/Index';
 export { Cookie } from 'selenium-webdriver';
+export { HTTP, HTTPResponse, ModelResponse, CollectionResponse } from '../Library/Index';
 
 export class WebDriverTest {
     private driver: webdriver.WebDriver;
@@ -161,6 +162,18 @@ export class WebDriverTest {
     public getCookies(callback: (cookies: webdriver.Cookie[]) => void): this {
         this.currentControlFlow = this.currentControlFlow.then(() => {
             return this.driver.manage().getCookies().then(callback);
+        });
+
+        return this;
+    }
+
+    public checkError(callback: (error: string) => Promise<any>): this {
+        this.currentControlFlow = this.currentControlFlow.then(() => {
+            return this.driver.findElement(
+                this.getLocatorOrHashFromHashOrIdString('LayoutRegion')
+            ).getAttribute('data-error').then(error => {
+                return callback(decodeHTML(error));
+            });
         });
 
         return this;

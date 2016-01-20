@@ -14,7 +14,7 @@ interface LayoutElements extends Elements {
 export class WebApp extends LayoutComponent<Regions, {}, LayoutElements> {
     public render() {
         return (
-            <div class='FillParentLayout BgWhiteBlue'>
+            <div  class={'FillParentLayout BgWhiteBlue' + (inServer ? ' Final' : ' Ingoing')}>
                 <header id='Header'>
                     {this.props.Header}
                 </header>
@@ -27,5 +27,15 @@ export class WebApp extends LayoutComponent<Regions, {}, LayoutElements> {
 
     public bindDOM() {
         super.bindDOM();
+    }
+
+    public onRemove(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            this.root.addClass('Outgoing').removeClass('Final')
+                .onTransitionEnd(() => {
+                    resolve();
+                    super.onRemove();
+                });
+        });
     }
 }

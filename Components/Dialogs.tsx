@@ -1,6 +1,7 @@
 
 import { ContentComponent, DOMElement, React, autobind } from '../Library/Index';
 import { SubmitButton } from './SubmitButton';
+import { FormMessage } from './FormMessage';
 
 interface Props {
     title: string;
@@ -18,6 +19,7 @@ interface Elements {
 
 interface Components {
     submitButton: SubmitButton;
+    formMessage: FormMessage;
 
     [component: string]: Component<any, any, any>;
 }
@@ -51,6 +53,7 @@ export class ConfirmDialog extends ContentComponent<Props, Text, Elements> {
                 <div class='DialogDescriptionContainer'>
                     <p class='DialogText'>{this.props.description}</p>
                 </div>
+                <FormMessage/>
                 <div class='DialogActionContainer'>
                     <button class='DialogCancelButton TextButton' ref='cancelButton'>{this.text.cancelButtonText}</button>
                     <SubmitButton class='DialogSubmitButton' ref='submitButton' buttonText={this.text.confirmButtonText}/>
@@ -76,6 +79,11 @@ export class ConfirmDialog extends ContentComponent<Props, Text, Elements> {
     public onConfirm(callback: (dialog: ConfirmDialog) => Promise<any>): this {
         this.confirmCallback = callback;
         return this;
+    }
+
+    public showErrorMessage(message: string) {
+        this.components.formMessage.showErrorMessage(message);
+        this.stopLoading();
     }
 
     public end() {
@@ -109,8 +117,10 @@ export class ConfirmDialog extends ContentComponent<Props, Text, Elements> {
     @autobind
     public remove(): Promise<void> {
         return new Promise<void>((resolve) => {
-            this.root.addClass('Hidden').removeClass('Revealed')
+            this.root.addClass('Hidden').removeClass('Revealed');
+            this.overlay.addClass('Hidden').removeClass('Revealed')
                 .onTransitionEnd(() => {
+                    this.overlay.hide().setHTML('');
                     super.remove();
                     dialog = undefined;
                     resolve();

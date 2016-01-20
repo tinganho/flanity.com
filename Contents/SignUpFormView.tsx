@@ -4,9 +4,11 @@ import {
     SubmitButton,
     FormMessage } from '../Components/Index';
 import {
-    DeferredCallback,
+    TimedCallback,
     HTTP,
     HTTPResponseType,
+    HTTPResponse,
+    ModelResponse,
     DOMElement,
     ContentComponent,
     React,
@@ -54,6 +56,16 @@ interface FormElements extends Elements {
     friend1Email: DOMElement;
     friend2Email: DOMElement;
     usernameFeedback: DOMElement;
+}
+
+interface Session {
+    accessToken: string;
+    renewalToken: string;
+    expiry: string;
+}
+
+interface User {
+    username: string;
 }
 
 interface FileReadResult extends File {
@@ -458,21 +470,41 @@ export class SignUpFormView extends ContentComponent<Props, Text, FormElements> 
         this.components.submitButton.startLoading();
         this.isRequesting = true;
 
-        let callback = new DeferredCallback(2000, () => {
+        let callback = new TimedCallback(2000, () => {
             this.components.submitButton.stopLoading();
         });
 
         unmarkLoadFinished();
-        HTTP.post('/users',
+        HTTP.post<ModelResponse<User>>('/users',
             {
                 bodyType: HTTP.BodyType.MultipartFormData,
                 body: formData,
             })
-            .then(() => {
-                callback.call(() => {
+            .then((response) => {
+                callback.stop(() => {
                     this.showSuccessMessage(this.text.signUpSuccessfulMessage);
-                    this.loginUser();
-                    markLoadFinished();
+
+                    let callback = new TimedCallback(2000);
+                    HTTP.post<ModelResponse<Session>>('/login', {
+                            host: window.location.hostname,
+                            port: parseInt(window.location.port),
+                            body: {
+                                username: this.username,
+                                password: this.password,
+                            },
+                        })
+                        .then((response) => {
+                            callback.stop(() => {
+                                let session = response.body.model;
+                                document.cookie = 'hasAccessToken=1; expires=' + session.expiry;
+                                App.router.navigateTo('/@' + this.username);
+                                markLoadFinished();
+                                this.isRequesting = false;
+                            })
+                        })
+                        .catch((err) => {
+                            this.showErrorMessage(this.text.unknownErrorErrorMessage);
+                        })
                 });
             })
             .catch((err) => {
@@ -481,7 +513,7 @@ export class SignUpFormView extends ContentComponent<Props, Text, FormElements> 
                     err.body.feedback.current &&
                     err.body.feedback.current.code >= 0) {
 
-                    callback.call(() => {
+                    callback.stop(() => {
                         switch (err.body.feedback.current.code) {
                             case CreateUserFeedback.UsernameAlreadyTaken:
                                 this.showErrorMessage(this.text.usernameAlreadyTakenErrorMessage);
@@ -502,9 +534,5 @@ export class SignUpFormView extends ContentComponent<Props, Text, FormElements> 
                }
                this.isRequesting = false;
             });
-    }
-
-    private loginUser() {
-
     }
 }

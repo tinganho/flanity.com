@@ -9,9 +9,11 @@ import {
     HTTPResponse,
     ModelResponse,
     ErrorResponse,
-    DeferredCallback,
+    TimedCallback,
     PageInfo,
-    autobind } from '../Library/Index';
+    autobind,
+    encodeHTML,
+    Debug } from '../Library/Index';
 
 interface Text {
     forgotPasswordDescription: string;
@@ -56,7 +58,7 @@ export class ForgotPasswordFormView extends ContentComponent<Props, Text, HeroEl
     }
 
     private email: string;
-    private isRequesting: boolean;
+    private isRequesting = false;
     public components: Components;
 
     public render() {
@@ -141,40 +143,41 @@ export class ForgotPasswordFormView extends ContentComponent<Props, Text, HeroEl
             return;
         }
 
-        this.isRequesting = true;
         this.components.submitButton.startLoading();
-        let callback = new DeferredCallback(2000, () => {
+        let callback = new TimedCallback(2000, () => {
             this.components.submitButton.stopLoading();
         });
 
         unmarkLoadFinished();
+        this.isRequesting = true;
         HTTP.post<string>('/forgot-password-tokens', {
                 body: {
                     email: this.email,
                 }
             })
             .then(() => {
-                callback.call(() => {
+                callback.stop(() => {
                     this.showSuccessMessage(this.text.successfulMessage);
                     markLoadFinished();
                 });
             })
             .catch((err: HTTPResponse<ErrorResponse> | Error) => {
                 if (err instanceof Error) {
-                    callback.call(() => {
-                        markLoadFinished();
+                    callback.stop(() => {
                         this.showErrorMessage(this.text.unknownErrorErrorMessage);
+                        markLoadFinished();
                     });
                     throw err;
                 }
                 else {
-                    callback.call(() => {
+                    callback.stop(() => {
                         markLoadFinished();
-                        if (err.body.feedback.current.code === ForgotPasswordRequestFeedback.UserNotFound) {
+                        if (err.body && err.body.feedback.current.code === ForgotPasswordRequestFeedback.UserNotFound) {
                             this.showErrorMessage(this.text.userNotFoundErrorMessage);
                         }
                         else {
                             this.showErrorMessage(this.text.unknownErrorErrorMessage);
+                            Debug.error(cf.DEFAULT_HTTP_REQUEST_HOST);
                         }
                     });
                 }

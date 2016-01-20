@@ -12,14 +12,14 @@ export class Gaussian {
     }
 }
 
-export class DeferredCallback {
+export class TimedCallback {
     private start: number;
 
     constructor(private time: number, private callback?: (...args: any[]) => any) {
         this.start = Date.now();
     }
 
-    call(callback?: (...args: any[]) => any) {
+    stop(callback?: (...args: any[]) => any) {
         let now = Date.now();
         let diff = now - this.start;
         if (diff < this.time) {
@@ -433,13 +433,33 @@ export function clone<T>(x: T): T {
     return extend({} as any, x) as T;
 }
 
-export function HTMLEncode(str: string) {
-    return str
+export function encodeHTML(text: string): string {
+    if (typeof text !== 'string') {
+        return '';
+    }
+
+    return text
         .replace(/&/g, '&amp;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
+}
+
+export function decodeHTML(text: string): string {
+    var entities = [
+        ['amp', '&'],
+        ['quot', '"'],
+        ['#39', '\''],
+        ['lt', '<'],
+        ['gt', '>'],
+    ];
+
+    for (var i = 0, max = entities.length; i < max; ++i) {
+        text = text.replace(new RegExp('&' + entities[i][0] + ';', 'g'), entities[i][1]);
+    }
+
+    return text;
 }
 
 export function autobind(target: any, key: string, descriptor: TypedPropertyDescriptor<any>): TypedPropertyDescriptor<any> | void {
@@ -489,4 +509,8 @@ export function deepEqual(x: any, y: any) {
         return false;
     }
     return true;
+}
+
+export function toCamelCase(text: string): string {
+    return text[0].toLowerCase() + text.substring(1);
 }

@@ -8,5 +8,5 @@ export function test(test: WebDriverTest) {
         .input('SignUpFormEmailInput', 'username2@domain.com')
         .input('SignUpFormPasswordInput', 'password')
         .click('SignUpSubmitButton')
-        .waitFor('FinishedLoading')
+        .waitFor('FinishedLoading');
 }

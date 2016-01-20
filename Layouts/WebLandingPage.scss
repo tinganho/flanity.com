@@ -1,10 +1,29 @@
 
+Body {
+    @include transform(translateZ(0));
+    @include background(
+        linear-gradient(#000000,#333333 50%,#333333 100%)
+    );
+}
+
 .Region {
     position: relative;
 }
 
 #WebLandingPage {
-    z-index: -1;
+    @include transition(transform 0.8s);
+
+    &.Ingoing {
+        @include transform(translateZ(-100px));
+    }
+
+    &.Final {
+        @include transform(translateZ(0));
+    }
+
+    &.Outgoing {
+        @include transform(translateY(100%));
+    }
 }
 
 #Body {

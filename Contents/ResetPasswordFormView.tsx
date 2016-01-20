@@ -11,7 +11,7 @@ import {
     HTTPResponseType,
     ModelResponse,
     ErrorResponse,
-    DeferredCallback,
+    TimedCallback,
     PageInfo } from '../Library/Index';
 
 interface Text {
@@ -174,7 +174,7 @@ export class ResetPasswordFormView extends ContentComponent<Props, Text, HeroEle
 
         this.isRequesting = true;
         this.components.submitButton.startLoading();
-        let callback = new DeferredCallback(2000, () => {
+        let callback = new TimedCallback(2000, () => {
             this.components.submitButton.stopLoading();
         });
 
@@ -186,7 +186,7 @@ export class ResetPasswordFormView extends ContentComponent<Props, Text, HeroEle
                 }
             })
             .then(() => {
-                callback.call(() => {
+                callback.stop(() => {
                     this.showSuccessMessage(this.text.successfulMessage);
                     markLoadFinished();
                 });
@@ -194,14 +194,14 @@ export class ResetPasswordFormView extends ContentComponent<Props, Text, HeroEle
             .catch((err: HTTPResponse<ErrorResponse> | Error) => {
                 this.isRequesting = false;
                 if (err instanceof Error) {
-                    callback.call(() => {
+                    callback.stop(() => {
                         this.showErrorMessage(this.text.unknownErrorErrorMessage);
                         markLoadFinished();
                     });
                     throw err;
                 }
                 else {
-                    callback.call(() => {
+                    callback.stop(() => {
                         if (err.body.feedback.current.code === ResetPasswordRequestFeedback.ForgotPasswordTokenNotFound) {
                             this.showErrorMessage(this.text.invalidResetPasswordErrorMessage);
                         }

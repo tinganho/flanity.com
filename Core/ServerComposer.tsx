@@ -532,6 +532,7 @@ export class Page {
                 }
             }
             if (content.relations) {
+
                 // Check if relations are in content declarationn
                 for (let r of content.relations) {
                     if (!(r in (content.data as any).relations)) {

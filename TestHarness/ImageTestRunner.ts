@@ -23,7 +23,8 @@ interface TestFile {
 }
 
 let masks: RegExp[] = [
-    /^\/reset\-password\?token\=(.+)/
+    /^\/reset\-password\?token\=(.+)/,
+    /^\/email\-verification\?userId=2&token=(.+)/
 ];
 
 export function runImageTests() {
@@ -98,6 +99,16 @@ export function runImageTests() {
                             let webDriverTest = new WebDriverTest(testName, null);
                             let test = testFile.test(webDriverTest, data)
                                 .waitFor('FontFinishedLoading')
+                                .checkError((error) => {
+                                    return new Promise((resolve, reject) => {
+                                        if (error === 'none') {
+                                            resolve();
+                                        }
+                                        else {
+                                            reject(error);
+                                        }
+                                    });
+                                })
                                 .click('UnFocus')
                                 .sleep(3500)
                                 .screenshot()
@@ -112,7 +123,7 @@ export function runImageTests() {
                                 })
                                 .getPageImage((imageURL: string) => {
                                     pageInfo.imageURL = mask(imageURL);
-                                });
+                                })
 
                             if (!process.env.INTERACTIVE) {
                                 return test.end();

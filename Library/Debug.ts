@@ -1,4 +1,6 @@
 
+import { encodeHTML } from './Utils';
+
 declare var DebugLevel: number;
 declare var __dirname: any;
 
@@ -100,7 +102,7 @@ export namespace Debug {
         message = interpolateMessage(message, arg0, arg1, arg2);
 
         let category = (levelToCategoryString as any)[level];
-        let preText = `[ ${category} ] - `;
+        let preText = `[${category}] - `;
         let preTextColumns = preText.length;
         let stdoutColumns = process.stdout.columns;
         let stdoutText = preText + message;
@@ -122,18 +124,32 @@ export namespace Debug {
         process.stdout.write('\n');
     }
 
-    export function error(message: string, arg0?: string | Error, arg1?: string, arg2?: string) {
-        if (level >= Level.Errors) {
-            if (typeof arg0 === 'undefined') {
-                throw Error(message);
+    export function error(error: Error): void;
+    export function error(error: string, arg0?: string | Error, arg1?: string, arg2?: string): void;
+    export function error(error: string | Error, arg0?: string | Error, arg1?: string, arg2?: string): void {
+        if (typeof error === 'string') {
+            if (cf.IN_IMAGE_TEST) {
+                document.body.setAttribute('data-error', encodeHTML(error));
             }
-            if (typeof arg0 === 'string') {
-                throw Error(interpolateMessage(message, arg0, arg1, arg2));
+
+            if (level >= Level.Errors) {
+                if (typeof arg0 === 'undefined') {
+                    throw Error(error);
+                }
+                if (typeof arg0 === 'string') {
+                    throw Error(interpolateMessage(error, arg0, arg1, arg2));
+                }
+                else {
+                    print(Type.Error, error);
+                    throw arg0;
+                }
             }
-            else {
-                print(Type.Error, message);
-                throw arg0;
+        }
+        else {
+            if (cf.IN_IMAGE_TEST) {
+                document.body.setAttribute('data-error', encodeHTML(error.stack || error.toString()));
             }
+            throw error;
         }
     }
 

@@ -2,7 +2,6 @@
 import { React, ContentComponent, DOMElement, PageInfo } from '../Library/Index';
 
 interface Props {
-    isVerified: boolean;
 }
 
 interface Elements {
@@ -24,8 +23,9 @@ export class EmailVerificationView extends ContentComponent<Props, Text, Element
     }
 
     public render() {
-        let title = this.props.isVerified ? this.text.successTitle : this.text.errorTitle;
-        let description = this.props.isVerified ? this.text.successDescription : this.text.errorDescription;
+        let isVerified = this.props.data.get('isVerified');
+        let title = isVerified ? this.text.successTitle : this.text.errorTitle;
+        let description = isVerified ? this.text.successDescription : this.text.errorDescription;
         return (
             <div>
                 <div id='EmailVerificationDialog' class='BgWhite2'>

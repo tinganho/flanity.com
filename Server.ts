@@ -17,6 +17,7 @@ import compression = require('compression');
 import requestLanguage = require('express-request-language');
 import cookieParser = require('cookie-parser');
 import bodyParser = require('body-parser');
+let modRewrite = require('connect-modrewrite');
 import { login } from './Contents/LogInAPI';
 import { init as initPages } from './Pages';
 import { ServerComposer } from './Core/ServerComposer';
@@ -29,7 +30,27 @@ let serverComposer: ServerComposer;
 export function startServer(quiet = false) {
     let Server = express();
     Server.use(compression());
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'development') {
+
+        let backendOrigin = '';
+        if (System.config.backend.https) {
+            backendOrigin += 'https';
+        }
+        else {
+            backendOrigin += 'http';
+        }
+        backendOrigin += `://${System.config.backend.host}:${System.config.backend.port}`;
+
+        // We need to proxy our requests because of cross domain cookies issues. Browsers such as
+        // Safari does not set cookies unless you visit the website. Thus, We cannot have a user
+        // session in those browsers. To accomodate this, we proxy our request in development
+        // environment through a sub domain of the website. Any production environment also need
+        // to assign a sub-domain to the server API.
+        Server.use(modRewrite([
+            `^\\/(.*) ${backendOrigin}/$1 [H=api\\.flanity\\.local, P]`
+        ]));
+    }
+    else if (process.env.NODE_ENV === 'production') {
         Server.use((req, res, next) => {
             if(req.url.indexOf('/Public/') === 0) {
                 res.setHeader('Cache-Control', 'public, max-age=31536000000');
@@ -77,7 +98,9 @@ export function startServer(quiet = false) {
                 Debug.prompt(`Server started at port ${process.env.PORT || cf.DEFAULT_SERVER_PORT}. Press CTRL + C to exit.`);
             }
             resolve();
-        });
+        })
+    }).catch(err => {
+        console.log(err.stack || err);
     });
 }
 

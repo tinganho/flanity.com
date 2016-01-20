@@ -26,10 +26,9 @@ module.exports = function(grunt) {
             env.NO_QUIET = true;
         }
 
-        if (grunt.option('no-test-retries')) {
+        if (grunt.option('no-retries')) {
             env.NO_TEST_RETRIES = true;
         }
-
 
         if (grunt.option('interactive')) {
             env.INTERACTIVE = true;

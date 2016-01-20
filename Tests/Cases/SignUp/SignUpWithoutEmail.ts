@@ -6,5 +6,5 @@ export function test(test: WebDriverTest) {
         .input('SignUpFormNameInput', 'User2')
         .input('SignUpFormUsernameInput', 'username2')
         .input('SignUpFormPasswordInput', 'password')
-        .click('SignUpSubmitButton');
+        .click('SignUpSubmitButton')
 }

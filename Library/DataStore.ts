@@ -419,11 +419,19 @@ export abstract class Model<P> extends DataStore {
         return Promise.all(promises);
     }
 
-    public delete(): Promise<void> {
+    public delete(onSuccess?: (emit: () => void) => void): Promise<void> {
         if (!this.isNew) {
             let options = this.HTTPDeleteOptions || {};
             return HTTP.del(this.getModelURL(), options).then((response) => {
-                this.emit('delete', [this.props.id]);
+                if (onSuccess) {
+                    let emit = () => {
+                        this.emit('delete', [this.props.id]);
+                    }
+                    onSuccess(emit);
+                }
+                else {
+                    this.emit('delete', [this.props.id]);
+                }
             });
         }
         else {

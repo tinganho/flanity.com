@@ -183,6 +183,12 @@ export function emitBindings(
                         write(',');
                         writeLine();
                     }
+                    if (content.relations) {
+                        write('relations: ');
+                        writeArray(content.relations);
+                        write(',');
+                        writeLine();
+                    }
                     write('view: ');
                     writeClassInfo(content.view);
                     writeLine();
@@ -318,5 +324,16 @@ export function emitBindings(
     function writeCommaNewLine() {
         write(',');
         writeLine();
+    }
+
+    function writeArray(array: string[]) {
+        write('[');
+        for (let item of array) {
+            write(`'${item}'`);
+            record();
+            write(', ');
+        }
+        revertBackToLastRecord();
+        write(']');
     }
 }

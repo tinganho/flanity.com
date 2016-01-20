@@ -21,8 +21,8 @@ export function login(req: express.Request, res: express.Response) {
         .then((response) => {
             let body = response.body;
             if (typeof body !== 'string') {
-                res.cookie('accessToken', body.model.accessToken, { expires: new Date(body.model.expiry), httpOnly: true });
-                res.cookie('renewalToken', body.model.renewalToken, { expires: new Date(body.model.expiry), httpOnly: true });
+                res.cookie('accessToken', body.model.accessToken, { domain: '.' + req.get('host').replace(/:\d+$/, ''), expires: new Date(body.model.expiry), httpOnly: true });
+                res.cookie('renewalToken', body.model.renewalToken, { domain: '.' + req.get('host').replace(/:\d+$/, ''), expires: new Date(body.model.expiry), httpOnly: true });
                 res.status(response.status).json(body);
             }
         })

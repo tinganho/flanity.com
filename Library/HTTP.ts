@@ -255,9 +255,14 @@ function buildUriEncodedString(object: any, accessors?: string[], objectString?:
     accessors = accessors || []
 
     for (let p in object) {
+        let value = (object as any)[p];
+        if (!value) {
+            continue;
+        }
+
         accessors.push(p);
         let accessorString = buildAccessorString(accessors);
-        let value = (object as any)[p];
+
         if (typeof value === 'string' || typeof object[p] === 'number' || typeof object[p] === 'boolean') {
             str += encodeURIComponent(accessorString) + `=${encodeURIComponent(value)}&`;
         }

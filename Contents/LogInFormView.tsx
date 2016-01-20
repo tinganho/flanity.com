@@ -9,7 +9,7 @@ import {
     HTTPResponse,
     ModelResponse,
     ErrorResponse,
-    DeferredCallback,
+    TimedCallback,
     Feedback,
     PageInfo,
     autobind } from '../Library/Index';
@@ -111,8 +111,12 @@ export class LogInFormView extends ContentComponent<Props, Text, Elements> {
         this.elements.password.addEventListener('change', () => {
             this.password = this.elements.password.getValue();
         });
-        this.elements.password.addEventListener('keydown', this.onEnterSubmit);
-        this.elements.password.addEventListener('keydown', this.onEnterSubmit);
+        this.elements.password.addEventListener('keyup', (event: KeyboardEvent) => {
+            setTimeout(() => {
+                this.onEnterSubmit(event);
+            }, 0);
+        });
+        this.elements.password.addEventListener('keyup', this.onEnterSubmit);
         this.elements.passwordLink.addEventListener('click', this.navigateToForgotPasswordPage);
     }
 
@@ -180,7 +184,7 @@ export class LogInFormView extends ContentComponent<Props, Text, Elements> {
         this.isRequesting = true;
 
         this.components.submitButton.startLoading();
-        let callback = new DeferredCallback(2000, () => {
+        let callback = new TimedCallback(2000, () => {
             this.components.submitButton.stopLoading();
         });
         this.components.formMessage.hideMessage();
@@ -196,22 +200,11 @@ export class LogInFormView extends ContentComponent<Props, Text, Elements> {
                 },
             })
             .then((response) => {
-                callback.call(() => {
+                callback.stop(() => {
                     let session = response.body.model;
                     document.cookie = 'hasAccessToken=1; expires=' + session.expiry;
-                    HTTP.post('/session/cookies', {
-                            body: {
-                                accessToken: session.accessToken,
-                                renewalToken: session.renewalToken,
-                                expiry: session.expiry,
-                            }
-                        })
-                        .then(() => {
-                            markLoadFinished();
-                        })
-                        .catch((err: HTTPResponse<ErrorResponse> | Error) => {
-                            this.showErrorMessage(this.text.unknownErrorErrorMessage);
-                        });
+                    App.router.navigateTo('/');
+                    markLoadFinished();
                 });
             })
             .catch((err: HTTPResponse<ErrorResponse> | Error) => {
@@ -221,13 +214,15 @@ export class LogInFormView extends ContentComponent<Props, Text, Elements> {
                 }
                 else {
                     let body = err.body;
-                    callback.call(() => {
+                    callback.stop(() => {
+                        this.isRequesting = false;
+                        markLoadFinished();
                         switch (body.feedback.current.code) {
                             case LoginRequestFeedback.UserNotFound:
                                 this.showErrorMessage(this.text.userNotFoundErrorMessage);
-                                break;
+                                return;
                         }
-                        markLoadFinished();
+                        this.showErrorMessage(this.text.unknownErrorErrorMessage);
                     });
                 }
             });
