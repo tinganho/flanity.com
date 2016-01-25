@@ -7,7 +7,7 @@ interface Regions {
     Overlay: new(props: any, children: any) => ContentComponent<any, any, any>;
 }
 
-interface LayoutElements extends Elements {
+interface LayoutElements {
     canvasWave: DOMElement;
 }
 

@@ -472,17 +472,19 @@ export function autobind(target: any, key: string, descriptor: TypedPropertyDesc
     return {
         configurable: true,
         get() {
-        if (this === (target as any).prototype) {
-            return fn;
-        }
+            if (this === target || this.hasOwnProperty(key)) {
+                return fn;
+            }
 
-        let boundFn = fn.bind(this);
-        Object.defineProperty(this, key, {
-            value: boundFn,
-            configurable: true,
-            writable: true
-        });
-        return boundFn;
+
+            let boundFn = fn.bind(this);
+            Object.defineProperty(this, key, {
+                configurable: true,
+                writable: true,
+                enumerable: false,
+                value: boundFn
+            });
+            return boundFn;
         }
     }
 }

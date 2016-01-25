@@ -1,7 +1,7 @@
 
 import { ContentComponent, DOMElement, React } from '../Library/Index';
 
-interface FormMessageElements extends Elements {
+interface FormMessageElements {
     container: DOMElement;
     message: DOMElement;
 }

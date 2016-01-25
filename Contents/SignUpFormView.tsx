@@ -44,7 +44,7 @@ interface Text {
 interface Props {
 }
 
-interface FormElements extends Elements {
+interface FormElements {
     submitButton: DOMElement;
     profileImage: DOMElement;
     profileImageInput: DOMElement;
@@ -62,6 +62,7 @@ interface Session {
     accessToken: string;
     renewalToken: string;
     expiry: string;
+    userId: string;
 }
 
 interface User {
@@ -497,6 +498,7 @@ export class SignUpFormView extends ContentComponent<Props, Text, FormElements> 
                             callback.stop(() => {
                                 let session = response.body.model;
                                 document.cookie = 'hasAccessToken=1; expires=' + session.expiry;
+                                document.cookie = `userId=${session.userId}; expires=${session.expiry}`;
                                 App.router.navigateTo('/@' + this.username);
                                 markLoadFinished();
                                 this.isRequesting = false;

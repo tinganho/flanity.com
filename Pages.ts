@@ -20,6 +20,7 @@ import { ResetPasswordFormView } from './Contents/ResetPasswordFormView';
 import { SignUpFormView } from './Contents/SignUpFormView';
 import { TopicsView } from './Contents/TopicsView';
 import { User } from './Contents/User';
+import { UserMe } from './Contents/UserMe';
 
 let serverComposer: ServerComposer;
 
@@ -78,7 +79,7 @@ export function init(app: Express) {
                 .hasDocument(Document, {})
                 .hasLayout(WebApp, {
                     Header: {
-                        data: User,
+                        data: UserMe,
                         view: AppTopBarView,
                     },
                 })
@@ -100,7 +101,7 @@ export function init(app: Express) {
                 .hasDocument(Document, {})
                 .hasLayout(WebApp, {
                     Header: {
-                        data: User,
+                        data: UserMe,
                         view: AppTopBarView,
                     },
                     Body: {

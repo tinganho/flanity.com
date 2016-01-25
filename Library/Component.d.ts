@@ -1,14 +1,6 @@
 
-declare interface Props {
-    id?: string | number;
-    [prop: string]: any;
-}
 
-declare interface Elements {
-    [element: string]: IDOMElement;
-}
-
-declare interface Components {
+interface Components {
     [component: string]: Component<any, any, any>;
 }
 
@@ -64,9 +56,9 @@ interface IDOMElement {
     getOffset(): { left: number, top: number };
 }
 
-declare abstract class Component<P extends Props, T extends { [index: string]: string }, E> {
+declare abstract class Component<P, T extends { [index: string]: string }, E> {
     public root: IDOMElement;
-    public props: P;
+    public props: P & { l?: GetLocalization, data?: any };
     public id: string;
     public text: T;
     public children: Child[];
@@ -77,10 +69,10 @@ declare abstract class Component<P extends Props, T extends { [index: string]: s
     public instantiatedComponents: Components;
     public lastRenderId: number;
 
-    constructor(props?: P, children?: Child[]);
+    constructor(props?: any, children?: Child[]);
 
     public setProp(name: string, value: any): void;
-    public setProps(props: P): void;
+    public setProps(props: any): void;
     public unsetProp(name: string): void;
     public abstract render(): JSX.Element;
     public onRemove(): Promise<void>;
@@ -101,12 +93,16 @@ declare abstract class Component<P extends Props, T extends { [index: string]: s
 declare type Child = JSX.Element | JSX.Element[] | IDOMElement | HTMLElement | string;
 
 declare namespace JSX {
-    export interface Element {
+    interface ElementClass<P> {
+        props?: any;
+    }
+
+    interface Element {
         name: string;
         isIntrinsic: boolean;
         isCustomElement: boolean;
         toString(renderId?: number): string;
-        toDOM(renderId?: number): { renderId: number, frag:DocumentFragment };
+        toDOM(renderId?: number): { renderId: number, frag: DocumentFragment };
         setComponent(component: Component<any, any, any>): void;
         bindDOM(renderId?: number): number;
         getComponent(): Component<any, any, any>;
@@ -116,7 +112,7 @@ declare namespace JSX {
         markAsChildOfRootElement(): void;
     }
 
-    export interface IntrinsicElements {
+    interface IntrinsicElements {
         // HTML
         a: HTMLAttributes;
         abbr: HTMLAttributes;

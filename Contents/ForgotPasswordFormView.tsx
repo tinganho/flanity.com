@@ -33,7 +33,7 @@ interface Text {
 interface Props {
 }
 
-interface HeroElements extends Elements {
+interface HeroElements {
     signupButton: DOMElement;
     emailInput: DOMElement;
 }

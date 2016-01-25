@@ -5,7 +5,7 @@ interface Props {
     image: HTMLImageElement;
 }
 
-interface ImageCropElements extends Elements {
+interface ImageCropElements {
     imagePreview: DOMElement;
     bullsEye: DOMElement;
     imageCropCanvasHelper: DOMElement;

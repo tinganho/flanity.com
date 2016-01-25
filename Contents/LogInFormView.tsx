@@ -61,6 +61,7 @@ interface Session {
     accessToken: string;
     renewalToken: string;
     expiry: string;
+    userId: string;
 }
 
 export class LogInFormView extends ContentComponent<Props, Text, Elements> {
@@ -202,7 +203,8 @@ export class LogInFormView extends ContentComponent<Props, Text, Elements> {
             .then((response) => {
                 callback.stop(() => {
                     let session = response.body.model;
-                    document.cookie = 'hasAccessToken=1; expires=' + session.expiry;
+                    document.cookie = `hasAccessToken=1; expires=${session.expiry}`;
+                    document.cookie = `userId=${session.userId}; expires=${session.expiry}`;
                     App.router.navigateTo('/');
                     markLoadFinished();
                 });

@@ -25,7 +25,7 @@ export interface PageInfo {
     language?: string;
 }
 
-export interface DocumentProps extends Props {
+export interface DocumentProps {
     confs?: string[];
     title?: string;
     styles?: string[];

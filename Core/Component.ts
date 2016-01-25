@@ -5,7 +5,8 @@ import {
     getInstantiatedComponents,
     DOMElement,
     Model,
-    Collection } from '../Library/Index';
+    Collection,
+    autobind } from '../Library/Index';
 
 export interface Props {
     id?: string | number;
@@ -40,11 +41,17 @@ export interface Component {
      * Bind data.
      */
     bindData(): void;
+
+    /**
+     * Unbind data (model or collection).
+     */
+    unbindData(): void;
 }
 
-export abstract class Component<P extends Props, T, E> {
+export abstract class Component<P, T, E> {
     private removeHooks: Hook[] = [];
     private hooks: Hooks = {};
+    private boundOnDataChange: any;
 
     /**
      * Get element by id.
@@ -103,13 +110,14 @@ export abstract class Component<P extends Props, T, E> {
     public lastRenderId: number;
 
     constructor(
-        props?: P & { data?:  Model<any> | Collection<Model<any>> },
+        props?: P & { data?: Model<any> | Collection<Model<any>> },
         children?: Child[]) {
 
-        this.props = extend(props, {}) as P & { data:  Model<any> | Collection<Model<any>> };
+        this.props = extend(props as any, {}) as P & { data:  Model<any> | Collection<Model<any>> };
 
         this.children = children;
-        (this as any).elements = {}
+        (this as any).elements = {};
+        this.boundOnDataChange = this.onDataChange.bind(this);
     }
 
     /**
@@ -123,7 +131,7 @@ export abstract class Component<P extends Props, T, E> {
 
     public setProp(name: string, value: any): void {
         if (this.props) {
-            this.props[name] = value;
+            (this.props as any)[name] = value;
         }
         else {
             (this as any).props = {
@@ -133,11 +141,11 @@ export abstract class Component<P extends Props, T, E> {
     }
 
     public unsetProp(name: string): void {
-        delete this.props[name];
+        delete (this.props as any)[name];
     }
 
     public get id() {
-        return this.props.id ? this.props.id : (this as any).constructor.name;
+        return (this.props as any).id ? (this.props as any).id : (this as any).constructor.name;
     }
 
     /**
@@ -225,10 +233,9 @@ export abstract class Component<P extends Props, T, E> {
                 this.setText(this.l || this.props.l || (typeof window !== 'undefined' && (window as any).localizations));
             }
             if (this.data) {
-                this.data.on('change', () => {
-                    this.setText(this.l || this.props.l || (typeof window !== 'undefined' && (window as any).localizations));
-                    this.hookDown(this.hooks['change:text']);
-                });
+
+                // We bind with 'this', because the @autobind decorator is undefined when we import it.
+                this.data.on('change', this.boundOnDataChange);
             }
 
             if (this.bindData) {
@@ -364,17 +371,18 @@ export abstract class Component<P extends Props, T, E> {
         return s;
     }
 
+    public onDataChange() {
+        if (this.setText) {
+            this.setText(this.l || this.props.l || (typeof window !== 'undefined' && (window as any).localizations));
+        }
+        this.hookDown(this.hooks['change:text']);
+    }
+
     /* @internal */
     public toDOM(renderId?: number): DocumentFragment {
         this.data = this.props.data;
         if (this.setText) {
             this.setText(this.l || this.props.l || (typeof window !== 'undefined' && (window as any).localizations));
-        }
-        if (this.data) {
-            this.data.on('change', () => {
-                this.setText(this.l || this.props.l || (typeof window !== 'undefined' && (window as any).localizations));
-                this.hookDown(this.hooks['change:text']);
-            });
         }
         let DOMRender = this.renderAndSetComponent().toDOM(renderId || this.lastRenderId);
         this.lastRenderId = DOMRender.renderId;
@@ -423,6 +431,13 @@ export abstract class Component<P extends Props, T, E> {
     }
 
     public remove(): void {
+        if (this.data && this.data.eventCallbackStore && this.data.eventCallbackStore['change']) {
+            this.data.eventCallbackStore['change'].forEach((hook, index) => {
+                if (hook === this.boundOnDataChange) {
+                    this.data.eventCallbackStore['change'].splice(index, 1);
+                }
+            });
+        }
         this.root.remove();
     }
 }

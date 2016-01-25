@@ -11,6 +11,7 @@ interface Router {
 }
 
 declare module App {
+    export let userId: string;
     export let router: Router;
 }
 

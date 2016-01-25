@@ -5,7 +5,7 @@ interface Props {
 }
 
 interface Elements {
-    signupButton: DOMElement;
+    anchor: DOMElement;
 }
 
 interface Text {
@@ -17,9 +17,9 @@ export class ProfileButton extends ContentComponent<Props, Text, Elements> {
     public render() {
         return (
             <div class='BgWhite1'>
-                <a id='ProfileButtonAnchor'>
+                <a ref='anchor' id='ProfileButtonAnchor'>
                     <div id='ProfileButtonContainer'>
-                        <img id='ProfileButtonImage' src={this.text.image}/>
+                        <img id='ProfileButtonImage' bindText='src:image'/>
                         <span id='ProfileButtonName' bindText='name' class='Thin1'></span>
                     </div>
                 </a>
@@ -28,14 +28,19 @@ export class ProfileButton extends ContentComponent<Props, Text, Elements> {
     }
 
     public setText(l: GetLocalization) {
-        let data = this.data;
+        let user = this.data;
         this.text = {
-            image: data.get('image') ? data.get('image').tiny.url : '/Public/Images/ProfileImagePlaceholder.png',
-            name: data.get('name'),
+            image: user.get('image') ? user.get('image').tiny.url : '/Public/Images/ProfileImagePlaceholder.png',
+            name: user.get('name'),
         }
     }
 
     public bindDOM() {
         super.bindDOM();
+        let user = this.data;
+
+        this.elements.anchor.onClick(() => {
+            App.router.navigateTo('/@' + user.get('username'));
+        });
     }
 }

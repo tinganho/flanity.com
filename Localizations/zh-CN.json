@@ -3,6 +3,74 @@
     "files": [
       "Contents/TopicsView.tsx"
     ],
+    "id": "xRoLxLznFqy",
+    "key": "TOPICS_FROM_OTHERS_EMPTY_VIEW->DESCRIPTION",
+    "new": false,
+    "timestamp": "2016-01-24T15:13:51.391Z",
+    "value": "",
+    "variables": [
+      "user"
+    ]
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "qo6Ap7gafq7",
+    "key": "TOPIC->FOLLOW_OFF_BUTTON_TEXT",
+    "new": false,
+    "timestamp": "2016-01-22T09:45:07.063Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "BKB9rzeEfyg",
+    "key": "TOPIC->FOLLOW_ON_BUTTON_TEXT",
+    "new": false,
+    "timestamp": "2016-01-22T09:45:07.063Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "dbKLae97Hp8",
+    "key": "TOPIC->FOLLOW_TOOGLE_OFF_BUTTON_TEXT",
+    "new": false,
+    "timestamp": "2016-01-22T09:45:07.063Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "rLjXydaGseG",
+    "key": "CREATE_TOPIC_FORM->ON_DELETE_TOPIC->TOPIC_NOT_FOUND_ERROR_MESSAGE",
+    "new": false,
+    "timestamp": "2016-01-22T03:35:52.767Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
+    "id": "kzoEXprxsxA",
+    "key": "TOPIC->FOLLOW_BUTTON_TEXT",
+    "new": false,
+    "timestamp": "2016-01-22T03:35:52.767Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TopicsView.tsx"
+    ],
     "id": "LqknEzMjtpA",
     "key": "CREATE_TOPIC_FORM->CONFIRM_DELETE_DESCRIPTION",
     "new": false,
@@ -25,7 +93,8 @@
   },
   {
     "files": [
-      "Components/Dialogs.tsx"
+      "Components/Dialogs.tsx",
+      "Contents/TopicsView.tsx"
     ],
     "id": "ejx48yXnFE",
     "key": "DEFAULT->CANCEL_BUTTON_TEXT",

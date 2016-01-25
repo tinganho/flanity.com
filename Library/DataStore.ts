@@ -13,10 +13,9 @@ interface EventCallbackStore {
 interface Map { [index: string]: string; }
 
 interface Cookies {
-    accessToken: string;
-    renewalToken: string;
-
-    [name: string]: string;
+    accessToken?: string;
+    renewalToken?: string;
+    userId?: string;
 }
 
 export interface RequestInfo<P, Q> {
@@ -26,7 +25,7 @@ export interface RequestInfo<P, Q> {
 }
 
 class DataEventEmitter {
-    private eventCallbackStore: EventCallbackStore = {}
+    public eventCallbackStore: EventCallbackStore = {}
 
     public on(event: string, callback: Callback) {
         if (!this.eventCallbackStore[event]) {
@@ -36,9 +35,10 @@ class DataEventEmitter {
     }
 
     public off(event: string, callback: Callback): void {
-        for (let p in this.eventCallbackStore[event]) {
-            if (this.eventCallbackStore[event][p] === callback) {
-                this.eventCallbackStore[event].splice(p, 1);
+        let callbacks = this.eventCallbackStore[event].length;
+        for (let i = 0;i < callback.length; i++) {
+            if (this.eventCallbackStore[event][i] === callback) {
+                this.eventCallbackStore[event].splice(i, 1);
             }
         }
     }
@@ -46,7 +46,7 @@ class DataEventEmitter {
     public emit(event: string, args: any[]) {
         if (this.eventCallbackStore[event]) {
             for (let callback of this.eventCallbackStore[event]) {
-                callback.apply(null, args);
+                callback(args);
             }
         }
     }
@@ -81,21 +81,19 @@ export function relations(r: ModelRelations) {
     }
 }
 
-export function defaultId(id: string) {
-    return function(Ctor: Function) {
-        (Ctor as any).defaultId = id;
-    }
-}
-
 export function noParentURL(Ctor: Function) {
     (Ctor as any).noParentURL = true;
 }
 
 export abstract class DataStore extends DataEventEmitter {
-    public url: string;
     public HTTPSaveOptions: HTTPOptions;
     public HTTPFetchOptions: HTTPOptions;
     public HTTPDeleteOptions: HTTPOptions;
+    public isOwnedByMe = false;
+
+    get isModel(): this is Model<any> {
+        return false;
+    }
 
     public setFetchOptions(options: HTTPOptions) {
         this.HTTPFetchOptions = options;
@@ -120,16 +118,21 @@ export abstract class Model<P> extends DataStore {
         relations: ModelRelations;
     }
 
-    public collection: Collection<Model<any>>
+    public collection: Collection<Model<any>>;
     private _isNew = true;
     private _hasChanged: boolean;
+
+    get isModel(): this is this {
+        return true;
+    }
+
     public props = {} as P & { id?: string, [index: string]: any };
     public previousProps = {} as P & { id?: string, [index: string]: any };
 
-    constructor(props?: P) {
+    constructor(props?: P, userId?: string) {
         super();
         if (props) {
-            this.setProps(props);
+            this.setProps(props, userId);
         }
     }
 
@@ -209,7 +212,7 @@ export abstract class Model<P> extends DataStore {
             }
 
             if (!this._isNew) {
-                this.previousProps = this.props;
+                this.previousProps = clone(this.props);
             }
         }
         else {
@@ -219,7 +222,7 @@ export abstract class Model<P> extends DataStore {
         return this;
     }
 
-    private setProps(props: any) {
+    private setProps(props: any, userId?: string) {
         let hasChanges = false;
         for (let p in props) {
             if (props.hasOwnProperty(p)) {
@@ -234,6 +237,9 @@ export abstract class Model<P> extends DataStore {
                         else {
                             this.props[p] = new Model(value);
                         }
+                        if (userId == props[p].userId) {
+                            this.props[p].isOwnedByMe = true;
+                        }
                     }
                     else {
                         let Collection = relations[p].collection;
@@ -243,11 +249,17 @@ export abstract class Model<P> extends DataStore {
                         else {
                             this.props[p] = new Collection(value);
                         }
+                        (this.props[p] as Collection<any>).forEach((model) => {
+                            model.isOwnedByMe = userId == model.props.userId;
+                        });
                     }
                     this.setRelations(p, props[p]);
                 }
                 else {
                     (this.props as any)[p] = props[p];
+                    if (userId == (this.props as any).userId) {
+                        this.isOwnedByMe = true;
+                    }
                 }
 
                 if (!this.previousProps[p] || !deepEqual(this.previousProps[p], props[p])) {
@@ -278,7 +290,7 @@ export abstract class Model<P> extends DataStore {
         this.HTTPSaveOptions = options;
     }
 
-    private getModelURL() {
+    protected getModelURL(requestInfo?: RequestInfo<any, any>) {
         let URL: string;
         let constructor = this.constructor as any;
         let modelName = constructor.name.toLowerCase();
@@ -302,7 +314,7 @@ export abstract class Model<P> extends DataStore {
     public fetch(requestInfo?: RequestInfo<any, any>, relations?: string[], parentURL?: string): Promise<any> {
         return new Promise<P>((resolve, reject) => {
             let constructor = this.constructor as any;
-            let URL = this.getModelURL();
+            let URL = this.getModelURL(requestInfo);
             if (!constructor.noParentURL && parentURL) {
                 URL = parentURL + URL;
             }
@@ -341,7 +353,10 @@ export abstract class Model<P> extends DataStore {
                         data[relations[i]] = relationData[i];
                     }
                 }
-                this.setProps(data);
+                this.setProps(data, requestInfo.cookies.userId);
+                if (requestInfo.cookies && requestInfo.cookies.userId == data.userId) {
+                    this.isOwnedByMe = true;
+                }
                 resolve();
             })
             .catch(reject);
@@ -438,6 +453,14 @@ export abstract class Model<P> extends DataStore {
             this.emit('delete', [this.props.id]);
             return Promise.resolve<void>();
         }
+    }
+
+    public decrement(prop: string, value: number = 1): void {
+        this.set(prop, this.get(prop) - value);
+    }
+
+    public increment(prop: string, value: number = 1): void {
+        this.set(prop, this.get(prop) + value);
     }
 
     public toData(props?: string[]): P {
@@ -588,6 +611,12 @@ export class Collection<M extends Model<any>> extends DataStore {
         }
 
         return Promise.all(promises);
+    }
+
+    public forEach(callback: (model: M) => void) {
+        for (let model of this.store) {
+            callback(model);
+        }
     }
 
     public get length() {

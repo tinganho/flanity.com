@@ -11,7 +11,7 @@ interface ComposerDocumentProps extends DocumentProps {
     overlay: string;
 }
 
-export class Document extends DocumentComponent<ComposerDocumentProps, {}, Elements> {
+export class Document extends DocumentComponent<ComposerDocumentProps, {}, {}> {
     public weixinShare: string;
     public googleAnalytics: string;
 

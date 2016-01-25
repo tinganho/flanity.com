@@ -195,13 +195,13 @@ this component is properly named?`);
                     this.currentRegions.push(content.region);
                     let data = jsonElement.innerHTML !== '' ? JSON.parse(jsonElement.innerHTML).data : {};
                     let props = {
-                        data: new this.pageComponents.Contents[content.data.className](data),
+                        data: new this.pageComponents.Contents[content.data.className](data, getCookie('userId')),
                         l: (window as any).localizations,
                     }
                     placeholderContents[content.region] = React.createElement(this.pageComponents.Contents[content.view.className], props, null);
                 }
                 catch(err) {
-                    console.log(jsonElement.innerHTML)
+                    console.log(jsonElement.innerHTML);
                     throw new Error(`Could not parse JSON for ${content.name}.\n ${err.message}`)
                 }
                 if (jsonElement.remove) {
@@ -255,6 +255,9 @@ this component is properly named?`);
             let requestInfo: RequestInfo<any, any> = {
                 params: this.currentParams,
                 query: location.search,
+                cookies: {
+                    userId: getCookie('userId'),
+                }
             }
             expectedNumberOfFetches++;
 
@@ -299,7 +302,11 @@ this component is properly named?`);
                                 if (!region) {
                                     throw new Error('Region \'' + r + '\' is missing.');
                                 }
-                                let outgoingComponent = this.currentLayoutView.props[r].getComponent();
+                                let hasOutgoingComponent = typeof this.currentLayoutView.props[r] !== 'undefined';
+                                let outgoingComponent: any;
+                                if (hasOutgoingComponent) {
+                                    outgoingComponent = this.currentLayoutView.props[r].getComponent();
+                                }
                                 this.currentLayoutView.setProp(r, content);
                                 content.setComponent(this.currentLayoutView);
                                 region.appendChild(content.toDOM().frag);
@@ -307,34 +314,36 @@ this component is properly named?`);
                                 // Component after rendering the DOM, becomes the content component.
                                 let ingoingComponent = content.getComponent();
                                 ingoingComponent.root.addClass('Ingoing');
-                                outgoingComponent.root.addClass('Outgoing').removeClass('Final');
+                                if (outgoingComponent) {
+                                    outgoingComponent.root.addClass('Outgoing').removeClass('Final');
 
-                                ((componentId: string) => {
-                                    let hasOutgoingTransition = false;
-                                    outgoingComponent.root.onTransitionEnd(() => {
-                                        if (outgoingComponent.isOutgoing()) {
-                                            outgoingComponent.onRemove();
-                                        }
-                                        hasOutgoingTransition = true;
-                                    });
+                                    ((componentId: string) => {
+                                        let hasOutgoingTransition = false;
+                                        outgoingComponent.root.onTransitionEnd(() => {
+                                            if (outgoingComponent.isOutgoing()) {
+                                                outgoingComponent.onRemove();
+                                            }
+                                            hasOutgoingTransition = true;
+                                        });
 
-                                    // Give developer a warning that he has not implemented an outgoing transition.
-                                    setTimeout(() => {
-                                        if (!hasOutgoingTransition) {
-                                            console.warn(`You do not have an outgoing transition for component '${componentId}'.`);
-                                        }
-                                    }, 3000);
+                                        // Give developer a warning that he has not implemented an outgoing transition.
+                                        setTimeout(() => {
+                                            if (!hasOutgoingTransition) {
+                                                console.warn(`You do not have an outgoing transition for component '${componentId}'.`);
+                                            }
+                                        }, 3000);
 
-                                    outgoingComponent.onRemoval(() => {
-                                        delete this.currentLayoutView.components[toCamelCase(componentId)];
+                                        outgoingComponent.onRemoval(() => {
+                                            delete this.currentLayoutView.components[toCamelCase(componentId)];
 
-                                        currentRemovals++;
-                                        if (currentRemovals === expectedRemovals) {
-                                            this.currentContents = this.currentLayoutView.components as CurrentContents;
-                                            markLoadFinished();
-                                        }
-                                    });
-                                })(outgoingComponent.id);
+                                            currentRemovals++;
+                                            if (currentRemovals === expectedRemovals) {
+                                                this.currentContents = this.currentLayoutView.components as CurrentContents;
+                                                markLoadFinished();
+                                            }
+                                        });
+                                    })(outgoingComponent.id);
+                                }
 
                                 setTimeout(() => {
                                     ingoingComponent.root.addClass('Final').removeClass('Ingoing');
@@ -346,6 +355,7 @@ this component is properly named?`);
                                 // in their create element closure. If we don't reset the component
                                 // reference there will be a component property referencing itself.
                                 ingoingComponent.bindDOM();
+
                             }
                         }
                     }
@@ -496,6 +506,21 @@ function unmarkLoadFinished() {
     }
 }
 (window as any).unmarkLoadFinished = unmarkLoadFinished;
+
+function getCookie(name: string) {
+    let nameAndEqual = name + '=';
+    let cookieSegments = document.cookie.split(';');
+    for (let i = 0; i < cookieSegments.length; i++) {
+        let c = cookieSegments[i];
+        while (c.charAt(0) === ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(nameAndEqual) === 0) {
+             return c.substring(nameAndEqual.length, c.length);
+        }
+    }
+    return '';
+}
 
 window.onerror = (error) => {
     document.body.setAttribute('data-error', (error as any).stack || error);

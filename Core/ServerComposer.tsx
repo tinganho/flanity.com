@@ -28,9 +28,9 @@ interface ImportPathDeclaration {
     importPath: string;
 }
 
-type ContentViewClass = (new<P extends Props, S, E extends Elements>(props?:P, children?: Child[]) => ContentComponent<P, S, E>);
-type LayoutViewClass = (new<P extends Props, S, E extends Elements>(props?:P, children?: Child[]) => LayoutComponent<P, S, E>);
-type DocumentViewClass = (new<P extends Props, S, E extends Elements>(props?:P, children?: Child[]) => DocumentComponent<P, S, E>);
+type ContentViewClass = (new<P, S, E>(props?:P, children?: Child[]) => ContentComponent<P, S, E>);
+type LayoutViewClass = (new<P, S, E>(props?:P, children?: Child[]) => LayoutComponent<P, S, E>);
+type DocumentViewClass = (new<P, S, E>(props?:P, children?: Child[]) => DocumentComponent<P, S, E>);
 type ContentDataClass = (new<T>() => Model<T> | Collection<Model<T>>);
 
 interface ContentViewClassAndImportPathDeclaration extends ImportPathDeclaration {
@@ -397,7 +397,7 @@ function getNormalizedNameFromViewClassName(ctorName: string): string {
     return ctorName.replace('View', '');
 }
 
-export interface DocumentProps extends Props {
+export interface DocumentProps {
     confs?: string[];
     title?: string;
     styles?: string[];
@@ -725,7 +725,7 @@ export class Page {
                     // increment all increments first and then let 'finishedContentFetchings' increment.
                     setTimeout(() => {
                         ContentView.setPageInfo({}, req.localizations, req.pageInfo);
-                        resultContents[region] = React.createElement(ContentView as any, { l: req.localizations }, null);
+                        resultContents[region] = React.createElement(ContentView as any, { l: req.localizations, data: undefined }, null);
 
                         finishedContentFetchings++;
 

@@ -1,0 +1,66 @@
+
+@import "../StyleClasses/Buttons";
+
+.ToogleButtonContainer {
+    &.On {
+        .ToogleOffButton {
+            display: none;
+        }
+
+        .ToogleToogleOffButton {
+            display: none;
+        }
+    }
+
+    &.Off {
+        .ToogleOnButton {
+            display: none;
+        }
+
+        .ToogleToogleOffButton {
+            display: none;
+        }
+    }
+
+    &.On:hover .ToogleToogleOffButton,
+    &.On:active .ToogleToogleOffButton  {
+        display: block;
+    }
+
+    &.NoToogleOffButton .ToogleToogleOffButton {
+        display: none !important;
+    }
+}
+
+.ToogleButton {
+    @extend .CircularButton;
+
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    text-align: center;
+}
+
+.ToogleOnButton {
+    color: #000;
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+.ToogleOffButton {
+    color: #fff;
+    background-color: #4CD65D;
+
+    &:active {
+        color: rgba(255, 255, 255, 0.3);
+    }
+}
+
+.ToogleToogleOffButton {
+    color: #fff;
+    background-color: #E27575;
+
+    &:active {
+        color: rgba(255, 255, 255, 0.3);
+    }
+}

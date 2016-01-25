@@ -228,7 +228,8 @@ export function emitBindings(
     }
 
     function writeRouterInit() {
-        writeLine(`App.router = window.__Router = new Router.default('App', App.RoutingTable, App.Components, App.PlatformDetects);`);
+        writeLine(`App.userId = localStorage.getItem('userId');`);
+        writeLine(`App.router = new Router.default('App', App.RoutingTable, App.Components, App.PlatformDetects);`);
     }
 
     function writeClassInfo(classInfo: ClassInfo): void {
@@ -300,7 +301,7 @@ export function emitBindings(
     }
 
     function writeVariableList(vars: string[]): void {
-        for (let i in vars) {
+        for (let i = 0; i < vars.length; i++) {
             write(vars[i]);
 
             if(i !== vars.length - 1) {

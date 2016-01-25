@@ -1,11 +1,15 @@
 
-import { Model, relations, defaultId, RelationType } from '../Library/Index';
+import { Model, relations, RelationType, RequestInfo } from '../Library/Index';
 import { Topic } from './Topic';
 import { Topics } from './Topics';
 
 interface Props {
     id: string;
     topics?: Topic[];
+}
+
+interface Params {
+    username: string;
 }
 
 @relations({
@@ -16,6 +20,11 @@ interface Props {
         collection: Topics,
     }
 })
-@defaultId('me')
 export class User extends Model<Props> {
+    protected getModelURL(requestInfo: RequestInfo<Params, any>): string {
+        if (requestInfo.params.username) {
+            return '/users/@' + requestInfo.params.username;
+        }
+        return '/users/' + (requestInfo.cookies.userId || 'me');
+    }
 }

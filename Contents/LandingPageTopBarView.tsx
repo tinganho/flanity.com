@@ -6,7 +6,7 @@ interface Props {
     changeLangText: string;
 }
 
-interface FooterElements extends Elements {
+interface FooterElements {
     logInButton: DOMElement;
     logoAnchor: DOMElement;
 }

@@ -15,7 +15,8 @@ import {
     SubmitButton,
     FormMessage,
     ImageCrop,
-    ConfirmDialog } from '../Components/Index';
+    ConfirmDialog,
+    ToogleButton } from '../Components/Index';
 
 interface TopicsProps {
     name: string;
@@ -34,7 +35,8 @@ interface TopicsComponents {
     topicsCollectionView: TopicsCollectionView;
     scrollBar: HorizontalScrollBar;
     collection: TopicsCollectionView;
-    topicsEmptyView?: TopicsEmptyView;
+    topicsFromMeEmptyView?: TopicsFromMeEmptyView;
+    topicsFromOthersEmptyView?: TopicsFromOthersEmptyView;
 
     [index: string]: Component<any, any, any>;
 }
@@ -79,27 +81,41 @@ export class TopicsView extends ContentComponent<TopicsProps, TopicsText, Topics
     }
 
     public render() {
-        let topics = this.data.get('topics') as Topics;
+        let user = this.data;
+        let topics = user.get('topics') as Topics;
+        let content: JSX.Element | JSX.Element[];
+
+        if (topics.length > 0) {
+            content = [
+                <TopicsCollectionView ref='collection' data={topics}/>,
+                <HorizontalScrollBar ref='scrollBar' scrollBarLeft='TopicsCollectionViewScrollBarDecratorLeft' scrollBarRight='TopicsCollectionViewScrollBarDecratorRight'/>
+            ];
+        }
+        else {
+            if (user.get('isMe')) {
+                content = <TopicsFromMeEmptyView/>;
+            }
+            else {
+                content = <TopicsFromOthersEmptyView data={user}/>;
+            }
+        }
 
         return (
             <div>
                 <div id='TopicsCollectionViewScrollBarDecratorLeft'/>
                 <div id='TopicsCollectionViewScrollBarDecratorRight'/>
-                {topics.length > 0 ? [
-                    <TopicsCollectionView ref='collection' data={topics}/>,
-                    <HorizontalScrollBar ref='scrollBar' scrollBarLeft='TopicsCollectionViewScrollBarDecratorLeft' scrollBarRight='TopicsCollectionViewScrollBarDecratorRight'/>
-                ] : <TopicsEmptyView/>}
+                {content}
             </div>
         );
     }
 
     public bindData() {
         this.data.on('add:topics', () => {
-            if (this.components.topicsEmptyView) {
-                this.components.topicsEmptyView.root.addClass('Hidden').removeClass('Revealed')
+            if (this.components.topicsFromMeEmptyView) {
+                this.components.topicsFromMeEmptyView.root.addClass('Hidden').removeClass('Revealed')
                     .onTransitionEnd(() => {
-                        this.components.topicsEmptyView.remove();
-                        delete this.components.topicsEmptyView;
+                        this.components.topicsFromMeEmptyView.remove();
+                        delete this.components.topicsFromMeEmptyView;
                         let collection = this.appendComponent(TopicsCollectionView, { ref:'collection', data: this.data.get('topics') }) as TopicsCollectionView;
                         let scrollBar = this.appendComponent(HorizontalScrollBar, {
                             ref: 'scrollBar',
@@ -114,8 +130,8 @@ export class TopicsView extends ContentComponent<TopicsProps, TopicsText, Topics
         });
         this.data.on('remove:topics', () => {
             if (this.data.get('topics').length === 0) {
-                let component = this.stackComponent(TopicsEmptyView, {});
-                this.components.topicsEmptyView.elements.addButton.addEventListener('click', this.showCreateTopicForm);
+                let component = this.stackComponent(TopicsFromMeEmptyView, {});
+                this.components.topicsFromMeEmptyView.elements.addButton.addEventListener('click', this.showCreateTopicForm);
                 this.components.collection.remove();
                 delete this.components.collection;
                 this.components.scrollBar.remove();
@@ -129,8 +145,11 @@ export class TopicsView extends ContentComponent<TopicsProps, TopicsText, Topics
     public bindDOM() {
         super.bindDOM();
 
-        if (this.components.topicsEmptyView) {
-            this.components.topicsEmptyView.elements.addButton.addEventListener('click', this.showCreateTopicForm);
+        if (this.components.topicsFromMeEmptyView) {
+            this.components.topicsFromMeEmptyView.elements.addButton.addEventListener('click', this.showCreateTopicForm);
+        }
+        else if (this.components.topicsFromOthersEmptyView) {
+
         }
         else {
             this.components.collection.components.scrollBar = this.components.scrollBar;
@@ -150,6 +169,52 @@ export class TopicsView extends ContentComponent<TopicsProps, TopicsText, Topics
     }
 }
 
+interface TopicsFromOthersEmptyViewProps {
+}
+
+interface TopicsFromOthersEmptyViewText {
+    name: string
+    username: string;
+    image: string;
+    description: string;
+}
+
+interface TopicsFromOthersEmptyViewElements {
+    addButton: DOMElement;
+}
+
+class TopicsFromOthersEmptyView extends ContentComponent<TopicsFromOthersEmptyViewProps, TopicsFromOthersEmptyViewText, TopicsFromOthersEmptyViewElements> {
+    public render() {
+        return (
+            <div class={inServer ? 'Revealed' : 'Hidden'}>
+                <img id='TopicsFromOthersEmptyViewProfileImage' bindText='src:image'/>
+                <h1 id='TopicsFromOthersEmptyViewName' class='HeaderBlack1' bindText='name'></h1>
+                <h2 id='TopicsFromOthersEmptyViewUsername' class='HeaderBlack2' bindText='username'></h2>
+                <p id='TopicsFromOthersEmptyViewDescription' class='HeaderBlack1'>{this.text.description}</p>
+            </div>
+        );
+    }
+
+    public setText(l: GetLocalization) {
+        let image: any;
+        let user = this.data;
+        this.text = {
+            name: user.get('name'),
+            username: '@' + user.get('username'),
+            image: image = user.get('image') ? image.medium.url :  '/Public/Images/ProfileImagePlaceholder.png',
+            description: l('TOPICS_FROM_OTHERS_EMPTY_VIEW->DESCRIPTION', { user: user.get('name') }),
+        }
+    }
+
+    public bindDOM() {
+        super.bindDOM();
+
+        setTimeout(() => {
+            this.root.addClass('Revealed').removeClass('Hidden');
+        }, 0);
+    }
+}
+
 interface TopicsEmptyViewProps {
 }
 
@@ -162,15 +227,15 @@ interface TopicsEmptyViewElements {
     addButton: DOMElement;
 }
 
-class TopicsEmptyView extends ContentComponent<TopicsEmptyViewProps, TopicsEmptyViewText, TopicsEmptyViewElements> {
+class TopicsFromMeEmptyView extends ContentComponent<TopicsEmptyViewProps, TopicsEmptyViewText, TopicsEmptyViewElements> {
     public render() {
         return (
-            <div ref='emptyView' id='TopicsEmptyView' class={inServer ? 'Revealed' : 'Hidden'}>
-                <h1 id='TopicsEmptyViewTitle' class='Title1'>{this.text.emptyViewTitle}</h1>
-                <p id='TopicsEmptyViewDescription' class='Description1'>{this.text.emptyViewDescription}</p>
-                {getAddButton('TopicsEmptyViewAddButton')}
-                <div id='TopicsEmptyViewHeroImageContainer'>
-                    <img id='TopicsEmptyViewHeroImage' src='/Public/Images/HeroImage.jpg'></img>
+            <div ref='emptyView' id='TopicsFromMeEmptyView' class={inServer ? 'Revealed' : 'Hidden'}>
+                <h1 id='TopicsFromMeEmptyViewTitle' class='Title1'>{this.text.emptyViewTitle}</h1>
+                <p id='TopicsFromMeEmptyViewDescription' class='Description1'>{this.text.emptyViewDescription}</p>
+                {getAddButton('TopicsFromMeEmptyViewAddButton')}
+                <div id='TopicsFromMeEmptyViewHeroImageContainer'>
+                    <img id='TopicsFromMeEmptyViewHeroImage' src='/Public/Images/HeroImage.jpg'></img>
                 </div>
             </div>
         );
@@ -217,7 +282,7 @@ class TopicsCollectionView extends ContentComponent<TopicsCollectionViewProps, T
         let topicViews: JSX.Element[] = [];
         for (let i = 0; i < this.data.length; i++) {
             let topic = this.data.at(i);
-            topicViews.push(<TopicView id={'Topic' + topic.get('id')} data={topic} isRevealed/>);
+            topicViews.push(<TopicView id={'Topic' + topic.get('id')} data={topic}/>);
         }
 
         return (
@@ -225,7 +290,7 @@ class TopicsCollectionView extends ContentComponent<TopicsCollectionViewProps, T
                 <ul ref='collection' id='TopicsCollection'>
                     {topicViews}
                 </ul>
-                {getAddButton('TopicsCollectionViewAddButton')}
+                {this.data.at(0).isOwnedByMe ? getAddButton('TopicsCollectionViewAddButton') : undefined}
             </div>
         );
     }
@@ -253,7 +318,9 @@ class TopicsCollectionView extends ContentComponent<TopicsCollectionViewProps, T
     public bindDOM() {
         super.bindDOM();
 
-        this.elements.addButton.addEventListener('click', this.showCreateTopicForm);
+        if (this.elements.addButton) {
+            this.elements.addButton.addEventListener('click', this.showCreateTopicForm);
+        }
 
         setTimeout(() => {
             this.root.addClass('Revealed').removeClass('ZeroWidth').removeClass('Hidden');
@@ -265,7 +332,7 @@ class TopicsCollectionView extends ContentComponent<TopicsCollectionViewProps, T
                     setTimeout(() => {
                         (this.components[t] as TopicView).components.scrollBar = this.components.scrollBar;
                     }, 0);
-                })(t)
+                })(t);
             }
         }
     }
@@ -293,10 +360,16 @@ interface TopicText {
     title: string;
     description: string;
     followers: string;
+    followButtonText: string;
+
+    followOnButtonText: string;
+    followOffButtonText: string;
+    followToogleOffButtonText: string;
 }
 
 interface TopicComponents {
     scrollBar: HorizontalScrollBar;
+    followButton: ToogleButton;
 
     [index: string]: Component<any, any, any>;
 }
@@ -306,6 +379,23 @@ class TopicView extends ContentComponent<TopicProps, TopicText, TopicElements> {
     public data: Topic;
 
     public render() {
+        let button: JSX.Element;
+        if (this.props.data.isOwnedByMe) {
+            let d = <ToogleButton/>;
+            button = <button ref='editButton' class='TopicEditButton WhiteTransparentButton TopicButton'>{this.text.editButtonText}</button>
+        }
+        else {
+            button = <ToogleButton
+                class='TopicFollowButton'
+                onToogleOn={this.follow}
+                onToogleOff={this.unfollow}
+                onButtonText={this.text.followOnButtonText}
+                offButtonText={this.text.followOffButtonText}
+                toggleOffButtonText={this.text.followToogleOffButtonText}
+                state={this.props.data.get('isFollowing') ? 'on' : 'off'}
+            />;
+        }
+
         return (
             <li class={'Topic BgWhite1' + (inServer || this.props.isRevealed ? ' Revealed' : ' Hidden ZeroWidth')}>
                 <div class='TopicCoverImageContainer'>
@@ -316,10 +406,24 @@ class TopicView extends ContentComponent<TopicProps, TopicText, TopicElements> {
                         <h2 class='TopicFollowersCount HeaderWhite3' bindText='followers'></h2>
                     </hgroup>
                     <p class='TopicDescription ParagraphWhite1' bindText='description'></p>
-                    <button ref='editButton' class='TopicEditButton WhiteTransparentButton TopicButton'>{this.text.editButtonText}</button>
+                    {button}
                 </div>
             </li>
         );
+    }
+
+    @autobind
+    private follow() {
+        this.data.follow().catch(() => {
+            this.components.followButton.setOn();
+        });
+    }
+
+    @autobind
+    private unfollow() {
+        this.data.unfollow().catch(() => {
+            this.components.followButton.setOff();
+        });
     }
 
     public bindData() {
@@ -337,10 +441,15 @@ class TopicView extends ContentComponent<TopicProps, TopicText, TopicElements> {
         let coverImage = this.data.get('coverImage') && this.data.get('coverImage').medium.url;
         this.text = {
             editButtonText: l('TOPIC->EDIT_BUTTON_TEXT'),
+            followButtonText: l('TOPIC->FOLLOW_BUTTON_TEXT'),
             imageURL: encodeURI(coverImage || ''),
             title: this.data.get('title'),
             description: this.data.get('description'),
             followers: l('TOPIC->FOLLOWERS_TEXT', { followers: this.data.get('followers') }),
+
+            followOnButtonText: l('TOPIC->FOLLOW_ON_BUTTON_TEXT'),
+            followOffButtonText: l('TOPIC->FOLLOW_OFF_BUTTON_TEXT'),
+            followToogleOffButtonText: l('TOPIC->FOLLOW_TOOGLE_OFF_BUTTON_TEXT'),
         }
     }
 
@@ -350,6 +459,8 @@ class TopicView extends ContentComponent<TopicProps, TopicText, TopicElements> {
         if (this.elements.editButton) {
             this.elements.editButton.addEventListener('click', this.showEditForm);
         }
+
+        this.root.addClass('Revealed').removeClass('Hidden').removeClass('ZeroWidth');
 
         let image = this.elements.image;
         let mask = this.elements.mask;
@@ -369,7 +480,7 @@ class TopicView extends ContentComponent<TopicProps, TopicText, TopicElements> {
 
     @autobind
     private showEditForm() {
-        let form = new TopicForm({ topics: this.data.collection, data: this.data });
+        let form = new TopicForm({ topics: this.data.collection as Topics, data: this.data });
         form.show();
     }
 }

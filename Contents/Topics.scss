@@ -14,7 +14,7 @@
     margin: 40px 0 60px;
 }
 
-#TopicsEmptyView {
+#TopicsFromMeEmptyView {
     position: relative;
     margin-top: 40px;
     @include display-flex;
@@ -25,10 +25,10 @@
 }
 
 
-#TopicsEmptyViewTitle,
-#TopicsEmptyViewDescription,
-#TopicsEmptyViewAddButton,
-#TopicsEmptyViewHeroImage {
+#TopicsFromMeEmptyViewTitle,
+#TopicsFromMeEmptyViewDescription,
+#TopicsFromMeEmptyViewAddButton,
+#TopicsFromMeEmptyViewHeroImage {
     @include transition(transform 1s, opacity 0.5s);
 
     .Revealed & {
@@ -42,18 +42,18 @@
     }
 }
 $transition-delay-step: 0.05s;
-#TopicsEmptyViewTitle {
+#TopicsFromMeEmptyViewTitle {
     text-align: center;
     @include transition-delay(#{$transition-delay-step * 3});
 }
 
-#TopicsEmptyViewDescription {
+#TopicsFromMeEmptyViewDescription {
     text-align: justify;
     width: 400px;
     @include transition-delay(#{$transition-delay-step * 2});
 }
 
-#TopicsEmptyViewAddButton {
+#TopicsFromMeEmptyViewAddButton {
     margin-top: 40px;
     @include transition-delay(#{$transition-delay-step * 1});
 
@@ -63,16 +63,40 @@ $transition-delay-step: 0.05s;
     }
 }
 
-#TopicsEmptyViewHeroImageContainer {
+#TopicsFromMeEmptyViewHeroImageContainer {
     margin-top: 50px;
     max-width: 900px;
     width: 100%;
     @include flex-grow(2);
 }
 
-#TopicsEmptyViewHeroImage {
+#TopicsFromMeEmptyViewHeroImage {
     width: 100%;
     box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2);
+}
+
+#TopicsFromOthersEmptyView {
+    @include display-flex;
+    @include flex-direction(column);
+    @include align-items(center);
+    @include justify-content(center);
+}
+
+#TopicsFromOthersEmptyViewProfileImage {
+    margin-top: 200px;
+    border-radius: 14px;
+}
+
+#TopicsFromOthersEmptyViewName {
+    margin-top: 20px;
+}
+
+#TopicsFromOthersEmptyViewUsername {
+    margin-top: 10px;
+}
+
+#TopicsFromOthersEmptyViewDescription {
+    margin-top: 40px;
 }
 
 $side: 100px;
@@ -375,6 +399,12 @@ $transition-delay-step: 0.1s;
     &:active {
         opacity: 0.3;
     }
+}
+
+.TopicFollowButton {
+    position: absolute;
+    right: 10px;
+    top: 20px;
 }
 
 #TopicsCollectionViewScrollBarDecratorLeft {
