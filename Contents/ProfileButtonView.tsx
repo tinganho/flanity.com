@@ -40,7 +40,7 @@ export class ProfileButton extends ContentComponent<Props, Text, Elements> {
         let user = this.data;
 
         this.elements.anchor.onClick(() => {
-            App.router.navigateTo('/@' + user.get('username'));
+            App.router.navigateTo('/@' + user.get('username'), this.data.toData());
         });
     }
 }

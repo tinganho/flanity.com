@@ -17,7 +17,8 @@ import {
     ContentComponent,
     RequestInfo,
     HTTPResponse,
-    ErrorResponse } from '../Library/Index';
+    ErrorResponse,
+    isArray } from '../Library/Index';
 
 export interface JsonScriptAttributes {
     id: string;
@@ -66,20 +67,22 @@ interface Content {
     data?: ContentDataClass;
     relations?: string[];
     view: ContentViewClass;
+    isStatic?: boolean;
 }
 
 interface ProvidedContentDeclarations {
-    [index: string]: Content;
+    [index: string]: Content | Content[];
 }
 
 interface ContentViewModelClassAndImport {
     view: ContentViewClassAndImportPathDeclaration;
     data?: ContentDataClassAndImportPathDeclaration;
+    isStatic?: boolean;
     relations?: string[];
 }
 
 interface StoredContentDeclarations {
-    [index: string]: ContentViewModelClassAndImport;
+    [index: string]: ContentViewModelClassAndImport | ContentViewModelClassAndImport[];
 }
 
 export interface Pages {
@@ -97,7 +100,7 @@ export interface PlatformDetect {
 }
 
 export interface Contents {
-    [region: string]: JSX.Element;
+    [region: string]: JSX.Element | JSX.Element[];
 }
 
 function getClassName(c: any): string {
@@ -363,25 +366,42 @@ export class ServerComposer {
                 }
 
                 for (let contentEmitInfo of pageEmitInfo.platforms[i].contents) {
-                    let className = getNormalizedNameFromViewClassName(contentEmitInfo.view.className);
-                    if (classNames.indexOf(className) === -1) {
-                        let componentEmitInfo: ComponentInfo = {
-                            view: {
-                                className: contentEmitInfo.view.className,
-                                importPath: contentEmitInfo.view.importPath,
-                            },
-                            name: className,
-                        }
-                        if (contentEmitInfo.data) {
-                            componentEmitInfo.data = {
-                                className: contentEmitInfo.data.className,
-                                importPath: contentEmitInfo.data.importPath,
+                    if (contentEmitInfo.stack) {
+                        for (let stackedContentEmitInfo of contentEmitInfo.stack) {
+                            let componentEmitInfo: ComponentInfo = {
+                                view: {
+                                    className: stackedContentEmitInfo.view.className,
+                                    importPath: stackedContentEmitInfo.view.importPath,
+                                },
                             }
+                            if (stackedContentEmitInfo.data) {
+                                componentEmitInfo.data = {
+                                    className: stackedContentEmitInfo.data.className,
+                                    importPath: stackedContentEmitInfo.data.importPath,
+                                }
+                            }
+                            componentEmitInfos.push(stackedContentEmitInfo);
                         }
-                        componentEmitInfos.push(contentEmitInfo);
+                    }
+                    else {
+                        let className = getNormalizedNameFromViewClassName(contentEmitInfo.view.className);
+                        if (classNames.indexOf(className) === -1) {
+                            let componentEmitInfo: ComponentInfo = {
+                                view: {
+                                    className: contentEmitInfo.view.className,
+                                    importPath: contentEmitInfo.view.importPath,
+                                },
+                            }
+                            if (contentEmitInfo.data) {
+                                componentEmitInfo.data = {
+                                    className: contentEmitInfo.data.className,
+                                    importPath: contentEmitInfo.data.importPath,
+                                }
+                            }
+                            componentEmitInfos.push(contentEmitInfo);
+                        }
                     }
                 }
-
             }
         }
 
@@ -519,32 +539,67 @@ export class Page {
 
         let newContents: StoredContentDeclarations = {};
         for (let region in providedContentDeclarations) {
-            let newContent = {};
-            let content = providedContentDeclarations[region];
-            if (!this.serverComposer.options.defaultContentFolder) {
-                Debug.error('You have not defined a default content folder.');
-            }
-            newContents[region] = {} as ContentViewModelClassAndImport;
-            if (content.data) {
-                newContents[region].data = {
-                    class: content.data,
-                    importPath: System.joinPaths(this.serverComposer.options.defaultContentFolder, `/${getClassName(content.data)}`),
-                }
-            }
-            if (content.relations) {
+                let newContent = {};
+                let content = providedContentDeclarations[region];
 
-                // Check if relations are in content declarationn
-                for (let r of content.relations) {
-                    if (!(r in (content.data as any).relations)) {
-                        throw new TypeError(`No relation ${r} in ${(content.data as any).name}`);
+                if (Array.isArray(content)) {
+                    if (content.length > 2) {
+                        throw new TypeError('A stacked region cannot be longer than 2 in your page manifestation.');
+                    }
+                    newContents[region] = [] as ContentViewModelClassAndImport[];
+                    for (let c of content) {
+                        let contentDefinition = {} as ContentViewModelClassAndImport;
+                        if (c.data) {
+                            contentDefinition.data = {
+                                class: c.data,
+                                importPath: System.joinPaths(this.serverComposer.options.defaultContentFolder, `/${getClassName(c.data)}`),
+                            }
+                        }
+                        if (c.relations) {
+
+                            // Check if relations are in content declarationn
+                            for (let r of c.relations) {
+                                if (!(r in (c.data as any).relations)) {
+                                    throw new TypeError(`No relation ${r} in ${(c.data as any).name}`);
+                                }
+                            }
+                            contentDefinition.relations = c.relations;
+                        }
+                        contentDefinition.view = {
+                            class: c.view,
+                            importPath: System.joinPaths(this.serverComposer.options.defaultContentFolder, `/${getClassName(c.view)}`),
+                        };
+
+                        (newContents[region] as ContentViewModelClassAndImport[]).push(contentDefinition);
                     }
                 }
-                newContents[region].relations = content.relations;
-            }
-            newContents[region].view = {
-                class: content.view,
-                importPath: System.joinPaths(this.serverComposer.options.defaultContentFolder, `/${getClassName(content.view)}`),
-            }
+                else {
+                    if (!this.serverComposer.options.defaultContentFolder) {
+                        Debug.error('You have not defined a default content folder.');
+                    }
+                    newContents[region] = {} as ContentViewModelClassAndImport;
+                    if (content.data) {
+                        (newContents[region] as ContentViewModelClassAndImport).data = {
+                            class: content.data,
+                            importPath: System.joinPaths(this.serverComposer.options.defaultContentFolder, `/${getClassName(content.data)}`),
+                        }
+                    }
+                    if (content.relations) {
+
+                        // Check if relations are in content declarationn
+                        for (let r of content.relations) {
+                            if (!(r in (content.data as any).relations)) {
+                                throw new TypeError(`No relation ${r} in ${(content.data as any).name}`);
+                            }
+                        }
+                        (newContents[region] as ContentViewModelClassAndImport).relations = content.relations;
+                    }
+                    (newContents[region] as ContentViewModelClassAndImport).view = {
+                        class: content.view,
+                        importPath: System.joinPaths(this.serverComposer.options.defaultContentFolder, `/${getClassName(content.view)}`),
+                    };
+                    (newContents[region] as ContentViewModelClassAndImport).isStatic = content.isStatic;
+                }
         }
         this.currentPlatform.contents = newContents;
 
@@ -574,26 +629,56 @@ export class Page {
             let contents = currentPlatform.contents;
 
             for (let region in contents) {
-                let content = contents[region];
+                let content = contents[region]
 
-                let contentEmitInfo: ContentComponentInfo = {
-                    view: {
-                        className: getClassName(content.view.class),
-                        importPath: content.view.importPath,
-                    },
-                    name: getNormalizedNameFromViewClass(content.view.class),
-                    region: region,
-                }
-                if (content.data) {
-                    contentEmitInfo.data = {
-                        className: getClassName(content.data.class),
-                        importPath: content.data.importPath,
+                if (Array.isArray(content)) {
+                    let contentEmitInfo = {
+                        region: region,
+                    } as ContentComponentInfo;
+
+                    let stackedContentEmitInfos: ContentComponentInfo[] = [];
+
+                    for (let stackedContent of content) {
+                        let stackedContentEmitInfo: ContentComponentInfo = {
+                            view: {
+                                className: getClassName(stackedContent.view.class),
+                                importPath: stackedContent.view.importPath,
+                            }
+                        } as ContentComponentInfo;
+                        if (stackedContent.data) {
+                            stackedContentEmitInfo.data = {
+                                className: getClassName(stackedContent.data.class),
+                                importPath: stackedContent.data.importPath,
+                            }
+                        }
+                        if (stackedContentEmitInfo.relations) {
+                            contentEmitInfo.relations = stackedContent.relations;
+                        }
+                        stackedContentEmitInfos.push(stackedContentEmitInfo);
                     }
+                    contentEmitInfo.stack = stackedContentEmitInfos;
+                    contentEmitInfos.push(contentEmitInfo);
                 }
-                if (content.relations) {
-                    contentEmitInfo.relations = content.relations;
+                else {
+                    let contentEmitInfo: ContentComponentInfo = {
+                        view: {
+                            className: getClassName(content.view.class),
+                            importPath: content.view.importPath,
+                        },
+                        isStatic: content.isStatic,
+                        region: region,
+                    }
+                    if (content.data) {
+                        contentEmitInfo.data = {
+                            className: getClassName(content.data.class),
+                            importPath: content.data.importPath,
+                        }
+                    }
+                    if (content.relations) {
+                        contentEmitInfo.relations = content.relations;
+                    }
+                    contentEmitInfos.push(contentEmitInfo);
                 }
-                contentEmitInfos.push(contentEmitInfo);
             }
 
             platformEmitInfo[currentPlatform.name] = {
@@ -602,14 +687,12 @@ export class Page {
                         className: getClassName(document.view.class),
                         importPath: document.view.importPath,
                     },
-                    name: getNormalizedNameFromViewClass(document.view.class),
                 },
                 layout: {
                     view: {
                         className: getClassName(layout.view.class),
                         importPath: layout.view.importPath,
                     },
-                    name: getNormalizedNameFromViewClass(layout.view.class),
                 },
                 contents: contentEmitInfos,
             }
@@ -659,82 +742,122 @@ export class Page {
         }
 
         for (let region in contents) {
+            let content = contents[region];
+            if (Array.isArray(content)) {
+                for (let stackedContent of content) {
+                    fetch(
+                        region,
+                        stackedContent.data && stackedContent.data.class,
+                        stackedContent.relations,
+                        stackedContent.view.class as any,
+                        true
+                    );
+                }
+            }
+            else {
+                fetch(
+                    region,
+                    (contents[region] as ContentViewModelClassAndImport).data && (contents[region] as ContentViewModelClassAndImport).data.class,
+                    (contents[region] as ContentViewModelClassAndImport).relations,
+                    (contents[region] as ContentViewModelClassAndImport).view.class as any,
+                    false
+                );
+            }
+        }
+
+        function fetch(region: string, ContentData: new() => Model<any> | Collection<Model<any>>, relations: string[], ContentView: typeof ContentComponent, isStack: boolean) {
             numberOfContentFetchings++;
 
-            (function(region: string, ContentData: new() => Model<any> | Collection<Model<any>>, relations: string[], ContentView: typeof ContentComponent) {
+            if (ContentData) {
+                let contentData = new ContentData();
+                contentData.fetch(requestInfo, relations).then(() => {
+                        ContentView.setPageInfo(req.localizations, req.pageInfo, contentData);
 
-                if (ContentData) {
-                    let contentData = new ContentData();
-                    contentData.fetch(requestInfo, relations).then(() => {
-                            ContentView.setPageInfo(contentData, req.localizations, req.pageInfo);
-
-                            let props = {
-                                l: req.localizations,
-                                data: contentData,
+                        let props = {
+                            l: req.localizations,
+                            data: contentData,
+                        }
+                        let content = React.createElement(ContentView as any, props, null);
+                        if (isStack) {
+                            if (!resultContents[region]) {
+                                resultContents[region] = [];
                             }
-                            resultContents[region] = React.createElement(ContentView as any, props, null);
-                            resultJSONScriptData.push({
-                                id: `bd-${region}`,
-                                data: contentData.toData(),
-                            });
-
-                            finishedContentFetchings++;
-
-                            if (numberOfContentFetchings === finishedContentFetchings) {
-                                next(null, requestedPlatform, resultContents, resultJSONScriptData);
-                            }
-                        })
-                        .catch((error: Error | HTTPResponse<ErrorResponse>) => {
-                            if (error instanceof Error) {
-                                if (process.env.NODE_ENV === 'development') {
-                                    res.status(500).send(error.stack ? error.stack.replace('\n', '<br>') : error);
-                                }
-                                else {
-                                    res.status(500).send('');
-                                }
-                            }
-                            else {
-                                let errorCode = error.body.feedback.current.code;
-                                if (errorCode === AutenticationError.InvalidAccessToken
-                                || errorCode === AutenticationError.AccessTokenExpired) {
-
-                                    res.clearCookie('accessToken');
-                                    res.clearCookie('renewalToken');
-                                    res.clearCookie('hasAccessToken');
-                                    res.redirect('/');
-                                }
-                                else {
-                                    console.log(requestInfo);
-                                    console.log(error.body);
-                                    if (process.env.NODE_ENV === 'development') {
-                                        res.status(500).json(error.body);
-                                    }
-                                    else {
-                                        res.status(500).send('');
-                                    }
-                                }
-                            }
-
-                            next(error);
+                            (resultContents[region] as JSX.Element[]).push(content);
+                        }
+                        else {
+                            resultContents[region] = content;
+                        }
+                        resultJSONScriptData.push({
+                            id: `bd-${region.toLowerCase()}-${(ContentData as any).name.toLowerCase()}`,
+                            data: contentData.toData(),
                         });
-                }
-                else {
-
-                    // We need to put a timeout here because the 'numberOfContentFetchings' will equal
-                    // 'finishedContentFetchings' mulitple times. we want 'numberOfContentFetchings' to
-                    // increment all increments first and then let 'finishedContentFetchings' increment.
-                    setTimeout(() => {
-                        ContentView.setPageInfo({}, req.localizations, req.pageInfo);
-                        resultContents[region] = React.createElement(ContentView as any, { l: req.localizations, data: undefined }, null);
 
                         finishedContentFetchings++;
 
                         if (numberOfContentFetchings === finishedContentFetchings) {
                             next(null, requestedPlatform, resultContents, resultJSONScriptData);
                         }
-                    }, 0);
-                }
-            })(region, contents[region].data && contents[region].data.class, contents[region].relations, contents[region].view.class as any);
+                    })
+                    .catch((error: Error | HTTPResponse<ErrorResponse>) => {
+                        if (error instanceof Error) {
+                            console.log(error.stack || error);
+                            if (process.env.NODE_ENV === 'development') {
+                                res.status(500).send(error.stack ? error.stack.replace('\n', '<br>') : error);
+                            }
+                            else {
+                                res.status(500).send('');
+                            }
+                        }
+                        else {
+                            let errorCode = error.body.feedback.current.code;
+                            if (errorCode === AutenticationError.InvalidAccessToken
+                            || errorCode === AutenticationError.AccessTokenExpired) {
+
+                                res.clearCookie('accessToken');
+                                res.clearCookie('renewalToken');
+                                res.clearCookie('hasAccessToken');
+                                res.redirect('/');
+                            }
+                            else {
+                                console.log(requestInfo);
+                                console.log(error.body);
+                                if (process.env.NODE_ENV === 'development') {
+                                    res.status(500).json(error.body);
+                                }
+                                else {
+                                    res.status(500).send('');
+                                }
+                            }
+                        }
+
+                        next(error);
+                    });
+            }
+            else {
+
+                // We need to put a timeout here because the 'numberOfContentFetchings' will equal
+                // 'finishedContentFetchings' mulitple times. we want 'numberOfContentFetchings' to
+                // increment all increments first and then let 'finishedContentFetchings' increment.
+                setTimeout(() => {
+                    ContentView.setPageInfo(req.localizations, req.pageInfo);
+                    let content = React.createElement(ContentView as any, { l: req.localizations, data: undefined }, null);
+                    if (isStack) {
+                        if (!resultContents[region]) {
+                            resultContents[region] = [];
+                        }
+                        (resultContents[region] as JSX.Element[]).push(content);
+                    }
+                    else {
+                        resultContents[region] = content;
+                    }
+
+                    finishedContentFetchings++;
+
+                    if (numberOfContentFetchings === finishedContentFetchings) {
+                        next(null, requestedPlatform, resultContents, resultJSONScriptData);
+                    }
+                }, 0);
+            }
         }
     }
 }

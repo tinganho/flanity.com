@@ -4,6 +4,7 @@ import { React, LayoutComponent, ContentComponent, DOMElement } from '../Library
 interface Regions {
     Header: new(props: any, children: any) => ContentComponent<any, any, any>;
     Body: new(props: any, children: any) => ContentComponent<any, any, any>;
+    Stack: new(props: any, children: any) => ContentComponent<any, any, any>;
     Overlay: new(props: any, children: any) => ContentComponent<any, any, any>;
 }
 
@@ -14,7 +15,7 @@ interface LayoutElements {
 export class WebApp extends LayoutComponent<Regions, {}, LayoutElements> {
     public render() {
         return (
-            <div  class={'FillParentLayout BgWhiteBlue' + (inServer ? ' Final' : ' Ingoing')}>
+            <div class={'FillParentLayout BgWhiteBlue' + (inServer ? ' Final' : ' Ingoing')}>
                 <header id='Header'>
                     {this.props.Header}
                 </header>

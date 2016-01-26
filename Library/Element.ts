@@ -171,7 +171,7 @@ export namespace React {
                     else if((child as HTMLElement).classList) {
                         root.appendChild(child as HTMLElement);
                     }
-                    else if (isArray<Child[]>(child)) {
+                    else if (Array.isArray(child)) {
                         for (let c of child) {
                             renderChildToDOM(root, c, renderId);
                         }
@@ -318,7 +318,7 @@ export namespace React {
                     if (typeof child === 'string') {
                         frag += encodeHTML(child);
                     }
-                    else if (isArray<JSX.Element[]>(child)) {
+                    else if (Array.isArray(child)) {
                         for (let c of child) {
                             frag += renderChildToString(c);
                         }
@@ -449,7 +449,7 @@ export namespace React {
                     if (!child || typeof child === 'string') {
                         continue;
                     }
-                    else if (isArray<JSX.Element[]>(child)) {
+                    else if (Array.isArray(child)) {
                         for (let c of child) {
                             if(!c) {
                                 continue;
@@ -519,7 +519,7 @@ export namespace React {
                     if (!child || typeof child === 'string') {
                         continue;
                     }
-                    else if (isArray<JSX.Element[]>(child)) {
+                    else if (Array.isArray(child)) {
                         for (let c of child) {
                             instantiateChildComponents(c, renderId);
                         }

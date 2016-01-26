@@ -14,6 +14,7 @@ import { EmailVerification } from './Contents/EmailVerification';
 import { EmailVerificationView } from './Contents/EmailVerificationView';
 import { ForgotPasswordFormView } from './Contents/ForgotPasswordFormView';
 import { HeroView } from './Contents/HeroView';
+import { HomeContentView } from './Contents/HomeContentView';
 import { LandingPageTopBarView } from './Contents/LandingPageTopBarView';
 import { LogInFormView } from './Contents/LogInFormView';
 import { ResetPasswordFormView } from './Contents/ResetPasswordFormView';
@@ -80,8 +81,15 @@ export function init(app: Express) {
                 .hasLayout(WebApp, {
                     Header: {
                         data: UserMe,
+                        relations: ['topics'],
                         view: AppTopBarView,
+                        isStatic: true,
                     },
+                    Body: [
+                        {
+                            view: HomeContentView,
+                        },
+                    ],
                 })
                 .onPlatform(OfflineWeb)
                 .hasDocument(Document, {})
@@ -102,13 +110,20 @@ export function init(app: Express) {
                 .hasLayout(WebApp, {
                     Header: {
                         data: UserMe,
-                        view: AppTopBarView,
-                    },
-                    Body: {
-                        data: User,
                         relations: ['topics'],
-                        view: TopicsView,
-                    }
+                        view: AppTopBarView,
+                        isStatic: true,
+                    },
+                    Body: [
+                        {
+                            view: HomeContentView,
+                        },
+                        {
+                            data: User,
+                            relations: ['topics'],
+                            view: TopicsView,
+                        }
+                    ],
                 })
                 .end()
         },
@@ -119,6 +134,7 @@ export function init(app: Express) {
                 .hasLayout(WebLandingPage, {
                     Header: {
                         view: LandingPageTopBarView,
+                        isStatic: true,
                     },
                     Body: {
                         view: ForgotPasswordFormView,
@@ -133,6 +149,7 @@ export function init(app: Express) {
                 .hasLayout(WebLandingPage, {
                     Header: {
                         view: LandingPageTopBarView,
+                        isStatic: true,
                     },
                     Body: {
                         view: LogInFormView,
@@ -148,6 +165,7 @@ export function init(app: Express) {
                 .hasLayout(WebLandingPage, {
                     Header: {
                         view: LandingPageTopBarView,
+                        isStatic: true,
                     },
                     Body: {
                         view: ResetPasswordFormView,
@@ -162,6 +180,7 @@ export function init(app: Express) {
                 .hasLayout(WebLandingPage, {
                     Header: {
                         view: LandingPageTopBarView,
+                        isStatic: true,
                     },
                     Body: {
                         view: SignUpFormView,
@@ -176,6 +195,7 @@ export function init(app: Express) {
                 .hasLayout(WebLandingPage, {
                     Header: {
                         view: LandingPageTopBarView,
+                        isStatic: true,
                     },
                     Body: {
                         data: EmailVerification,

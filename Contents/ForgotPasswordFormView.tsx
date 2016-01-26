@@ -52,7 +52,7 @@ const enum ForgotPasswordRequestFeedback {
 
 export class ForgotPasswordFormView extends ContentComponent<Props, Text, HeroElements> {
 
-    public static setPageInfo(props: Props, l: GetLocalization, pageInfo: PageInfo) {
+    public static setPageInfo(l: GetLocalization, pageInfo: PageInfo) {
         this.setPageTitle(l('FORGOT_PASSWORD_FORM->PAGE_TITLE'), pageInfo);
         this.setPageDescription(l('FORGOT_PASSWORD_FORM->PAGE_DESCRIPTION'), pageInfo);
     }

@@ -73,7 +73,7 @@ interface FileReadOnloadEvent extends Event {
 export class TopicsView extends ContentComponent<TopicsProps, TopicsText, TopicsElements> {
     public components: TopicsComponents;
 
-    public static setPageInfo(data: Topics, l: GetLocalization, pageInfo: PageInfo) {
+    public static setPageInfo(l: GetLocalization, pageInfo: PageInfo, data?: Topics) {
         let name = data.get('name');
         this.setPageTitle(l('TOPICS->PAGE_TITLE', { user: name }), pageInfo);
         this.setPageDescription(l('TOPICS->PAGE_DESCRIPTION', { user: name }), pageInfo);
@@ -101,7 +101,7 @@ export class TopicsView extends ContentComponent<TopicsProps, TopicsText, Topics
         }
 
         return (
-            <div>
+            <div class='BgWhiteBlue'>
                 <div id='TopicsCollectionViewScrollBarDecratorLeft'/>
                 <div id='TopicsCollectionViewScrollBarDecratorRight'/>
                 {content}
@@ -465,10 +465,12 @@ class TopicView extends ContentComponent<TopicProps, TopicText, TopicElements> {
         let image = this.elements.image;
         let mask = this.elements.mask;
         if ((image.nativeElement as HTMLImageElement).complete) {
-            image.addClass('Revealed').removeClass('Hidden')
-                .onTransitionEnd(() => {
-                    mask.addClass('Revealed').removeClass('Hidden');
-                });
+            image.addClass('Revealed').removeClass('Hidden');
+
+            // There is a bug on Chrome where transitionend is not fired.
+            setTimeout(() => {
+                mask.addClass('Revealed').removeClass('Hidden');
+            }, 500);
         }
         image.addEventListener('load', () => {
             image.addClass('Revealed').removeClass('Hidden')

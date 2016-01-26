@@ -100,16 +100,33 @@ export function emitBindings(
                 }
 
                 for (let contentInfo of pageInfo.platforms[i].contents) {
-                    let contentView = contentInfo.view.className;
-                    if (contents.indexOf(contentView) === -1) {
-                        write(`App.Components.Contents.${contentView} = ${contentView};`);
-                        writeLine();
-                        if (contentInfo.data) {
-                            let contentModel = contentInfo.data.className;
-                            write(`App.Components.Contents.${contentModel} = ${contentModel};`);
-                            writeLine();
+                    if (contentInfo.stack) {
+                        for (let stackedContentInfo of contentInfo.stack) {
+                            let contentView = stackedContentInfo.view.className;
+                            if (contents.indexOf(contentView) === -1) {
+                                write(`App.Components.Contents.${contentView} = ${contentView};`);
+                                writeLine();
+                                if (stackedContentInfo.data) {
+                                    let contentModel = stackedContentInfo.data.className;
+                                    write(`App.Components.Contents.${contentModel} = ${contentModel};`);
+                                    writeLine();
+                                }
+                                contents.push(contentView);
+                            }
                         }
-                        contents.push(contentView);
+                    }
+                    else {
+                        let contentView = contentInfo.view.className;
+                        if (contents.indexOf(contentView) === -1) {
+                            write(`App.Components.Contents.${contentView} = ${contentView};`);
+                            writeLine();
+                            if (contentInfo.data) {
+                                let contentModel = contentInfo.data.className;
+                                write(`App.Components.Contents.${contentModel} = ${contentModel};`);
+                                writeLine();
+                            }
+                            contents.push(contentView);
+                        }
                     }
                 }
 
@@ -167,33 +184,39 @@ export function emitBindings(
                 writeCommaNewLine();
 
                 write('contents: [');
-                increaseIndent();
                 writeLine();
+                increaseIndent();
                 forEach(platform.contents, (content, index) => {
                     write('{');
+                    writeLine();
                     increaseIndent();
-                    writeLine();
-                    write(`name: '${content.name}',`);
-                    writeLine();
                     write(`region: '${content.region}',`);
                     writeLine();
-                    if (content.data) {
-                        write('data: ');
-                        writeClassInfo(content.data);
-                        write(',');
+                    if (content.stack) {
+                        write('stack: [');
                         writeLine();
-                    }
-                    if (content.relations) {
-                        write('relations: ');
-                        writeArray(content.relations);
-                        write(',');
+                        increaseIndent();
+                        for (let stackedContent of content.stack) {
+                            write('{');
+                            writeLine();
+                            increaseIndent();
+                            writeDataRelationsIsStaticProperties(stackedContent, /* writeStatic */ false);
+                            record();
+                            write(',');
+                            writeLine();
+                        }
+                        revertBackToLastRecord();
+                        decreaseIndent();
                         writeLine();
+                        write(']');
+                        decreaseIndent();
+                        writeLine();
+                        write('}');
                     }
-                    write('view: ');
-                    writeClassInfo(content.view);
-                    writeLine();
-                    decreaseIndent();
-                    write('}');
+                    else {
+                        writeDataRelationsIsStaticProperties(content, /* writeStatic */ true);
+                    }
+
                     if (index !== pageInfo.platforms[i].contents.length -1) {
                         write(',');
                     }
@@ -225,6 +248,34 @@ export function emitBindings(
         writeLine();
         write('];');
         writeLine();
+    }
+
+    function writeDataRelationsIsStaticProperties(content: ComponentInfo, writeStatic?: boolean) {
+        if (content.data) {
+            write('data: ');
+            writeClassInfo(content.data);
+            write(',');
+            writeLine();
+        }
+        if (content.relations) {
+            write('relations: ');
+            writeArray(content.relations);
+            write(',');
+            writeLine();
+        }
+        write('view: ');
+        writeClassInfo(content.view);
+        if (writeStatic) {
+            write(',');
+            writeLine();
+            write('isStatic: ' + (content.isStatic ? 'true' : 'false,'));
+            writeLine();
+        }
+        else {
+            writeLine();
+        }
+        decreaseIndent();
+        write('}');
     }
 
     function writeRouterInit() {

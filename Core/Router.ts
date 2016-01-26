@@ -54,11 +54,12 @@ export interface ComponentInfo {
     data?: ClassInfo;
     relations?: string[];
     view: ClassInfo;
-    name: string;
+    isStatic?: boolean;
 }
 
 export interface ContentComponentInfo extends ComponentInfo {
     region: string;
+    stack?: ComponentInfo[];
 }
 
 interface Map {
@@ -91,7 +92,7 @@ export class Router {
     public routingInfoIndex: { [index: string]: Page } = {};
     public routes: Route[] = [];
     public currentRegions: string[] = [];
-    public onPushState: (route: string) => void;
+    public onPushState: (route: string, props?: any) => void;
 
     private currentParams: any = {};
     private currentPlatform: string;
@@ -152,17 +153,17 @@ export class Router {
         return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
     }
 
-    public navigateTo(route: string, state?: Object): void {
+    public navigateTo(route: string, props?: Object): void {
         if (this.hasPushState) {
-            window.history.pushState(state, null, route);
+            window.history.pushState(props, null, route);
         }
         else {
             window.location.pathname = route;
         }
-        this.onPushState(route);
+        this.onPushState(route, props);
     }
 
-    private checkRouteAndRenderIfMatch(currentRoute: string): void {
+    private checkRouteAndRenderIfMatch(currentRoute: string, props?: any): void {
         this.routes.some(route => {
             if (route.pattern.test(currentRoute)) {
                 let matches = route.pattern.exec(currentRoute);
@@ -175,7 +176,7 @@ export class Router {
                         break;
                     }
                 }
-                this.renderPage(this.routingInfoIndex[route.path]);
+                this.renderPage(this.routingInfoIndex[route.path], props);
                 return true;
             }
             return false;
@@ -183,32 +184,52 @@ export class Router {
     }
 
     private loadContentFromJSONScripts(placeholderContents: Contents, page: Page): void {
-        for (let content of page.platforms[this.currentPlatform].contents) {
-            if (content.data) {
-                let jsonElement = document.getElementById(`bd-${content.region}`);
-                if (!jsonElement) {
-                    throw new Error(
-`Could not find JSON file ${content.name}. Are you sure
-this component is properly named?`);
+        let read = (region: string, content: ComponentInfo, isStack: boolean) => {
+            let jsonElement = document.getElementById(`bd-${region.toLowerCase()}-${content.data.className.toLowerCase()}`);
+            if (!jsonElement) {
+                throw new Error(`Could not find JSON file for ${content.data.className}.`);
+            }
+            try {
+                this.currentRegions.push(region);
+                let data = jsonElement.innerHTML !== '' ? JSON.parse(jsonElement.innerHTML).data : {};
+                let props = {
+                    data: new this.pageComponents.Contents[content.data.className](data, getCookie('userId')),
+                    l: (window as any).localizations,
                 }
-                try {
-                    this.currentRegions.push(content.region);
-                    let data = jsonElement.innerHTML !== '' ? JSON.parse(jsonElement.innerHTML).data : {};
-                    let props = {
-                        data: new this.pageComponents.Contents[content.data.className](data, getCookie('userId')),
-                        l: (window as any).localizations,
+                let element = React.createElement(this.pageComponents.Contents[content.view.className], props, null);
+                if (isStack) {
+                    if (!placeholderContents[region]) {
+                        placeholderContents[region] = [];
                     }
-                    placeholderContents[content.region] = React.createElement(this.pageComponents.Contents[content.view.className], props, null);
-                }
-                catch(err) {
-                    console.log(jsonElement.innerHTML);
-                    throw new Error(`Could not parse JSON for ${content.name}.\n ${err.message}`)
-                }
-                if (jsonElement.remove) {
-                    jsonElement.remove();
+                    (placeholderContents[region] as JSX.Element[]).push(element);
                 }
                 else {
-                    jsonElement.parentElement.removeChild(jsonElement);
+                    placeholderContents[region] = element;
+                }
+            }
+            catch(err) {
+                console.log(jsonElement.innerHTML);
+                throw new Error(`Could not parse JSON for ${content.data.className}.\n ${err.message}`)
+            }
+            if (jsonElement.remove) {
+                jsonElement.remove();
+            }
+            else {
+                jsonElement.parentElement.removeChild(jsonElement);
+            }
+        }
+
+        for (let content of page.platforms[this.currentPlatform].contents) {
+            if (content.data || content.stack) {
+                if (content.stack) {
+                    for (let stackedContent of content.stack) {
+                        if (stackedContent.data) {
+                            read(content.region, stackedContent, true);
+                        }
+                    }
+                }
+                else {
+                    read(content.region, content, false);
                 }
             }
             else {
@@ -223,7 +244,7 @@ this component is properly named?`);
         this.currentContents = this.currentLayoutView.components as any;
     }
 
-    private renderPage(page: Page): void {
+    private renderPage(page: Page, props?: any): void {
         let contents: Contents = {};
         if (this.inInitialPageLoad) {
             this.loadContentFromJSONScripts(contents, page);
@@ -231,11 +252,11 @@ this component is properly named?`);
             this.inInitialPageLoad = false;
         }
         else {
-            this.handleClientPageRequest(page);
+            this.handleClientPageRequest(page, props);
         }
     }
 
-    private handleClientPageRequest(nextPage: Page) {
+    private handleClientPageRequest(nextPage: Page, providedProps?: any) {
         let pageInfo: PageInfo = {};
         let newContents: Contents = {};
         let currentNumberOfFetches = 0;
@@ -243,170 +264,191 @@ this component is properly named?`);
 
         unmarkLoadFinished();
 
-        for (let content of nextPage.platforms[this.currentPlatform].contents) {
-
-            // Filter the content that will propogate to the next page.
-            if (this.currentContents.hasOwnProperty(toCamelCase(content.view.className))) {
-                continue;
-            }
-
-            let ContentView = this.pageComponents.Contents[content.view.className];
-            let ContentData = content.data ? this.pageComponents.Contents[content.data.className] : undefined;
-            let requestInfo: RequestInfo<any, any> = {
-                params: this.currentParams,
-                query: location.search,
-                cookies: {
-                    userId: getCookie('userId'),
-                }
-            }
+        let fetch = (region: string, requestInfo: RequestInfo<any, any>, contentInfo: ComponentInfo, ContentData: new() => Model<any> | Collection<Model<any>>, ContentView: typeof ContentComponent, fetchData: boolean) => {
             expectedNumberOfFetches++;
 
-            ((contentInfo: ContentComponentInfo, ContentData: new() => Model<any> | Collection<Model<any>>, ContentView: typeof ContentComponent) => {
-                let ViewClass = this.pageComponents.Contents[contentInfo.view.className];
+            let ViewClass = this.pageComponents.Contents[contentInfo.view.className];
 
-                let render = () => {
-                    changePageTitle(pageInfo.title || 'NO_PAGE_TITLE');
-                    changePageDescription(pageInfo.description);
-                    changePageImage(pageInfo.image);
+            let render = () => {
+                changePageTitle(pageInfo.title || 'NO_PAGE_TITLE');
+                changePageDescription(pageInfo.description);
+                changePageImage(pageInfo.image);
 
-                    if (currentNumberOfFetches === expectedNumberOfFetches) {
-                        let LayoutComponentClass = (this as any).pageComponents.Layout[nextPage.platforms[this.currentPlatform].layout.view.className];
+                if (currentNumberOfFetches === expectedNumberOfFetches) {
+                    let LayoutComponentClass = (this as any).pageComponents.Layout[nextPage.platforms[this.currentPlatform].layout.view.className];
 
-                        // If we are not in the same layout, we will replace the current layout region with a new one.
-                        if (LayoutComponentClass.name !== this.currentLayoutView.id) {
-                            this.currentLayoutView.root.addStyle('z-index', '10000000');
-                            this.currentLayoutView.onRemove();
-                            let layoutComponent = new LayoutComponentClass(newContents);
-                            document.getElementById('LayoutRegion').appendChild(layoutComponent.toDOM());
-                            layoutComponent.bindDOM();
-                            layoutComponent.onShow();
-                            setTimeout(() => {
-                                layoutComponent.root.addClass('Final').removeClass('Ingoing')
-                                    .onTransitionEnd(() => {
-                                        this.currentContents = layoutComponent.components as CurrentContents;
-                                        this.currentLayoutView = layoutComponent;
-                                        markLoadFinished();
-                                    });
-                            }, 0);
-                        }
+                    // If we are not in the same layout, we will replace the current layout region with a new one.
+                    if (LayoutComponentClass.name !== this.currentLayoutView.id) {
+                        this.currentLayoutView.root.addStyle('z-index', '10000000');
+                        this.currentLayoutView.onRemove();
+                        let layoutComponent = new LayoutComponentClass(newContents);
+                        document.getElementById('LayoutRegion').appendChild(layoutComponent.toDOM());
+                        layoutComponent.bindDOM();
+                        layoutComponent.onShow();
+                        setTimeout(() => {
+                            layoutComponent.root.addClass('Final').removeClass('Ingoing')
+                                .onTransitionEnd(() => {
+                                    this.currentContents = layoutComponent.components as CurrentContents;
+                                    this.currentLayoutView = layoutComponent;
+                                    markLoadFinished();
+                                });
+                        }, 0);
+                    }
 
-                        // If we are in the same layout, we will remove irrelevant content and bind the new content.
-                        else {
-                            let currentRemovals = 0;
-                            let expectedRemovals = 0;
-                            for (let r in newContents) {
-                                expectedRemovals++;
+                    // If we are in the same layout, we will remove irrelevant content and bind the new content.
+                    else {
+                        let currentRemovals = 0;
+                        let expectedRemovals = 0;
+                        for (let r in newContents) {
+                            expectedRemovals++;
 
-                                let content = (newContents as any)[r];
-                                let region = document.getElementById(r);
-                                if (!region) {
-                                    throw new Error('Region \'' + r + '\' is missing.');
-                                }
-                                let hasOutgoingComponent = typeof this.currentLayoutView.props[r] !== 'undefined';
-                                let outgoingComponent: any;
-                                if (hasOutgoingComponent) {
-                                    outgoingComponent = this.currentLayoutView.props[r].getComponent();
-                                }
-                                this.currentLayoutView.setProp(r, content);
-                                content.setComponent(this.currentLayoutView);
-                                region.appendChild(content.toDOM().frag);
-
-                                // Component after rendering the DOM, becomes the content component.
-                                let ingoingComponent = content.getComponent();
-                                ingoingComponent.root.addClass('Ingoing');
-                                if (outgoingComponent) {
-                                    outgoingComponent.root.addClass('Outgoing').removeClass('Final');
-
-                                    ((componentId: string) => {
-                                        let hasOutgoingTransition = false;
-                                        outgoingComponent.root.onTransitionEnd(() => {
-                                            if (outgoingComponent.isOutgoing()) {
-                                                outgoingComponent.onRemove();
-                                            }
-                                            hasOutgoingTransition = true;
-                                        });
-
-                                        // Give developer a warning that he has not implemented an outgoing transition.
-                                        setTimeout(() => {
-                                            if (!hasOutgoingTransition) {
-                                                console.warn(`You do not have an outgoing transition for component '${componentId}'.`);
-                                            }
-                                        }, 3000);
-
-                                        outgoingComponent.onRemoval(() => {
-                                            delete this.currentLayoutView.components[toCamelCase(componentId)];
-
-                                            currentRemovals++;
-                                            if (currentRemovals === expectedRemovals) {
-                                                this.currentContents = this.currentLayoutView.components as CurrentContents;
-                                                markLoadFinished();
-                                            }
-                                        });
-                                    })(outgoingComponent.id);
-                                }
-
-                                setTimeout(() => {
-                                    ingoingComponent.root.addClass('Final').removeClass('Ingoing');
-                                }, 0);
-                                this.currentLayoutView.components[toCamelCase(ingoingComponent.id)] = ingoingComponent;
-
-                                // We must reset the component created by the `toDOM()` method above.
-                                // Because children component should not have component reference
-                                // in their create element closure. If we don't reset the component
-                                // reference there will be a component property referencing itself.
-                                ingoingComponent.bindDOM();
-
+                            let content = (newContents as any)[r];
+                            let region = document.getElementById(r);
+                            if (!region) {
+                                throw new Error('Region \'' + r + '\' is missing.');
                             }
+                            let hasOutgoingComponent = typeof this.currentLayoutView.props[r] !== 'undefined';
+                            let outgoingComponent: any;
+                            if (hasOutgoingComponent) {
+                                outgoingComponent = this.currentLayoutView.props[r].getComponent();
+                            }
+                            this.currentLayoutView.setProp(r, content);
+                            content.setComponent(this.currentLayoutView);
+                            region.appendChild(content.toDOM().frag);
+
+                            // Component after rendering the DOM, becomes the content component.
+                            let ingoingComponent = content.getComponent();
+                            ingoingComponent.root.addClass('Ingoing');
+                            if (outgoingComponent) {
+                                outgoingComponent.root.addClass('Outgoing').removeClass('Final');
+
+                                ((componentId: string) => {
+                                    let hasOutgoingTransition = false;
+                                    outgoingComponent.root.onTransitionEnd(() => {
+                                        if (outgoingComponent.isOutgoing()) {
+                                            outgoingComponent.onRemove();
+                                        }
+                                        hasOutgoingTransition = true;
+                                    });
+
+                                    // Give developer a warning that he has not implemented an outgoing transition.
+                                    setTimeout(() => {
+                                        if (!hasOutgoingTransition) {
+                                            console.warn(`You do not have an outgoing transition for component '${componentId}'.`);
+                                        }
+                                    }, 3000);
+
+                                    outgoingComponent.onRemoval(() => {
+                                        delete this.currentLayoutView.components[toCamelCase(componentId)];
+
+                                        currentRemovals++;
+                                        if (currentRemovals === expectedRemovals) {
+                                            this.currentContents = this.currentLayoutView.components as CurrentContents;
+                                            markLoadFinished();
+                                        }
+                                    });
+                                })(outgoingComponent.id);
+                            }
+
+                            setTimeout(() => {
+                                ingoingComponent.root.addClass('Final').removeClass('Ingoing');
+                            }, 0);
+                            this.currentLayoutView.components[toCamelCase(ingoingComponent.id)] = ingoingComponent;
+
+                            // We must reset the component created by the `toDOM()` method above.
+                            // Because children component should not have component reference
+                            // in their create element closure. If we don't reset the component
+                            // reference there will be a component property referencing itself.
+                            ingoingComponent.bindDOM();
+
                         }
                     }
                 }
+            }
 
-                if (ContentData) {
-                    let data = new ContentData;
-                    data.fetch(requestInfo, contentInfo.relations).then(() => {
-                        ViewClass.setPageInfo(data, (window as any).localizations, pageInfo);
+            if (ContentData) {
+                let data: Model<any> | Collection<Model<any>>;
+                if (fetchData) {
+                    data = new ContentData;
+                    data.fetch(requestInfo, contentInfo.relations)
+                        .then(afterFetch)
+                        .catch((error: Error | HTTPResponse<ErrorResponse>) => {
+                            if (error instanceof Error) {
+                                console.log(error.stack || error);
+                            }
+                            else {
+                                let HTTPErrorCode = error.body.code;
+                                if (HTTPErrorCode === HTTPError.UnAuthorizedAccessError) {
+                                    let errorCode = error.body.feedback.current.code;
+                                    if (errorCode === AutenticationError.InvalidAccessToken || errorCode === AutenticationError.AccessTokenExpired) {
+                                        this.navigateTo('/');
+                                    }
+                                }
 
-                        let props = {
-                            l: (window as any).localizations,
-                            data,
-                        }
-                        newContents[contentInfo.region] = React.createElement(ViewClass, props, null);
-                        currentNumberOfFetches++;
-                        render();
-                    })
-                    .catch((error: Error | HTTPResponse<ErrorResponse>) => {
-                        if (error instanceof Error) {
-                            console.log(error.stack || error);
-                        }
-                        else {
-                            let HTTPErrorCode = error.body.code;
-                            if (HTTPErrorCode === HTTPError.UnAuthorizedAccessError) {
-                                let errorCode = error.body.feedback.current.code;
-                                if (errorCode === AutenticationError.InvalidAccessToken
-                                || errorCode === AutenticationError.AccessTokenExpired) {
-                                    this.navigateTo('/');
+                                else if (HTTPErrorCode === HTTPError.NotFoundError) {
+
                                 }
                             }
-
-                            else if (HTTPErrorCode === HTTPError.NotFoundError) {
-
-                            }
-                        }
-                    });
+                        });
                 }
                 else {
-                    newContents[contentInfo.region] = React.createElement(ViewClass, { l: (window as any).localizations }, null);
-                    ViewClass.setPageInfo({}, (window as any).localizations, pageInfo);
-
-                    // Add timeout so 'currentNumberOfFetches' doesn't equal 'expectedNumberOfFetches' more than once.
-                    setTimeout(() => {
-                        currentNumberOfFetches++;
-                        render();
-                    }, 0);
+                    data = new (ContentData as any)(providedProps, getCookie('userId'));
+                    afterFetch();
                 }
 
+                function afterFetch() {
+                    ViewClass.setPageInfo((window as any).localizations, pageInfo, data);
 
-            })(content, ContentData, ContentView);
+                    let props = {
+                        l: (window as any).localizations,
+                        data,
+                    }
+                    newContents[region] = React.createElement(ViewClass, props, null);
+                    currentNumberOfFetches++;
+                    render();
+                }
+            }
+            else {
+                newContents[region] = React.createElement(ViewClass, { l: (window as any).localizations }, null);
+                ViewClass.setPageInfo((window as any).localizations, pageInfo);
+
+                // Add timeout so 'currentNumberOfFetches' doesn't equal 'expectedNumberOfFetches' more than once.
+                setTimeout(() => {
+                    currentNumberOfFetches++;
+                    render();
+                }, 0);
+            }
+        }
+
+        let requestInfo: RequestInfo<any, any> = {
+            params: this.currentParams,
+            query: location.search,
+            cookies: {
+                userId: getCookie('userId'),
+            }
+        }
+        for (let content of nextPage.platforms[this.currentPlatform].contents) {
+
+            // Filter the content that will propogate to the next page.
+            if (content.isStatic && this.currentContents.hasOwnProperty(toCamelCase(content.view.className))) {
+                continue;
+            }
+
+            if (content.stack) {
+                content.stack.forEach((stackedContent, index) => {
+                    if (this.currentContents.hasOwnProperty(toCamelCase(stackedContent.view.className))) {
+                        return;
+                    }
+                    let ContentView = this.pageComponents.Contents[stackedContent.view.className];
+                    let ContentData = stackedContent.data ? this.pageComponents.Contents[stackedContent.data.className] : undefined;
+                    fetch(content.region, requestInfo, stackedContent, ContentData, ContentView, /* fetchData */ index === 0 ? true : false);
+                });
+            }
+            else {
+                let ContentView = this.pageComponents.Contents[content.view.className];
+                let ContentData = content.data ? this.pageComponents.Contents[content.data.className] : undefined;
+                fetch(content.region, requestInfo, content, ContentData, ContentView, /* fetchData */ true);
+            }
         }
     }
 }

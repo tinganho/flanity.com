@@ -124,7 +124,7 @@ interface SignUpComponents {
 
 export class SignUpFormView extends ContentComponent<Props, Text, FormElements> {
 
-    public static setPageInfo(props: Props, l: GetLocalization, pageInfo: PageInfo) {
+    public static setPageInfo(l: GetLocalization, pageInfo: PageInfo) {
         this.setPageTitle(l('SIGN_UP_FORM->PAGE_TITLE'), pageInfo);
         this.setPageDescription(l('SIGN_UP_FORM->PAGE_DESCRIPTION'), pageInfo);
     }

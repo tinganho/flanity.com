@@ -53,7 +53,7 @@ export abstract class ContentComponent<P, L, E> extends ComposerComponent<P, L, 
     public static pendingPageDescription: string;
     public static pendingPageKeywords: string;
 
-    public static setPageInfo(props: any, l: GetLocalization, pageInfo: PageInfo) {}
+    public static setPageInfo(l: GetLocalization, pageInfo: PageInfo, props?: any) {}
 
     public static setPageTitle(title: string, pageInfo: PageInfo) {
         pageInfo.title = title;

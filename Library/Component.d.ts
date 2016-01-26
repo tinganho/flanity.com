@@ -427,6 +427,7 @@ declare namespace JSX {
     interface HTMLAttributes extends DOMAttributes {
         ref?: string;
         bindText?: string;
+        bindUnsafeText?: string;
 
         accept?: string;
         acceptCharset?: string;

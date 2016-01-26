@@ -17,7 +17,7 @@ interface Text {
 
 export class EmailVerificationView extends ContentComponent<Props, Text, Elements> {
 
-    public static setPageInfo(props: Props, l: GetLocalization, pageInfo: PageInfo) {
+    public static setPageInfo(l: GetLocalization, pageInfo: PageInfo) {
         this.setPageTitle(l('EMAIL_VERIFICATION->PAGE_TITLE'), pageInfo);
         this.setPageDescription(l('EMAIL_VERIFICATION->PAGE_DESCRIPTION'), pageInfo);
     }

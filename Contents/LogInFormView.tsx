@@ -66,7 +66,7 @@ interface Session {
 
 export class LogInFormView extends ContentComponent<Props, Text, Elements> {
 
-    public static setPageInfo(props: Props, l: GetLocalization, pageInfo: PageInfo) {
+    public static setPageInfo(l: GetLocalization, pageInfo: PageInfo) {
         this.setPageTitle(l('LOG_IN_FORM->PAGE_TITLE'), pageInfo);
         this.setPageDescription(l('LOG_IN_FORM->PAGE_DESCRIPTION'), pageInfo);
     }

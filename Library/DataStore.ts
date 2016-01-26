@@ -21,7 +21,7 @@ interface Cookies {
 export interface RequestInfo<P, Q> {
     params: P;
     query: Q;
-    cookies?: Cookies,
+    cookies?: Cookies;
 }
 
 class DataEventEmitter {
@@ -89,6 +89,7 @@ export abstract class DataStore extends DataEventEmitter {
     public HTTPSaveOptions: HTTPOptions;
     public HTTPFetchOptions: HTTPOptions;
     public HTTPDeleteOptions: HTTPOptions;
+    public wasProvidedWithDataFromRouter: boolean;
     public isOwnedByMe = false;
 
     get isModel(): this is Model<any> {
@@ -595,6 +596,7 @@ export class Collection<M extends Model<any>> extends DataStore {
             this.onFetch(requestInfo);
             HTTP.get<CollectionResponse<any>>(URL, this.HTTPFetchOptions)
                 .then((response) => {
+                    console.log(URL, response.body.collection)
                     this.add(response.body.collection);
                     resolve();
                 })
