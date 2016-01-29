@@ -1,7 +1,7 @@
 
 import { map } from '../Library/Utils';
 
-function isComposerDOMElement(element: HTMLElement | DOMElement): element is DOMElement {
+function isComposerDOMElement(element: Node | DOMElement): element is DOMElement {
     return !!(element as DOMElement).findOne;
 }
 export class DOMElement implements DOMElement {
@@ -18,6 +18,20 @@ export class DOMElement implements DOMElement {
         return new DOMElement(el);
     }
 
+
+    /**
+     * Find elements by query.
+     */
+    public static findAll(query: string) {
+        let elements: DOMElement[] = [];
+        let nativeElements = document.querySelectorAll(query);
+        for (let i = 0; i < nativeElements.length; i++) {
+            elements.push(new DOMElement(nativeElements[i]));
+        }
+
+        return elements;
+    }
+
     /**
      * Create element by id.
      */
@@ -29,12 +43,15 @@ export class DOMElement implements DOMElement {
         return new DOMElement(el);
     }
 
-    constructor(element: HTMLElement | DOMElement) {
-        if (isComposerDOMElement(element)) {
+    constructor(element: Node | DOMElement | string) {
+        if (typeof element === 'string') {
+            this.nativeElement = document.createElement(element);
+        }
+        else if (isComposerDOMElement(element)) {
             this.nativeElement = element.nativeElement;
         }
         else {
-            this.nativeElement = element;
+            this.nativeElement = element as HTMLElement;
         }
     }
 

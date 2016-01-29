@@ -1,5 +1,5 @@
 
-import { Collection, HTTPOptions, RequestInfo, URL, model } from '../Library/Index';
+import { Collection, HTTPOptions, RequestInfo } from '../Library/Index';
 import { Topic } from './Topic';
 
 interface Params {
@@ -8,7 +8,7 @@ interface Params {
 interface Query {
 }
 
-@model(Topic)
+@Collection.model(Topic)
 export class Topics extends Collection<Topic> {
     public onFetch(requestInfo: RequestInfo<Params, Query>) {
         if (inServer) {

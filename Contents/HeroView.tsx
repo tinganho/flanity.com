@@ -8,12 +8,12 @@ interface HeroElements {
     signupButton: DOMElement;
 }
 
-interface L10ns {
+interface Text {
     heroDescription: string;
     signUpButtonText: string;
 }
 
-export class HeroView extends ContentComponent<Props, L10ns, HeroElements> {
+export class HeroView extends ContentComponent<Props, Text, HeroElements> {
 
     public static setPageInfo(l: GetLocalization, pageInfo: PageInfo) {
         this.setPageTitle(l('DEFAULT->APP_TITLE'), pageInfo);

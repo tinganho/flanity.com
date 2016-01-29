@@ -1,6 +1,28 @@
 [
   {
     "files": [
+      "Contents/HomeContentView.tsx"
+    ],
+    "id": "gjxLz4yEuR",
+    "key": "HOME_CONTENT->PAGE_TITLE",
+    "new": true,
+    "timestamp": "2016-01-27T10:21:32.548Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/Feed.tsx"
+    ],
+    "id": "dbKLEp6aIpG",
+    "key": "FEED->TITLE",
+    "new": false,
+    "timestamp": "2016-01-27T10:17:11.428Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
       "Contents/TopicsView.tsx"
     ],
     "id": "xRoLxLznFqy",

@@ -450,7 +450,7 @@ declare namespace JSX {
         cols?: number;
         colSpan?: number;
         content?: string;
-        contentEditable?: boolean;
+        contenteditable?: string;
         contextMenu?: string;
         controls?: any;
         coords?: string;

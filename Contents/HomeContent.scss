@@ -1,0 +1,10 @@
+
+#HomeContentView {
+    @include display-flex;
+    @include justify-content(center);
+    @include flex-grow(2);
+}
+
+.HomeContentTitle {
+    margin: 20px 0;
+}

@@ -433,30 +433,36 @@ export function clone<T>(x: T): T {
     return extend({} as any, x) as T;
 }
 
+export const charToHTMLEntity: { [index: string]: string; } = {
+    '&': '&amp;',
+    ' ': '&nbsp;',
+    '"': '&quot;',
+    '\\': '&#39;',
+    '<': '&lt;',
+    '>': '&gt;',
+}
+
 export function encodeHTML(text: string): string {
     if (typeof text !== 'string') {
         return '';
     }
 
-    return text
-        .replace(/&/g, '&amp;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
+    for (let i in charToHTMLEntity) {
+        if (i === '\\') {
+            text = text.replace(new RegExp('\\\\', 'g'), charToHTMLEntity[i]);
+        }
+        else {
+            text = text.replace(new RegExp(i, 'g'), charToHTMLEntity[i]);
+        }
+    }
+
+    return text;
 }
 
-export function decodeHTML(text: string): string {
-    var entities = [
-        ['amp', '&'],
-        ['quot', '"'],
-        ['#39', '\''],
-        ['lt', '<'],
-        ['gt', '>'],
-    ];
 
-    for (var i = 0, max = entities.length; i < max; ++i) {
-        text = text.replace(new RegExp('&' + entities[i][0] + ';', 'g'), entities[i][1]);
+export function decodeHTML(text: string): string {
+    for (let i in charToHTMLEntity) {
+        text = text.replace(new RegExp(charToHTMLEntity[i], 'g'), i);
     }
 
     return text;
@@ -475,7 +481,6 @@ export function autobind(target: any, key: string, descriptor: TypedPropertyDesc
             if (this === target || this.hasOwnProperty(key)) {
                 return fn;
             }
-
 
             let boundFn = fn.bind(this);
             Object.defineProperty(this, key, {

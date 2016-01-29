@@ -1,4 +1,6 @@
 
+'use strict';
+
 import { Topics } from './Topics';
 import { Topic } from './Topic';
 import {
@@ -957,44 +959,47 @@ export class HorizontalScrollBar extends ContentComponent<Props, any, Elements> 
             return;
         }
 
-        if (this.contentPosition > 0) {
-            let duration = 500;
-            let start = this.contentPosition;
-            let end: number;
-            if (this.contentPosition > 420) {
-                end = this.contentPosition - 420;
+        if (this.contentPosition === 0) {
+            return;
+        }
+
+        let duration = 500;
+        let start = this.contentPosition;
+        let end: number;
+        if (this.contentPosition > 420) {
+            end = this.contentPosition - 420;
+        }
+        else {
+            end = 0;
+        }
+        let change = end - start;
+        let originalTime = Date.now();
+        let elapsedTime: number;
+
+        requestAnimationFrame(animateScroll);
+
+        let self = this;
+        function animateScroll() {
+            elapsedTime = Date.now() - originalTime;
+            self.collection.addStyle('margin-left', -easeInOut(elapsedTime, start, change, duration) + 'px');
+            if (elapsedTime < duration) {
+                requestAnimationFrame(animateScroll);
             }
             else {
-                end = 0;
+                self.contentPosition = end;
+                if (end === 0) {
+                    self.container.removeEventListener('wheel', self.scroll);
+                }
             }
-            let change = end - start;
-            let originalTime = Date.now();
-            let elapsedTime: number;
+        }
 
-            let self = this;
-            function animateScroll() {
-                elapsedTime = Date.now() - originalTime;
-                self.collection.addStyle('margin-left', -easeInOut(elapsedTime, start, change, duration) + 'px');
-                if (elapsedTime < duration) {
-                    requestAnimationFrame(animateScroll);
-                }
-                else {
-                    self.contentPosition = end;
-                    if (end === 0) {
-                        self.container.removeEventListener('wheel', self.scroll);
-                    }
-                }
+        function easeInOut(currentTime: number, start: number, change: number, duration: number) {
+            currentTime /= duration / 2;
+            if (currentTime < 1) {
+                return change / 2 * currentTime * currentTime + start;
             }
-
-            function easeInOut(currentTime: number, start: number, change: number, duration: number) {
-                currentTime /= duration / 2;
-                if (currentTime < 1) {
-                    return change / 2 * currentTime * currentTime + start;
-                }
-                currentTime -= 1;
-                return -change / 2 * (currentTime * (currentTime - 2) - 1) + start;
-            }
-            requestAnimationFrame(animateScroll);
+            currentTime -= 1;
+            return -change / 2 * (currentTime * (currentTime - 2) - 1) + start;
         }
     }
 

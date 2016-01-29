@@ -1,5 +1,5 @@
 
-import { Model, relations, RelationType, RequestInfo } from '../Library/Index';
+import { Model, RelationType, RequestInfo } from '../Library/Index';
 import { Topic } from './Topic';
 import { Topics } from './Topics';
 
@@ -12,7 +12,7 @@ interface Params {
     username: string;
 }
 
-@relations({
+@Model.relations({
     topics: {
         type: RelationType.HasMany,
         reverseProp: 'user',

@@ -1,0 +1,10 @@
+
+#Feed {
+    @include display-flex;
+    @include flex-direction(column);
+    width: 550px;
+}
+
+#FeedTitle {
+    margin-left: 48px;
+}

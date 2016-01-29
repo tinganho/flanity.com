@@ -69,22 +69,6 @@ export interface ModelRelations {
     [property: string]: ModelRelation;
 }
 
-export function URL(URL: string) {
-    return function(Ctor: Function) {
-        (Ctor as any).URL = URL;
-    }
-}
-
-export function relations(r: ModelRelations) {
-    return function(Ctor: Function) {
-        (Ctor as any).relations = r;
-    }
-}
-
-export function noParentURL(Ctor: Function) {
-    (Ctor as any).noParentURL = true;
-}
-
 export abstract class DataStore extends DataEventEmitter {
     public HTTPSaveOptions: HTTPOptions;
     public HTTPFetchOptions: HTTPOptions;
@@ -92,7 +76,17 @@ export abstract class DataStore extends DataEventEmitter {
     public wasProvidedWithDataFromRouter: boolean;
     public isOwnedByMe = false;
 
-    get isModel(): this is Model<any> {
+    public static URL(URL: string) {
+        return function(Ctor: Function) {
+            (Ctor as any)._URL = URL;
+        }
+    }
+
+    public static noParentURL(Ctor: Function) {
+        (Ctor as any)._noParentURL = true;
+    }
+
+    public get isModel(): this is Model<any> {
         return false;
     }
 
@@ -101,7 +95,11 @@ export abstract class DataStore extends DataEventEmitter {
     }
 
     public onFetch(requestInfo: RequestInfo<any, any>) {
-
+        if (inServer && requestInfo.cookies && requestInfo.cookies.accessToken) {
+            this.setFetchOptions({
+                accessToken: requestInfo.cookies.accessToken,
+            });
+        }
     }
 
     public onSave(options: HTTPOptions) {
@@ -114,9 +112,22 @@ export interface Model {
 }
 
 export abstract class Model<P> extends DataStore {
-    "constructor": {
-        noParentURL: boolean;
-        relations: ModelRelations;
+    'constructor': {
+        _noParentURL: boolean;
+        _noServer: boolean;
+        _relations: ModelRelations;
+        name: string;
+        _URL: string;
+    }
+
+    public static relations(r: ModelRelations) {
+        return function(Ctor: Function) {
+            (Ctor as any)._relations = r;
+        }
+    }
+
+    public static noServer(Ctor: Function) {
+        (Ctor as any)._noServer = true;
     }
 
     public collection: Collection<Model<any>>;
@@ -159,7 +170,7 @@ export abstract class Model<P> extends DataStore {
     }
 
     private setRelations(prop: string, value: any) {
-        let relation = this.constructor.relations[prop];
+        let relation = this.constructor._relations[prop];
         (this.props as any)[prop].on('add', (model: any) => {
             this.emit('add:' + prop, model);
         });
@@ -176,7 +187,7 @@ export abstract class Model<P> extends DataStore {
     public set(prop: string, value: any): this;
     public set(prop: any, value?: any): this {
         if (typeof prop === 'string') {
-            let relations = this.constructor.relations;
+            let relations = this.constructor._relations;
             if (prop === 'id') {
                 this._isNew = false;
             }
@@ -227,7 +238,7 @@ export abstract class Model<P> extends DataStore {
         let hasChanges = false;
         for (let p in props) {
             if (props.hasOwnProperty(p)) {
-                let relations = this.constructor.relations;
+                let relations = this.constructor._relations;
                 if (relations && p in relations) {
                     let value = props[p];
                     if (relations[p].type === RelationType.HasOne) {
@@ -293,13 +304,13 @@ export abstract class Model<P> extends DataStore {
 
     protected getModelURL(requestInfo?: RequestInfo<any, any>) {
         let URL: string;
-        let constructor = this.constructor as any;
+        let constructor = this.constructor;
         let modelName = constructor.name.toLowerCase();
-        if (constructor.URL) {
-            URL = constructor.URL.replace(':id', this.props.id || constructor.defaultId);
+        if (constructor._URL) {
+            URL = constructor._URL.replace(':id', this.props.id);
         }
         else {
-            URL = '/' + modelName + 's/' + (this.props.id || constructor.defaultId);
+            URL = '/' + modelName + 's/' + this.props.id;
         }
         return URL;
     }
@@ -314,9 +325,9 @@ export abstract class Model<P> extends DataStore {
 
     public fetch(requestInfo?: RequestInfo<any, any>, relations?: string[], parentURL?: string): Promise<any> {
         return new Promise<P>((resolve, reject) => {
-            let constructor = this.constructor as any;
+            let constructor = this.constructor;
             let URL = this.getModelURL(requestInfo);
-            if (!constructor.noParentURL && parentURL) {
+            if (!constructor._noParentURL && parentURL) {
                 URL = parentURL + URL;
             }
             this.onFetch(requestInfo);
@@ -328,19 +339,21 @@ export abstract class Model<P> extends DataStore {
             }
             let promises: Promise<any>[] = [];
             let relationData: any[] = [];
-            let promise = HTTP.get<ModelResponse<any>>(URL, this.HTTPFetchOptions);
-            promises.push(promise);
+            if (!constructor._noServer) {
+                let request = HTTP.get<ModelResponse<any>>(URL, this.HTTPFetchOptions);
+                promises.push(request);
+            }
 
             if (relations) {
                 for (let r of relations) {
                     let props = {};
                     let data: any;
                     let dataType: string;
-                    if (constructor.relations[r].type === RelationType.HasOne) {
-                        data = new constructor.relations[r].model(props);
+                    if (constructor._relations[r].type === RelationType.HasOne) {
+                        data = new constructor._relations[r].model(props);
                     }
                     else {
-                        data = new constructor.relations[r].collection(props);
+                        data = new constructor._relations[r].collection(props);
                     }
                     relationData.push(data);
                     promises.push(data.fetch(requestInfo, null, URL));
@@ -348,7 +361,10 @@ export abstract class Model<P> extends DataStore {
             }
 
             Promise.all(promises).then((results) => {
-                let data = results[0].body.model;
+                let data: any = {};
+                if (!this.constructor._noServer) {
+                    data = results[0].body.model;
+                }
                 if (relations) {
                     for (let i = 0; i < relations.length; i++) {
                         data[relations[i]] = relationData[i];
@@ -379,7 +395,7 @@ export abstract class Model<P> extends DataStore {
         }
 
         let promises: Promise<any>[] = [];
-        if (this._isNew || newProps) {
+        if (!this.constructor._noServer && (this._isNew || newProps)) {
             let options = this.HTTPSaveOptions || {};
             if (!options.bodyType) {
                 options.bodyType = HTTP.BodyType.MultipartFormData;
@@ -425,7 +441,7 @@ export abstract class Model<P> extends DataStore {
             }
         }
 
-        let relations = this.constructor.relations;
+        let relations = this.constructor._relations;
         for (let r in relations) {
             if (relations.hasOwnProperty(r)) {
                 promises.push(this.props[r].save(this.getModelURL()));
@@ -436,7 +452,7 @@ export abstract class Model<P> extends DataStore {
     }
 
     public delete(onSuccess?: (emit: () => void) => void): Promise<void> {
-        if (!this.isNew) {
+        if (!this.constructor._noServer && !this.isNew) {
             let options = this.HTTPDeleteOptions || {};
             return HTTP.del(this.getModelURL(), options).then((response) => {
                 if (onSuccess) {
@@ -472,7 +488,7 @@ export abstract class Model<P> extends DataStore {
                     continue;
                 }
                 let value = (this.props as any)[p];
-                let relations = (this.constructor as any).relations;
+                let relations = this.constructor._relations;
                 if (relations && p in relations) {
                     (result as any)[p] = value.toData(relations[p].includeProps);
                 }
@@ -482,12 +498,6 @@ export abstract class Model<P> extends DataStore {
             }
         }
         return result;
-    }
-}
-
-export function model<T>(model: new() => Model<T>) {
-    return function(Ctor: Function) {
-        (Ctor as any).Model = model;
     }
 }
 
@@ -508,9 +518,15 @@ function isArrayOfModels(x: any): x is ModelData[] | Model<any>[] {
 export class Collection<M extends Model<any>> extends DataStore {
     "constructor": {
         Model: new(props?: ModelData) => M,
-        URL: string;
-        noParentURL: boolean;
+        _URL: string;
+        _noParentURL: boolean;
         name: string;
+    }
+
+    public static model<T>(model: new() => Model<T>) {
+        return function(Ctor: Function) {
+            (Ctor as any).Model = model;
+        }
     }
 
     private ids: string[] = [];
@@ -584,19 +600,18 @@ export class Collection<M extends Model<any>> extends DataStore {
     public fetch(requestInfo?: RequestInfo<any, any>, relations?: string[], parentURL?: string): Promise<M[]> {
         return new Promise<M[]>((resolve, reject) => {
             let URL: string;
-            if (this.constructor.URL) {
-                URL = this.constructor.URL;
+            if (this.constructor._URL) {
+                URL = this.constructor._URL;
             }
             else {
                 URL = '/' + this.constructor.name.toLowerCase();
             }
-            if (!this.constructor.noParentURL && parentURL) {
+            if (!this.constructor._noParentURL && parentURL) {
                 URL = parentURL + URL;
             }
             this.onFetch(requestInfo);
             HTTP.get<CollectionResponse<any>>(URL, this.HTTPFetchOptions)
                 .then((response) => {
-                    console.log(URL, response.body.collection)
                     this.add(response.body.collection);
                     resolve();
                 })

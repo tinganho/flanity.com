@@ -258,7 +258,7 @@ export class ServerComposer {
         }
         this.options = options;
         this.options.routerOutput = this.options.routerOutput;
-        this.options.bindingsOutput =this.options.bindingsOutput;
+        this.options.bindingsOutput = this.options.bindingsOutput;
     }
 
     public set<T>(setting: string, value: T): void {
@@ -527,6 +527,8 @@ export class Page {
      * Define which layout this page should have.
      */
     public hasLayout<C extends ProvidedContentDeclarations>(layout: (new() => LayoutComponent<any, any, any>), providedContentDeclarations: C): Page {
+        let self = this;
+
         if (!this.serverComposer.options.defaultLayoutFolder) {
             Debug.error('You have not defined a default layout folder.');
         }
@@ -539,71 +541,55 @@ export class Page {
 
         let newContents: StoredContentDeclarations = {};
         for (let region in providedContentDeclarations) {
-                let newContent = {};
-                let content = providedContentDeclarations[region];
+            let newContent = {};
+            let providedContentDeclaration = providedContentDeclarations[region];
 
-                if (Array.isArray(content)) {
-                    if (content.length > 2) {
-                        throw new TypeError('A stacked region cannot be longer than 2 in your page manifestation.');
-                    }
-                    newContents[region] = [] as ContentViewModelClassAndImport[];
-                    for (let c of content) {
-                        let contentDefinition = {} as ContentViewModelClassAndImport;
-                        if (c.data) {
-                            contentDefinition.data = {
-                                class: c.data,
-                                importPath: System.joinPaths(this.serverComposer.options.defaultContentFolder, `/${getClassName(c.data)}`),
-                            }
-                        }
-                        if (c.relations) {
-
-                            // Check if relations are in content declarationn
-                            for (let r of c.relations) {
-                                if (!(r in (c.data as any).relations)) {
-                                    throw new TypeError(`No relation ${r} in ${(c.data as any).name}`);
-                                }
-                            }
-                            contentDefinition.relations = c.relations;
-                        }
-                        contentDefinition.view = {
-                            class: c.view,
-                            importPath: System.joinPaths(this.serverComposer.options.defaultContentFolder, `/${getClassName(c.view)}`),
-                        };
-
-                        (newContents[region] as ContentViewModelClassAndImport[]).push(contentDefinition);
-                    }
+            if (Array.isArray(providedContentDeclaration)) {
+                if (providedContentDeclaration.length > 2) {
+                    throw new TypeError('A stacked region cannot be longer than 2 in your page manifestation.');
                 }
-                else {
-                    if (!this.serverComposer.options.defaultContentFolder) {
-                        Debug.error('You have not defined a default content folder.');
-                    }
-                    newContents[region] = {} as ContentViewModelClassAndImport;
-                    if (content.data) {
-                        (newContents[region] as ContentViewModelClassAndImport).data = {
-                            class: content.data,
-                            importPath: System.joinPaths(this.serverComposer.options.defaultContentFolder, `/${getClassName(content.data)}`),
-                        }
-                    }
-                    if (content.relations) {
-
-                        // Check if relations are in content declarationn
-                        for (let r of content.relations) {
-                            if (!(r in (content.data as any).relations)) {
-                                throw new TypeError(`No relation ${r} in ${(content.data as any).name}`);
-                            }
-                        }
-                        (newContents[region] as ContentViewModelClassAndImport).relations = content.relations;
-                    }
-                    (newContents[region] as ContentViewModelClassAndImport).view = {
-                        class: content.view,
-                        importPath: System.joinPaths(this.serverComposer.options.defaultContentFolder, `/${getClassName(content.view)}`),
-                    };
-                    (newContents[region] as ContentViewModelClassAndImport).isStatic = content.isStatic;
+                newContents[region] = [] as ContentViewModelClassAndImport[];
+                for (let c of providedContentDeclaration) {
+                    let contentEmitInfo = {} as ContentViewModelClassAndImport;
+                    setContent(c, contentEmitInfo);
+                    (newContents[region] as ContentViewModelClassAndImport[]).push(contentEmitInfo);
                 }
+            }
+            else {
+                if (!this.serverComposer.options.defaultContentFolder) {
+                    Debug.error('You have not defined a default content folder.');
+                }
+                newContents[region] = {} as ContentViewModelClassAndImport;
+                setContent(providedContentDeclaration as Content, newContents[region] as ContentViewModelClassAndImport);
+            }
         }
         this.currentPlatform.contents = newContents;
 
         return this;
+
+        function setContent(providedContentDeclaration: Content, contentEmitInfo: ContentViewModelClassAndImport) {
+            if (providedContentDeclaration.data) {
+                contentEmitInfo.data = {
+                    class: providedContentDeclaration.data,
+                    importPath: System.joinPaths(self.serverComposer.options.defaultContentFolder, `/${getClassName(providedContentDeclaration.data)}`),
+                }
+            }
+            if (providedContentDeclaration.relations) {
+
+                // Check if relations are in content declarationn
+                for (let r of providedContentDeclaration.relations) {
+                    if (!(r in (providedContentDeclaration.data as any)._relations)) {
+                        throw new TypeError(`No relation '${r}' in '${providedContentDeclaration.data.name}'`);
+                    }
+                }
+                contentEmitInfo.relations = providedContentDeclaration.relations;
+            }
+            contentEmitInfo.view = {
+                class: providedContentDeclaration.view,
+                importPath: System.joinPaths(self.serverComposer.options.defaultContentFolder, `/${getClassName(providedContentDeclaration.view)}`),
+            }
+            contentEmitInfo.isStatic = providedContentDeclaration.isStatic;
+        }
     }
 
     /**
@@ -637,47 +623,14 @@ export class Page {
                     } as ContentComponentInfo;
 
                     let stackedContentEmitInfos: ContentComponentInfo[] = [];
-
                     for (let stackedContent of content) {
-                        let stackedContentEmitInfo: ContentComponentInfo = {
-                            view: {
-                                className: getClassName(stackedContent.view.class),
-                                importPath: stackedContent.view.importPath,
-                            }
-                        } as ContentComponentInfo;
-                        if (stackedContent.data) {
-                            stackedContentEmitInfo.data = {
-                                className: getClassName(stackedContent.data.class),
-                                importPath: stackedContent.data.importPath,
-                            }
-                        }
-                        if (stackedContentEmitInfo.relations) {
-                            contentEmitInfo.relations = stackedContent.relations;
-                        }
-                        stackedContentEmitInfos.push(stackedContentEmitInfo);
+                        stackedContentEmitInfos.push(getContentEmitInfo(stackedContent, true));
                     }
                     contentEmitInfo.stack = stackedContentEmitInfos;
                     contentEmitInfos.push(contentEmitInfo);
                 }
                 else {
-                    let contentEmitInfo: ContentComponentInfo = {
-                        view: {
-                            className: getClassName(content.view.class),
-                            importPath: content.view.importPath,
-                        },
-                        isStatic: content.isStatic,
-                        region: region,
-                    }
-                    if (content.data) {
-                        contentEmitInfo.data = {
-                            className: getClassName(content.data.class),
-                            importPath: content.data.importPath,
-                        }
-                    }
-                    if (content.relations) {
-                        contentEmitInfo.relations = content.relations;
-                    }
-                    contentEmitInfos.push(contentEmitInfo);
+                    contentEmitInfos.push(getContentEmitInfo(content, false, region));
                 }
             }
 
@@ -702,6 +655,31 @@ export class Page {
             route: this.route,
             platforms: platformEmitInfo,
         });
+
+        function getContentEmitInfo(content: ContentViewModelClassAndImport, isStack: boolean, region?: string): ContentComponentInfo {
+            let contentEmitInfo: ContentComponentInfo = {
+                view: {
+                    className: getClassName(content.view.class),
+                    importPath: content.view.importPath,
+                },
+            } as ContentComponentInfo;
+
+            if (!isStack) {
+                contentEmitInfo.isStatic = content.isStatic;
+                contentEmitInfo.region = region;
+            }
+
+            if (content.data) {
+                contentEmitInfo.data = {
+                    className: getClassName(content.data.class),
+                    importPath: content.data.importPath,
+                }
+            }
+            if (content.relations) {
+                contentEmitInfo.relations = content.relations;
+            }
+            return contentEmitInfo;
+        }
     }
 
     private handlePageRequest(req: Request, res: Response, next: () => void): void {
@@ -788,7 +766,7 @@ export class Page {
                             resultContents[region] = content;
                         }
                         resultJSONScriptData.push({
-                            id: `bd-${region.toLowerCase()}-${(ContentData as any).name.toLowerCase()}`,
+                            id: `bd-${region.toLowerCase()}-${ContentData.name.toLowerCase()}`,
                             data: contentData.toData(),
                         });
 

@@ -5,7 +5,6 @@ declare function l(name: string, data: any): string;
 declare function requireLocalizations(locale: string): typeof l;
 (window as any).localizations = requireLocalizations(document.documentElement.getAttribute('lang'));
 
-
 import { Contents, } from '../Core/ServerComposer';
 import { Model, Collection, RequestInfo } from '../Library/DataStore';
 import ReactMod = require('../Library/Element');
@@ -264,7 +263,7 @@ export class Router {
 
         unmarkLoadFinished();
 
-        let fetch = (region: string, requestInfo: RequestInfo<any, any>, contentInfo: ComponentInfo, ContentData: new() => Model<any> | Collection<Model<any>>, ContentView: typeof ContentComponent, fetchData: boolean) => {
+        function fetch(region: string, requestInfo: RequestInfo<any, any>, contentInfo: ComponentInfo, ContentData: new() => Model<any> | Collection<Model<any>>, ContentView: typeof ContentComponent, fetchData: boolean) {
             expectedNumberOfFetches++;
 
             let ViewClass = this.pageComponents.Contents[contentInfo.view.className];
@@ -393,19 +392,7 @@ export class Router {
                 }
                 else {
                     data = new (ContentData as any)(providedProps, getCookie('userId'));
-                    afterFetch();
-                }
-
-                function afterFetch() {
-                    ViewClass.setPageInfo((window as any).localizations, pageInfo, data);
-
-                    let props = {
-                        l: (window as any).localizations,
-                        data,
-                    }
-                    newContents[region] = React.createElement(ViewClass, props, null);
-                    currentNumberOfFetches++;
-                    render();
+                    afterFetch(data);
                 }
             }
             else {
@@ -417,6 +404,18 @@ export class Router {
                     currentNumberOfFetches++;
                     render();
                 }, 0);
+            }
+
+            function afterFetch(data: Model<any> | Collection<Model<any>>) {
+                ViewClass.setPageInfo((window as any).localizations, pageInfo, data);
+
+                let props = {
+                    l: (window as any).localizations,
+                    data,
+                }
+                newContents[region] = React.createElement(ViewClass, props, null);
+                currentNumberOfFetches++;
+                render();
             }
         }
 

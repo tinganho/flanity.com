@@ -15,6 +15,7 @@ import { EmailVerificationView } from './Contents/EmailVerificationView';
 import { ForgotPasswordFormView } from './Contents/ForgotPasswordFormView';
 import { HeroView } from './Contents/HeroView';
 import { HomeContentView } from './Contents/HomeContentView';
+import { HomeContent } from './Contents/HomeContent';
 import { LandingPageTopBarView } from './Contents/LandingPageTopBarView';
 import { LogInFormView } from './Contents/LogInFormView';
 import { ResetPasswordFormView } from './Contents/ResetPasswordFormView';
@@ -87,6 +88,8 @@ export function init(app: Express) {
                     },
                     Body: [
                         {
+                            data: HomeContent,
+                            relations: ['posts', 'user'],
                             view: HomeContentView,
                         },
                     ],
