@@ -461,7 +461,9 @@ export class PostForm extends ContentComponent<Props, Text, Elements> {
 				let currentTextFormatting = textFormattings[textSelection.startTextFormattingNodeIndex];
                 const text = currentTextFormatting.getText();
 
-                // We want to be on the first column of the current line if we hold down the meta key.
+                // We want to be on the first column of the current line if we hold down the meta key or
+                // if we stand in the second column and hit backspace.
+                //
                 // And we don't want it to stop being in the current line if the current line is already
                 // empty.
                 if (((text.length === 1 && textSelection.startTextFormattingIndex === 1) || event.metaKey)
