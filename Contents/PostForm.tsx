@@ -205,7 +205,7 @@ export class PostForm extends ContentComponent<Props, Text, Elements> {
                     index++;
                 }
             }
-            moveCaretTo(index, position ? position : text ? text.length : 1);
+            moveCaretTo(index, typeof position === 'number' ? position : text ? text.length : 1);
         }
 
         function removeTextInSelection(textSelection: TextSelection) {
@@ -303,20 +303,7 @@ export class PostForm extends ContentComponent<Props, Text, Elements> {
                 char = charToHTMLEntity[char];
             }
             else if (event.keyCode === KeyCode.Return) {
-
-                // If we are in a total empty input we want to be in the second line when
-                // we hit enter.
-                if (textFormattings.length === 0) {
-                    for (let i = 0; i < 2; i++) {
-                        createNewLine(i);
-                        createFormatting(i, 0);
-                    }
-                }
-                else {
-                    const textSelection = getTextSelection();
-                    createNewLine(textSelection.currentLine);
-                    createFormatting(textSelection.currentLine + 1, 0);
-                }
+                addNewLine();
                 return;
             }
 
@@ -345,6 +332,34 @@ export class PostForm extends ContentComponent<Props, Text, Elements> {
             }
 
 			return;
+
+            function addNewLine() {
+
+                // If we are in a total empty input we want to be in the second line when
+                // we hit enter.
+                if (textFormattings.length === 0) {
+                    for (let i = 0; i < 2; i++) {
+                        createNewLine(i);
+                        createFormatting(i, 0);
+                    }
+                }
+                else {
+                    const textSelection = getTextSelection();
+                    const startNode = textFormattings[textSelection.startTextFormattingNodeIndex];
+                    const text = startNode.getText();
+                    if (textSelection.startTextFormattingIndex === text.length) {
+                        createNewLine(textSelection.currentLine);
+                        createFormatting(textSelection.currentLine + 1, 0);
+                    }
+                    else {
+				        const startText = text.slice(0, textSelection.startTextFormattingIndex);
+                        const endText = text.slice(textSelection.endTextFormattingIndex, text.length);
+                        startNode.setHTML(startText);
+                        createNewLine(textSelection.currentLine);
+                        createFormatting(textSelection.currentLine + 1, 0, endText, 0);
+                    }
+                }
+            }
 
 			function addChar() {
 
@@ -392,7 +407,6 @@ export class PostForm extends ContentComponent<Props, Text, Elements> {
                 textSelection.startTextFormattingIndex--;
                 if (textSelection.startTextFormattingNodeIndex === textSelection.endTextFormattingNodeIndex) {
                     textSelection.endTextFormattingIndex--;
-                    console.log(textSelection.endTextFormattingNodeIndex);
                 }
             }
 
@@ -410,7 +424,7 @@ export class PostForm extends ContentComponent<Props, Text, Elements> {
                     moveCaretTo(textSelection.startTextFormattingNodeIndex, textSelection.endTextFormattingIndex + textLines[0].length);
                 }
                 else {
-                    let newText = startText + textLines[0];
+                    const newText = startText + textLines[0];
                     startNode.setHTML(newText);
                 }
             }
@@ -450,7 +464,8 @@ export class PostForm extends ContentComponent<Props, Text, Elements> {
                 // We want to be on the first column of the current line if we hold down the meta key.
                 // And we don't want it to stop being in the current line if the current line is already
                 // empty.
-                if ((text.length === 1 || event.metaKey) && text.charCodeAt(0) !== ZeroWidthSpaceCode) {
+                if (((text.length === 1 && textSelection.startTextFormattingIndex === 1) || event.metaKey)
+                && text.charCodeAt(0) !== ZeroWidthSpaceCode) {
                     currentTextFormatting.setHTML(ZeroWidthSpaceText);
                     moveCaretTo(textSelection.startTextFormattingNodeIndex, 1);
                     event.preventDefault();
@@ -465,6 +480,18 @@ export class PostForm extends ContentComponent<Props, Text, Elements> {
                         const nextTextFormatting = textFormattings[nextTextFormattingNodeIndex];
                         moveCaretTo(nextTextFormattingNodeIndex, nextTextFormatting.getText().length);
                     }
+                    return;
+                }
+
+                if (textSelection.startTextFormattingIndex === 0 && text.length > 0 && textSelection.startTextFormattingNodeIndex > 0) {
+                    const previousFormattingNodeIndex = textSelection.startTextFormattingNodeIndex - 1;
+                    const previousFormatting = textFormattings[previousFormattingNodeIndex];
+                    const previousFormattingText = previousFormatting.getText();
+                    const newText = previousFormattingText + text;
+                    previousFormatting.setHTML(newText);
+                    moveCaretTo(previousFormattingNodeIndex, previousFormattingText.length);
+                    removeFormatting(currentTextFormatting);
+                    event.preventDefault();
                 }
             }
         });
