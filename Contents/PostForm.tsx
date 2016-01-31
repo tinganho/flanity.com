@@ -78,10 +78,23 @@ export class PostForm extends ContentComponent<Props, Text, Elements> {
 
         function getTextSelection() {
             const selection = window.getSelection();
-            const startTextFormattingNodeIndex = getTextFormattingNodeIndex(selection.focusNode);
-            const startTextFormattingIndex = selection.focusOffset;
-            const endTextFormattingNodeIndex = getTextFormattingNodeIndex(selection.anchorNode);
-            const endTextFormattingIndex = selection.anchorOffset;
+            let startTextFormattingNodeIndex: number;
+            let startTextFormattingIndex: number;
+            let endTextFormattingNodeIndex: number;
+            let endTextFormattingIndex: number;
+
+            if (selection.focusOffset < selection.anchorOffset) {
+                startTextFormattingNodeIndex = getTextFormattingNodeIndex(selection.focusNode);
+                startTextFormattingIndex = selection.focusOffset;
+                endTextFormattingNodeIndex = getTextFormattingNodeIndex(selection.anchorNode);
+                endTextFormattingIndex = selection.anchorOffset;
+            }
+            else {
+                startTextFormattingNodeIndex = getTextFormattingNodeIndex(selection.anchorNode);
+                startTextFormattingIndex = selection.anchorOffset;
+                endTextFormattingNodeIndex = getTextFormattingNodeIndex(selection.focusNode);
+                endTextFormattingIndex = selection.focusOffset;
+            }
 
             let isCaret = startTextFormattingNodeIndex === endTextFormattingNodeIndex &&
                 startTextFormattingIndex === endTextFormattingIndex;
@@ -151,7 +164,6 @@ export class PostForm extends ContentComponent<Props, Text, Elements> {
             const element = new DOMElement('div');
             element.addClass('TextFormattingLine');
             if (lines[line]) {
-                console.log(lines[line].element)
                 lines[line].element.insertAfter(element);
             }
             else {
@@ -372,7 +384,18 @@ export class PostForm extends ContentComponent<Props, Text, Elements> {
 			const textSelection = getTextSelection();
 			removeTextInSelection(textSelection);
 			const startNode = textFormattings[textSelection.startTextFormattingNodeIndex];
-            const text = startNode.getText();
+            let text = startNode.getText();
+
+            // We want to remove a zero width space character as soon as we can.
+            if (text.charCodeAt(0) === ZeroWidthSpaceCode) {
+                text = '';
+                textSelection.startTextFormattingIndex--;
+                if (textSelection.startTextFormattingNodeIndex === textSelection.endTextFormattingNodeIndex) {
+                    textSelection.endTextFormattingIndex--;
+                    console.log(textSelection.endTextFormattingNodeIndex);
+                }
+            }
+
             const startText = text.slice(0, textSelection.startTextFormattingIndex);
             const endText = text.slice(textSelection.endTextFormattingIndex, text.length);
             insertFirstTextSpanOnStartNode();
@@ -387,7 +410,7 @@ export class PostForm extends ContentComponent<Props, Text, Elements> {
                     moveCaretTo(textSelection.startTextFormattingNodeIndex, textSelection.endTextFormattingIndex + textLines[0].length);
                 }
                 else {
-                    const newText = startText + textLines[0];
+                    let newText = startText + textLines[0];
                     startNode.setHTML(newText);
                 }
             }
