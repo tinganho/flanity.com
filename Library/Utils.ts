@@ -416,14 +416,14 @@ export function map<T, U>(array: T[], f: (x: T) => U): U[]{
     return result;
 }
 
-export function extend<T1, T2>(first: T1, second: T2): Map<T1 & T2> {
+export function extend<T1, T2>(first: T1, second: T2): T1 & T2 {
     let result: any = {};
-    for (let id in first) {
-        result[id] = (first as any)[id];
+    for (let p in first) {
+        result[p] = (first as any)[p];
     }
-    for (let id in second) {
-        if (!hasProperty(result, id)) {
-            result[id] = (first as any)[id];
+    for (let p in second) {
+        if (!hasProperty(result, p)) {
+            result[p] = (second as any)[p];
         }
     }
     return result;

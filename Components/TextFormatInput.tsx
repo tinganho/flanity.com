@@ -1,7 +1,7 @@
 
 'use strict';
 
-import { React, ContentComponent, DOMElement, PageInfo, charToHTMLEntity } from '../Library/Index';
+import { React, ContentComponent, DOMElement, PageInfo, charToHTMLEntity, extend } from '../Library/Index';
 
 interface Props {
 }
@@ -22,13 +22,19 @@ export class TextFormatInput extends ContentComponent<Props, Text, Elements> {
     public bindDOM() {
         super.bindDOM();
 
-		interface TextSelection {
-			startTextFormatNodeIndex: number;
-			startTextFormatIndex: number;
-			endTextFormatNodeIndex: number;
-			endTextFormatIndex: number;
+        interface LineAndColumn {
             line: number;
             column: number;
+        }
+
+        interface SelectionPoint extends LineAndColumn {
+            index: number;
+            textFormat: DOMElement;
+        }
+
+		interface TextSelection {
+			start: SelectionPoint;
+            end: SelectionPoint;
             isCaret: boolean;
 		}
 
@@ -38,21 +44,20 @@ export class TextFormatInput extends ContentComponent<Props, Text, Elements> {
         }
 
         const ZeroWidthSpaceCode = 8203;
-        const ZeroWidthSpaceText = '&#8203;';
+        const zeroWidthSpaceText = '&#8203;';
 
         const enum KeyCode {
             Return = 13,
             BackSpace = 8,
+            Delete = 46,
         }
 
         const textInput = this.root;
 		let nativeTextInput = textInput.nativeElement as HTMLInputElement;
         let lines: TextLine[] = [];
-        let textFormats: DOMElement[] = [];
 
         function readLinesAndFormats() {
             lines = [];
-            textFormats = [];
             let textFormatLines = textInput.findAll('.TextFormatLine');
             for (let l of textFormatLines) {
                 let foundTextFormats =  l.findAll('.TextFormat, .UsernameTextFormat');
@@ -60,7 +65,6 @@ export class TextFormatInput extends ContentComponent<Props, Text, Elements> {
                     element: l,
                     formats: foundTextFormats,
                 });
-                textFormats = textFormats.concat(foundTextFormats);
             }
         }
 
@@ -70,52 +74,61 @@ export class TextFormatInput extends ContentComponent<Props, Text, Elements> {
 
         function getTextSelection(): TextSelection {
             const selection = window.getSelection();
-            let startTextFormatNodeIndex: number;
-            let startTextFormatIndex: number;
-            let endTextFormatNodeIndex: number;
-            let endTextFormatIndex: number;
+            let selectionStartNode: Node;
+            let selectionEndNode: Node;
+            let selectionStartIndex: number;
+            let selectionEndIndex: number;
 
-            if (selection.focusOffset < selection.anchorOffset) {
-                startTextFormatNodeIndex = getTextFormatNodeIndex(selection.focusNode);
-                startTextFormatIndex = selection.focusOffset;
-                endTextFormatNodeIndex = getTextFormatNodeIndex(selection.anchorNode);
-                endTextFormatIndex = selection.anchorOffset;
+            let selectionWasInDocumentOrder = false;
+            const anchorLineAndColumn = getLineAndColumn(selection.anchorNode);
+            const focusLineAndColumn = getLineAndColumn(selection.focusNode);
+            if (anchorLineAndColumn.line < focusLineAndColumn.line) {
+                selectionWasInDocumentOrder = true;
             }
-            else {
-                startTextFormatNodeIndex = getTextFormatNodeIndex(selection.anchorNode);
-                startTextFormatIndex = selection.anchorOffset;
-                endTextFormatNodeIndex = getTextFormatNodeIndex(selection.focusNode);
-                endTextFormatIndex = selection.focusOffset;
-            }
-
-            let isCaret = startTextFormatNodeIndex === endTextFormatNodeIndex &&
-                startTextFormatIndex === endTextFormatIndex;
-
-            let currentTextFormat = textFormats[startTextFormatNodeIndex];
-            let line = getLine(textFormats[startTextFormatNodeIndex]);
-
-            let column: number;
-            for (let i = 0, formats = lines[line].formats; i < formats.length; i++) {
-                if (formats[i] === currentTextFormat) {
-                    column = i;
+            else if (anchorLineAndColumn.line === focusLineAndColumn.line) {
+                if (selection.anchorOffset < selection.focusOffset) {
+                    selectionWasInDocumentOrder = true;
                 }
             }
 
+            if (selectionWasInDocumentOrder) {
+                selectionStartNode = selection.anchorNode;
+                selectionEndNode = selection.focusNode;
+                selectionStartIndex = selection.anchorOffset;
+                selectionEndIndex = selection.focusOffset;
+            }
+            else {
+                selectionStartNode = selection.focusNode;
+                selectionEndNode = selection.anchorNode;
+                selectionStartIndex = selection.focusOffset;
+                selectionEndIndex = selection.anchorOffset;
+            }
+
+            let isCaret = selectionStartNode === selectionEndNode &&
+                selectionStartIndex === selectionEndIndex;
+
             return {
-                startTextFormatNodeIndex,
-                startTextFormatIndex,
-                endTextFormatNodeIndex,
-                endTextFormatIndex,
-                line,
-                column,
+                start: extend(selectionWasInDocumentOrder ? anchorLineAndColumn : focusLineAndColumn, {
+                    index: selectionStartIndex,
+                    textFormat: new DOMElement(selectionStartNode.parentElement)
+                }),
+                end: extend(selectionWasInDocumentOrder ? focusLineAndColumn : anchorLineAndColumn, {
+                    index: selectionEndIndex,
+                    textFormat: new DOMElement(selectionEndNode.parentElement)
+                }),
                 isCaret,
             }
         }
 
-        function getTextFormatNodeIndex(node: Node) {
-            for (let i = 0; i < textFormats.length; i++) {
-                if (textFormats[i].nativeElement === node.parentElement) {
-                    return i;
+        function getLineAndColumn(node: Node): LineAndColumn {
+            for (let line = 0; line < lines.length; line++) {
+                for (let column = 0, formats = lines[line].formats; column < formats.length; column++) {
+                    if (formats[column].nativeElement === node.parentElement) {
+                        return {
+                            line,
+                            column,
+                        }
+                    }
                 }
             }
 
@@ -129,41 +142,60 @@ export class TextFormatInput extends ContentComponent<Props, Text, Elements> {
             }
         }
 
-        function moveCaretTo(nodeIndex: number, position: number) {
+        function moveCaretTo(line: number, column: number, index: number) {
             let range = document.createRange();
-            let textNodes = getTextNodes(nativeTextInput);
-            if (!textNodes[nodeIndex]) {
-                throw new TypeError(`Text node index '${nodeIndex}' not found in ${JSON.stringify(textNodes)}.` );
+            if (!lines[line].formats[column]) {
+                throw new TypeError(`Line '${line}' and column ${column} could not be found in ${JSON.stringify(lines, null, 4)}.` );
             }
-            range.setStart(textNodes[nodeIndex], position);
-            range.setEnd(textNodes[nodeIndex], position);
+            let textNode = getTextNode(lines[line].formats[column]);
+            range.setStart(textNode, index);
+            range.setEnd(textNode, index);
             let selection = window.getSelection();
             selection.removeAllRanges();
             selection.addRange(range);
         }
 
-        function getTextNodes(node: Node) {
-            let textNodes: Node[] = [];
-            if (node.nodeType == 3) {
-                textNodes.push(node);
-            }
-            else {
-                const children = node.childNodes;
-                for (let i = 0, len = children.length; i < len; ++i) {
-                    textNodes.push.apply(textNodes, getTextNodes(children[i]));
-                }
-            }
-            return textNodes;
-        }
-
-        function removeFormat(format: DOMElement) {
-            let lineElement = format.getParentElement();
+        function removeTextFormat(textFormat: DOMElement) {
+            let lineElement = textFormat.getParentElement();
             if (lineElement.getChildren().length === 1) {
                 lineElement.remove();
             }
             else {
-                format.remove();
+                textFormat.remove();
             }
+
+            outer:
+            for (let line = 0; line < lines.length; line++) {
+                for (let column = 0, formats = lines[line].formats; column < formats.length; column++) {
+                    if (formats[column].nativeElement === textFormat.nativeElement) {
+                        formats.splice(column, 1);
+                        if (formats.length === 0) {
+                            lines.splice(line, 1);
+                        }
+                        break outer;
+                    }
+                }
+            }
+        }
+
+        function getTextFormatAfter(node: DOMElement) {
+            let foundCurrent = false;
+            for (let line = 0; line < lines.length; line++) {
+                for (let column = 0, formats = lines[line].formats; column < formats.length; column++) {
+                    if (foundCurrent) {
+                        return lines[line].formats[column];
+                    }
+                    if (node.nativeElement === lines[line].formats[column].nativeElement) {
+                        foundCurrent = true;
+                    }
+                }
+            }
+
+            return undefined;
+        }
+
+        function getTextNode(textFormat: DOMElement): Node {
+            return textFormat.nativeElement.firstChild;
         }
 
         function createNewLineAfterLine(afterLine: number) {
@@ -181,14 +213,14 @@ export class TextFormatInput extends ContentComponent<Props, Text, Elements> {
             });
         }
 
-        function createNormalTextFormat(line: number, column: number, text?: string, position?: number) {
+        function createNormalTextFormat(line: number, column: number, text?: string, index?: number) {
             let { textFormat, textFormatIndex } = createTextFormat(line, column, text, 'TextFormat');
-            moveCaretTo(textFormatIndex, typeof position === 'number' ? position : text ? text.length : 1);
+            moveCaretTo(line, column, typeof index === 'number' ? index : text ? text.length : 1);
         }
 
-        function createUsernameTextFormat(line: number, column: number, text?: string, position?: number) {
+        function createUsernameTextFormat(line: number, column: number, text?: string, index?: number) {
             let { textFormat, textFormatIndex } = createTextFormat(line, column, text, 'UsernameTextFormat');
-            moveCaretTo(textFormatIndex, typeof position === 'number' ? position : text ? text.length : 1);
+            moveCaretTo(line, column, typeof index === 'number' ? index : text ? text.length : 1);
         }
 
         function createTextFormat(line: number, column: number, text: string, cssClass: string): { textFormat: DOMElement, textFormatIndex: number} {
@@ -200,7 +232,7 @@ export class TextFormatInput extends ContentComponent<Props, Text, Elements> {
             }
             // '&#8203;' is a zero width space character to create a text node.
             // A text node would not be created with empty text ''.
-            textFormat.setHTML(text || ZeroWidthSpaceText);
+            textFormat.setHTML(text || zeroWidthSpaceText);
             if (!lines[line].formats[column]) {
                 lines[line].element.append(textFormat);
             }
@@ -211,97 +243,67 @@ export class TextFormatInput extends ContentComponent<Props, Text, Elements> {
 
             let index = 0;
 
-            outer:
-            for (let lI = 0; lI < lines.length; lI++) {
-                if (lines[lI].formats.length === 0 && column === 0) {
-                    textFormats.splice(index, 0, textFormat);
-                    break;
-                }
-                for (let fI = 0; fI < lines[lI].formats.length; fI++) {
-                    if (line === lI && fI === column) {
-                        textFormats.splice(index + 1, 0, textFormat);
-                        break outer;
-                    }
-                    index++;
-                }
-            }
-
             return { textFormat, textFormatIndex: index };
         }
 
-        function removeTextInSelection(textSelection: TextSelection) {
-            if (textSelection.startTextFormatNodeIndex === textSelection.endTextFormatNodeIndex) {
-                const textFormat = textFormats[textSelection.startTextFormatNodeIndex];
-                const text = textFormat.getText();
-                const startText = text.slice(0, textSelection.startTextFormatIndex);
-                const endText = text.slice(textSelection.endTextFormatIndex, text.length);
-                textFormat.setHTML(startText + endText);
-            }
-            else {
-                for (let i = textSelection.startTextFormatNodeIndex + 1; i < textSelection.endTextFormatNodeIndex; i++) {
-                    const textFormat = textFormats[i];
-                    removeFormat(textFormat);
-                    textFormats.splice(i, 1);
-
-                    const lineIndex = getLine(textFormat);
-                    let line = lines[lineIndex];
-                    for (let fI = 0; fI < line.formats.length; fI++) {
-                        if (line.formats[fI] === textFormat) {
-                            line.formats.splice(fI, 1);
-                            break;
-                        }
-                    }
-                    if (line.formats.length === 0) {
-                        lines.splice(lineIndex, 1);
-                    }
-                }
-
-                removeStartNodesText();
-                insertEndNodesTextInStartNodeAndRemoveEndNode();
-            }
-            textSelection.endTextFormatIndex = textSelection.startTextFormatIndex;
-            textSelection.endTextFormatNodeIndex = textSelection.startTextFormatNodeIndex;
-
-            function removeStartNodesText() {
-                const textFormat = textFormats[textSelection.startTextFormatNodeIndex];
-                const text = textFormat.getText();
-                const newText = text.slice(0, textSelection.startTextFormatIndex);
-                textFormat.setHTML(newText);
-            }
-
-            function insertEndNodesTextInStartNodeAndRemoveEndNode() {
-                const startTextFormat = textFormats[textSelection.startTextFormatNodeIndex];
-
-                // We have removed intermediate nodes so end node is just one after start node
-                const endTextFormat = textFormats[textSelection.startTextFormatNodeIndex + 1];
-                const text = endTextFormat.getText();
-                const newText = text.slice(textSelection.endTextFormatIndex, text.length);
-                startTextFormat.setHTML(startTextFormat.getText() + newText);
-                removeFormat(endTextFormat);
-                textFormats.splice(textSelection.endTextFormatNodeIndex, 1);
-
-
-                let lineIndex = getLine(endTextFormat);
-                let line = lines[lineIndex];
-                for (let fI = 0; fI < line.formats.length; fI++) {
-                    if (line.formats[fI] === endTextFormat) {
-                        line.formats.splice(fI, 1);
-                        break;
-                    }
-                }
-                if (line.formats.length === 0) {
-                    lines.splice(lineIndex, 1);
-                }
-            }
+        function getStartSelectionNode(textSelection: TextSelection): DOMElement {
+            return lines[textSelection.start.line].formats[textSelection.start.column];
         }
 
-        function getLine(textFormat: DOMElement): number {
-            for (let lI = 0; lI < lines.length; lI++) {
-                for (let fI = 0; fI < lines[lI].formats.length; fI++) {
-                    if (lines[lI].formats[fI] === textFormat) {
-                        return lI;
+        function removeTextInSelection(textSelection: TextSelection) {
+
+            if (textSelection.start.line === textSelection.end.line &&
+                textSelection.start.column === textSelection.end.column) {
+
+                const startTextFormat = textSelection.start.textFormat;
+                const text = startTextFormat.getText();
+                const startText = text.slice(0, textSelection.start.index);
+                const endText = text.slice(textSelection.end.index, text.length);
+                startTextFormat.setHTML(startText + endText);
+            }
+            else {
+                let startLine = textSelection.start.line;
+                let startColumn = textSelection.start.column + 1;
+                if (!lines[startLine].formats[startColumn]) {
+                    startLine = startLine + 1;
+                    let nextTextFormats = lines[startLine].formats;
+                    startColumn = 0;
+                    nextTextFormats[startColumn];
+                }
+
+                outer:
+                for (let line = startLine; line < lines.length; line++) {
+                    for (let column = startColumn, formats = lines[line].formats; column < formats.length; column++) {
+                        if (line === textSelection.end.line && column === textSelection.end.column) {
+                            break outer;
+                        }
+                        const intermediateTextFormats = formats[column];
+                        removeTextFormat(intermediateTextFormats);
                     }
                 }
+
+                rewriteStartTextFormatText();
+                insertEndNodesTextInstartTextFormatAndRemoveEndNode();
+            }
+            textSelection.end.index = textSelection.start.index;
+            textSelection.end.column = textSelection.start.column;
+
+            function rewriteStartTextFormatText() {
+                const startTextFormat = textSelection.start.textFormat;
+                const text = startTextFormat.getText();
+                const newText = text.slice(0, textSelection.start.index);
+                startTextFormat.setHTML(newText);
+            }
+
+            function insertEndNodesTextInstartTextFormatAndRemoveEndNode() {
+                const startTextFormat = textSelection.start.textFormat;
+
+                // We have removed intermediate nodes so end node is just one after start node.
+                const endTextFormat = getTextFormatAfter(startTextFormat);
+                const text = endTextFormat.getText();
+                const newText = text.slice(textSelection.end.index, text.length);
+                startTextFormat.setHTML(startTextFormat.getText() + newText);
+                removeTextFormat(endTextFormat);
             }
         }
 
@@ -333,7 +335,7 @@ export class TextFormatInput extends ContentComponent<Props, Text, Elements> {
                 createNewLineAfterLine(-1);
             }
 
-			if (textFormats.length === 0) {
+			if (lines[0].formats.length === 0) {
                 if (char === '@') {
                     createUsernameTextFormat(0, 0, char);
                 }
@@ -347,11 +349,11 @@ export class TextFormatInput extends ContentComponent<Props, Text, Elements> {
 			removeTextInSelection(textSelection);
             if(char === '@') {
                 inUsernameInputMode = true;
-                createUsernameTextFormat(textSelection.line, textSelection.column + 1, char);
+                createUsernameTextFormat(textSelection.start.line, textSelection.start.column + 1, char);
                 return;
             }
-            const currentTextFormat = textFormats[textSelection.startTextFormatNodeIndex];
-            let text = currentTextFormat.getText();
+            const startTextFormat = textSelection.start.textFormat;
+            let text = startTextFormat.getText();
             if (text.charCodeAt(0) === ZeroWidthSpaceCode) {
 
                 // We don't want to hit backspace on a zero width space character. So we will remove
@@ -360,11 +362,11 @@ export class TextFormatInput extends ContentComponent<Props, Text, Elements> {
                 text = '';
 
                 addChar();
-                moveCaretTo(textSelection.startTextFormatNodeIndex, textSelection.startTextFormatIndex);
+                moveCaretTo(textSelection.start.line, textSelection.start.column, textSelection.start.index);
             }
             else {
                 addChar();
-                moveCaretTo(textSelection.startTextFormatNodeIndex, textSelection.startTextFormatIndex + 1);
+                moveCaretTo(textSelection.start.line, textSelection.start.column, textSelection.start.index + 1);
             }
 
 			return;
@@ -373,44 +375,35 @@ export class TextFormatInput extends ContentComponent<Props, Text, Elements> {
 
                 // If we are in a total empty input we want to be in the second line when
                 // we hit enter.
-                if (textFormats.length === 0) {
-                    for (let i = -1; i < 2; i++) {
+                if (lines.length === 0 || lines[0].formats.length === 0) {
+                    for (let i = -1; i < 1; i++) {
                         createNewLineAfterLine(i);
-                        createNormalTextFormat(i + 1, -1);
+                        createNormalTextFormat(i + 1, 0);
                     }
                 }
                 else {
                     const textSelection = getTextSelection();
-                    const startNode = textFormats[textSelection.startTextFormatNodeIndex];
-                    const text = startNode.getText();
-                    if (textSelection.startTextFormatIndex === text.length) {
-                        createNewLineAfterLine(textSelection.line);
-                        createNormalTextFormat(textSelection.line + 1, 0);
+                    const startTextFormat = textSelection.start.textFormat;
+                    const text = startTextFormat.getText();
+                    if (textSelection.start.index === text.length) {
+                        createNewLineAfterLine(textSelection.start.line);
+                        createNormalTextFormat(textSelection.start.line + 1, 0);
                     }
                     else {
-				        const startText = text.slice(0, textSelection.startTextFormatIndex);
-                        const endText = text.slice(textSelection.endTextFormatIndex, text.length);
-                        startNode.setHTML(startText !== '' ? startText : ZeroWidthSpaceText);
-                        createNewLineAfterLine(textSelection.line);
-                        createNormalTextFormat(textSelection.line + 1, 0, endText, 0);
+				        const startText = text.slice(0, textSelection.start.index);
+                        const endText = text.slice(textSelection.end.index, text.length);
+                        startTextFormat.setHTML(startText !== '' ? startText : zeroWidthSpaceText);
+                        createNewLineAfterLine(textSelection.start.line);
+                        createNormalTextFormat(textSelection.start.line + 1, 0, endText, 0);
                     }
                 }
             }
 
 			function addChar() {
-				const startText = text.slice(0, textSelection.startTextFormatIndex);
-				const endText = text.slice(textSelection.startTextFormatIndex, text.length);
+				const startText = text.slice(0, textSelection.start.index);
+				const endText = text.slice(textSelection.start.index, text.length);
 				const newText =  startText + char + endText;
-                if (newText.length === 0) {
-				    currentTextFormat.remove();
-                    let lineElement = currentTextFormat.getParentElement();
-                    if (lineElement.getChildren().length === 0) {
-                        lineElement.remove();
-                    }
-                }
-                else {
-				    currentTextFormat.setHTML(newText);
-                }
+				startTextFormat.setHTML(newText);
 			}
         });
 
@@ -419,7 +412,7 @@ export class TextFormatInput extends ContentComponent<Props, Text, Elements> {
 
             let textLines = event.clipboardData.getData('text').split('\n');
 
-            if (textFormats.length === 0) {
+            if (lines.length === 0 || lines[0].formats.length === 0) {
                 createNewLineAfterLine(0);
                 createNormalTextFormat(0, 0, textLines[0]);
                 return;
@@ -427,40 +420,41 @@ export class TextFormatInput extends ContentComponent<Props, Text, Elements> {
 
 			const textSelection = getTextSelection();
 			removeTextInSelection(textSelection);
-			const startNode = textFormats[textSelection.startTextFormatNodeIndex];
-            let text = startNode.getText();
+			const startTextFormat = textSelection.start.textFormat;
+            let text = startTextFormat.getText();
 
             // We want to remove a zero width space character as soon as we can.
             if (text.charCodeAt(0) === ZeroWidthSpaceCode) {
                 text = '';
-                textSelection.startTextFormatIndex--;
-                if (textSelection.startTextFormatNodeIndex === textSelection.endTextFormatNodeIndex) {
-                    textSelection.endTextFormatIndex--;
+                textSelection.start.index--;
+                if (textSelection.start.line === textSelection.end.line
+                && textSelection.start.column === textSelection.end.column) {
+                    textSelection.end.index--;
                 }
             }
 
-            const startText = text.slice(0, textSelection.startTextFormatIndex);
-            const endText = text.slice(textSelection.endTextFormatIndex, text.length);
-            insertFirstTextSpanOnStartNode();
+            const startText = text.slice(0, textSelection.start.index);
+            const endText = text.slice(textSelection.end.index, text.length);
+            insertFirstTextSpanOnstartTextFormat();
             if (textLines.length > 1) {
                 insertLines();
             }
 
-            function insertFirstTextSpanOnStartNode() {
+            function insertFirstTextSpanOnstartTextFormat() {
                 if (textLines.length === 1) {
                     const newText = startText + textLines[0] + endText;
-                    startNode.setHTML(newText);
-                    moveCaretTo(textSelection.startTextFormatNodeIndex, textSelection.endTextFormatIndex + textLines[0].length);
+                    startTextFormat.setHTML(newText);
+                    moveCaretTo(textSelection.start.line, textSelection.start.column, textSelection.end.index + textLines[0].length);
                 }
                 else {
                     const newText = startText + textLines[0];
-                    startNode.setHTML(newText);
+                    startTextFormat.setHTML(newText);
                 }
             }
 
             function insertLines() {
                 for (let i = 1; i < textLines.length; i++) {
-                    let line = textSelection.line + i;
+                    let line = textSelection.start.line + i;
                     createNewLineAfterLine(line);
                     if (i === textLines.length - 1) {
                         createNormalTextFormat(line, 0, textLines[i] + endText, textLines[i].length);
@@ -481,52 +475,77 @@ export class TextFormatInput extends ContentComponent<Props, Text, Elements> {
             // The browser inserts <br> when we empty a text node.
             removeLineBreak();
 
-            if (textFormats.length === 0) {
+            if (lines.length === 0 || lines[0].formats.length === 0) {
                 return;
             }
 
 			const textSelection = getTextSelection();
+			const startTextFormat = textSelection.start.textFormat;
+            const text = startTextFormat.getText();
             if (event.keyCode === KeyCode.BackSpace) {
-				let currentTextFormat = textFormats[textSelection.startTextFormatNodeIndex];
-                const text = currentTextFormat.getText();
 
                 // We want to be on the first column of the current line if we hold down the meta key or
                 // if we stand in the second column and hit backspace.
                 //
                 // And we don't want it to stop being in the current line if the current line is already
                 // empty.
-                if (((text.length === 1 && textSelection.startTextFormatIndex === 1) || event.metaKey)
-                && text.charCodeAt(0) !== ZeroWidthSpaceCode) {
-                    currentTextFormat.setHTML(ZeroWidthSpaceText);
-                    moveCaretTo(textSelection.startTextFormatNodeIndex, 1);
+                if (((text.length === 1 && textSelection.start.index === 1) || event.metaKey) &&
+                    text.charCodeAt(0) !== ZeroWidthSpaceCode) {
+
+                    startTextFormat.setHTML(zeroWidthSpaceText);
+                    moveCaretTo(textSelection.start.line, textSelection.start.column, 1);
                     event.preventDefault();
                     return;
                 }
 
                 if (text.charCodeAt(0) === ZeroWidthSpaceCode || text.length === 0) {
-                    removeFormat(currentTextFormat);
-                    const nextTextFormatNodeIndex = textSelection.startTextFormatNodeIndex - 1;
-                    if (nextTextFormatNodeIndex >= 0) {
+                    let { line, column, previousFormat } = getLineColumnAndPreviousTextFormat();
+                    removeTextFormat(startTextFormat);
+                    if (previousFormat) {
                         event.preventDefault();
-                        const nextTextFormat = textFormats[nextTextFormatNodeIndex];
-                        moveCaretTo(nextTextFormatNodeIndex, nextTextFormat.getText().length);
+                        moveCaretTo(line, column, previousFormat.getText().length);
                     }
                     return;
                 }
 
-                if (textSelection.startTextFormatIndex === 0 && text.length > 0 && textSelection.startTextFormatNodeIndex > 0) {
-                    const previousFormatNodeIndex = textSelection.startTextFormatNodeIndex - 1;
-                    const previousFormat = textFormats[previousFormatNodeIndex];
+                if (textSelection.start.index === 0 &&
+                    text.length > 0 &&
+                    !(textSelection.start.line === 0 && textSelection.start.column === 0)) {
+
+                    let { line, column, previousFormat } = getLineColumnAndPreviousTextFormat();
                     let previousFormatText = previousFormat.getText();
                     if (previousFormatText.charCodeAt(0) === ZeroWidthSpaceCode) {
                         previousFormatText = '';
                     }
                     const newText = previousFormatText + text;
                     previousFormat.setHTML(newText);
-                    moveCaretTo(previousFormatNodeIndex, previousFormatText.length);
-                    removeFormat(currentTextFormat);
+                    moveCaretTo(line, column, previousFormatText.length);
+                    removeTextFormat(startTextFormat);
                     event.preventDefault();
                 }
+            }
+            else if (event.keyCode === KeyCode.Delete) {
+
+                // If we hit delete and there is only one character left, we want to insert a zero width character.
+                if (textSelection.start.index === 0 && text.length === 1) {
+                    const startTextFormat = textSelection.start.textFormat;
+                    startTextFormat.setHTML(zeroWidthSpaceText);
+                    event.preventDefault();
+                }
+            }
+
+            function getLineColumnAndPreviousTextFormat(): { line: number, column: number, previousFormat: DOMElement } {
+                let { line, column } = textSelection.start;
+                column = column - 1;
+                let previousFormat = lines[line].formats[column];
+                if (!previousFormat) {
+                    line = line - 1;
+                    let previousFormats = lines[line].formats;
+                    column = previousFormats.length - 1;
+                    previousFormat = previousFormats[column];
+                }
+
+                return { line, column, previousFormat };
             }
         });
     }
