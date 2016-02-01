@@ -1,5 +1,4 @@
 
-
 #PostForm {
     width: 100%;
     @include display-flex;
@@ -22,14 +21,4 @@
     min-height: 40px;
     border-bottom: 1px solid #F6F6F6;
     border-top: 1px solid #F6F6F6;
-}
-
-#PostFormTextInput {
-    padding: 10px 0 10px 5px;
-    outline: none;
-    color: #000;
-    font-weight: 200;
-    font-size: 12px;
-    width: 480px;
-    word-wrap: break-word;
 }
