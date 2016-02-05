@@ -1,9 +1,14 @@
 
 #TopicsView {
-    position: relative;
+    position: absolute;
+    bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     padding: 0 100px;
     overflow: hidden;
     height: 100%;
+    z-index: 1;
     @include display-flex;
     @include flex-direction(column);
     @include justify-content(flex-start);

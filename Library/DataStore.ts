@@ -2,13 +2,7 @@
 'use strict';
 
 import { HTTP, HTTPOptions, ModelResponse, CollectionResponse } from './HTTP';
-import { isArray, extend, deepEqual, clone, autobind } from './Utils';
-
-type Callback = (...args: any[]) => any;
-
-interface EventCallbackStore {
-    [event: string]: Callback[];
-}
+import { isArray, extend, deepEqual, clone, autobind, EventEmitter } from './Utils';
 
 interface Map { [index: string]: string; }
 
@@ -22,34 +16,6 @@ export interface RequestInfo<P, Q> {
     params: P;
     query: Q;
     cookies?: Cookies;
-}
-
-class DataEventEmitter {
-    public eventCallbackStore: EventCallbackStore = {}
-
-    public on(event: string, callback: Callback) {
-        if (!this.eventCallbackStore[event]) {
-            this.eventCallbackStore[event] = [];
-        }
-        this.eventCallbackStore[event].push(callback);
-    }
-
-    public off(event: string, callback: Callback): void {
-        let callbacks = this.eventCallbackStore[event].length;
-        for (let i = 0;i < callback.length; i++) {
-            if (this.eventCallbackStore[event][i] === callback) {
-                this.eventCallbackStore[event].splice(i, 1);
-            }
-        }
-    }
-
-    public emit(event: string, args: any[]) {
-        if (this.eventCallbackStore[event]) {
-            for (let callback of this.eventCallbackStore[event]) {
-                callback(args);
-            }
-        }
-    }
 }
 
 export const enum RelationType {
@@ -69,7 +35,7 @@ export interface ModelRelations {
     [property: string]: ModelRelation;
 }
 
-export abstract class DataStore extends DataEventEmitter {
+export abstract class DataStore extends EventEmitter {
     public HTTPSaveOptions: HTTPOptions;
     public HTTPFetchOptions: HTTPOptions;
     public HTTPDeleteOptions: HTTPOptions;
@@ -413,8 +379,8 @@ export abstract class Model<P> extends DataStore {
             let modelName = constructor.name.toLowerCase();
             if (this._isNew) {
                 let URL: string;
-                if (constructor.URL) {
-                    URL = constructor.URL;
+                if (constructor._URL) {
+                    URL = constructor._URL;
                 }
                 else {
                     URL = '/' + modelName + 's';

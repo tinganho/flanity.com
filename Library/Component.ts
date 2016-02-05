@@ -1,12 +1,8 @@
 
-import {
-    React,
-    extend,
-    getInstantiatedComponents,
-    DOMElement,
-    Model,
-    Collection,
-    autobind } from '../Library/Index';
+import { React, getInstantiatedComponents } from './Element'
+import { DOMElement } from './DOMElement';
+import { Model, Collection } from './DataStore';
+import { extend, autobind, EventEmitter } from './Utils';
 
 export interface Props {
     id?: string | number;
@@ -48,9 +44,9 @@ export interface Component {
     unbindData(): void;
 }
 
-export abstract class Component<P, T, E> {
+export abstract class Component<P, T, E> extends EventEmitter {
     private removeHooks: Hook[] = [];
-    private hooks: Hooks = {};
+    protected hooks: Hooks = {};
     private boundOnDataChange: any;
 
     /**
@@ -110,9 +106,10 @@ export abstract class Component<P, T, E> {
     public lastRenderId: number;
 
     constructor(
-        props?: P & { data?: Model<any> | Collection<Model<any>> },
+        props?: P & { data?: Model<any> | Collection<Model<any>>, l?: GetLocalization },
         children?: Child[]) {
 
+        super();
         this.props = extend(props as any, {}) as P & { data:  Model<any> | Collection<Model<any>> };
 
         this.children = children;
@@ -423,13 +420,6 @@ export abstract class Component<P, T, E> {
         }
     }
 
-    public on(event: string, callback: (...args: any[]) => void): void {
-        if (!this.hooks[event]) {
-            this.hooks[event] = [];
-        }
-        this.hooks[event].push(callback);
-    }
-
     public remove(): void {
         if (this.data && this.data.eventCallbackStore && this.data.eventCallbackStore['change']) {
             this.data.eventCallbackStore['change'].forEach((hook, index) => {
@@ -438,6 +428,7 @@ export abstract class Component<P, T, E> {
                 }
             });
         }
+        this.eventCallbackStore = {};
         this.root.remove();
     }
 }

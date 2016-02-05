@@ -1,7 +1,6 @@
 
 #PostForm {
     width: 100%;
-    @include display-flex;
 }
 
 #PostFormProfileImage {
@@ -13,7 +12,8 @@
 
 #PostFormForm {
     background-color: #fff;
-    @include flex-grow(2);
+    width: 500px;
+    float: right;
 }
 
 #PostFormInputContainer {

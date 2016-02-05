@@ -195,16 +195,16 @@ function computeLineStarts(text: string): number[] {
     while (pos < text.length) {
        let ch = text.charCodeAt(pos++);
        switch (ch) {
-            case CharacterCodes.carriageReturn:
-                if (text.charCodeAt(pos) === CharacterCodes.lineFeed) {
+            case CharCode.CarriageReturn:
+                if (text.charCodeAt(pos) === CharCode.LineFeed) {
                     pos++;
                 }
-            case CharacterCodes.lineFeed:
+            case CharCode.LineFeed:
                 result.push(lineStart);
                 lineStart = pos;
                 break;
             default:
-                if (ch > CharacterCodes.maxAsciiCharacter && isLineBreak(ch)) {
+                if (ch > CharCode.MaxAsciiCharacter && isLineBreak(ch)) {
                     result.push(lineStart);
                     lineStart = pos;
                 }
@@ -227,10 +227,10 @@ export function isLineBreak(ch: number): boolean {
     // Only the characters in Table 3 are treated as line terminators. Other new line or line
     // breaking characters are treated as white space but not as line terminators.
 
-    return ch === CharacterCodes.lineFeed ||
-        ch === CharacterCodes.carriageReturn ||
-        ch === CharacterCodes.lineSeparator ||
-        ch === CharacterCodes.paragraphSeparator;
+    return ch === CharCode.LineFeed ||
+        ch === CharCode.CarriageReturn ||
+        ch === CharCode.LineSeparator ||
+        ch === CharCode.ParagraphSeparator;
 }
 
 /**
@@ -244,35 +244,45 @@ export function lastOrUndefined<T>(array: T[]): T {
     return array[array.length - 1];
 }
 
-export const enum CharacterCodes {
-    nullCharacter = 0,
-    maxAsciiCharacter = 0x7F,
+export const enum KeyCode {
+    Return = 13,
+    BackSpace = 8,
+    Delete = 46,
+    UpArrow = 38,
+    DownArrow = 40,
+    LeftArrow = 37,
+    RightArrow = 39,
+}
 
-    lineFeed = 0x0A,              // \n
-    carriageReturn = 0x0D,        // \r
-    lineSeparator = 0x2028,
-    paragraphSeparator = 0x2029,
-    nextLine = 0x0085,
+export const enum CharCode {
+    NullCharacter = 0,
+    MaxAsciiCharacter = 0x7F,
+
+    LineFeed = 0x0A,              // \n
+    CarriageReturn = 0x0D,        // \r
+    LineSeparator = 0x2028,
+    ParagraphSeparator = 0x2029,
+    NextLine = 0x0085,
 
     // Unicode 3.0 space characters
-    space = 0x0020,   // " "
-    nonBreakingSpace = 0x00A0,   //
-    enQuad = 0x2000,
-    emQuad = 0x2001,
-    enSpace = 0x2002,
-    emSpace = 0x2003,
-    threePerEmSpace = 0x2004,
-    fourPerEmSpace = 0x2005,
-    sixPerEmSpace = 0x2006,
-    figureSpace = 0x2007,
-    punctuationSpace = 0x2008,
-    thinSpace = 0x2009,
-    hairSpace = 0x200A,
-    zeroWidthSpace = 0x200B,
-    narrowNoBreakSpace = 0x202F,
-    ideographicSpace = 0x3000,
-    mathematicalSpace = 0x205F,
-    ogham = 0x1680,
+    Space = 0x0020,   // " "
+    NonBreakingSpace = 0x00A0,   //
+    EnQuad = 0x2000,
+    EmQuad = 0x2001,
+    EnSpace = 0x2002,
+    EmSpace = 0x2003,
+    ThreePerEmSpace = 0x2004,
+    FourPerEmSpace = 0x2005,
+    SixPerEmSpace = 0x2006,
+    FigureSpace = 0x2007,
+    PunctuationSpace = 0x2008,
+    ThinSpace = 0x2009,
+    HairSpace = 0x200A,
+    ZeroWidthSpace = 0x200B,
+    NarrowNoBreakSpace = 0x202F,
+    IdeographicSpace = 0x3000,
+    MathematicalSpace = 0x205F,
+    Ogham = 0x1680,
 
     _ = 0x5F,
     $ = 0x24,
@@ -435,7 +445,6 @@ export function clone<T>(x: T): T {
 
 export const charToHTMLEntity: { [index: string]: string; } = {
     '&': '&amp;',
-    ' ': '&nbsp;',
     '"': '&quot;',
     '\\': '&#39;',
     '<': '&lt;',
@@ -520,4 +529,38 @@ export function deepEqual(x: any, y: any) {
 
 export function toCamelCase(text: string): string {
     return text[0].toLowerCase() + text.substring(1);
+}
+
+type Callback = (...args: any[]) => any;
+
+interface EventCallbackStore {
+    [event: string]: Callback[];
+}
+
+export class EventEmitter {
+    public eventCallbackStore: EventCallbackStore = {}
+
+    public on(event: string, callback: Callback) {
+        if (!this.eventCallbackStore[event]) {
+            this.eventCallbackStore[event] = [];
+        }
+        this.eventCallbackStore[event].push(callback);
+    }
+
+    public off(event: string, callback: Callback): void {
+        let callbacks = this.eventCallbackStore[event].length;
+        for (let i = 0;i < callback.length; i++) {
+            if (this.eventCallbackStore[event][i] === callback) {
+                this.eventCallbackStore[event].splice(i, 1);
+            }
+        }
+    }
+
+    public emit(event: string, args: any[]) {
+        if (this.eventCallbackStore[event]) {
+            for (let callback of this.eventCallbackStore[event]) {
+                callback.apply(null, args);
+            }
+        }
+    }
 }

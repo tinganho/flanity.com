@@ -153,7 +153,7 @@ export class DOMElement implements DOMElement {
     }
 
     private getNativeElement(element: DOMElement | JSX.Element | Node): Node {
-        if ((element as DOMElement).insertBefore){
+        if ((element as DOMElement).getFirstChildElement){
             return (element as DOMElement).nativeElement;
         }
         else if ((element as JSX.Element).resetComponent) {

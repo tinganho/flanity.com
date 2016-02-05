@@ -23,4 +23,12 @@ interface Props {
 })
 @Model.noServer
 export class HomeContent extends Model<Props> {
+    public findUsers(query: string) {
+        HTTP.get('/users', {
+                query,
+            })
+            .then((response) => {
+                console.log(response);
+            })
+    }
 }

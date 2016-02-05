@@ -119,6 +119,8 @@ export function init(app: Express) {
                     },
                     Body: [
                         {
+                            data: HomeContent,
+                            relations: ['posts', 'user'],
                             view: HomeContentView,
                         },
                         {

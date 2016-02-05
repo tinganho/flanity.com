@@ -21,7 +21,7 @@ module.exports = function(grunt) {
             '--rootDir', '.',
             '--jsx', 'react',
             '--removeComments',
-            '--sourceMap',
+            // '--inlineSourceMap',
         ];
 
         console.log(cmd, options.join(' '));

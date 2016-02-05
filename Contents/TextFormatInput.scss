@@ -1,0 +1,62 @@
+
+.TextFormatInput {
+    position: relative;
+    color: #000;
+    font-weight: 200;
+    width: 480px;
+}
+
+.TextFormatInputContentEditable {
+    position: relative;
+    outline: none;
+    padding: 10px 0 10px 5px;
+    word-wrap: break-word;
+    font-size: 12px;
+}
+
+.UsernameTextFormat {
+    color: #2B86CB;
+    font-weight: 500;
+}
+
+.UserCompletionListContainer {
+    position: absolute;
+    box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2);
+    width: 200px;
+}
+
+.UserCompletionListLoadingViewDescription,
+.UserCompletionListEmptyViewDescription {
+    padding: 7px 10px;
+}
+
+.UserCompletionListContainer {
+    background-color: #fff;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.UserCompletionListItemImage {
+    width: 28px;
+    height: 28px;
+    margin-right: 10px;
+}
+
+.UserCompletionListItem {
+    margin-bottom: 4px;
+    padding: 4px 10px;
+    cursor: pointer;
+    @include display-flex;
+
+    &.Active {
+        background-color: #E6F2FF;
+    }
+
+    &:active {
+        opacity: 0.3;
+    }
+}
+
+.UserCompletionListItemNameAndUsernameContainer {
+    @include flex-grow(2);
+}

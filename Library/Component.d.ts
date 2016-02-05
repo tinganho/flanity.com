@@ -56,7 +56,21 @@ interface IDOMElement {
     getOffset(): { left: number, top: number };
 }
 
-declare abstract class Component<P, T extends { [index: string]: string }, E> {
+type Callback = (...args: any[]) => any;
+
+interface EventCallbackStore {
+    [event: string]: Callback[];
+}
+
+declare class EventEmitter {
+    public eventCallbackStore: EventCallbackStore;
+
+    public on(event: string, callback: Callback): void;
+    public off(event: string, callback: Callback): void;
+    public emit(event: string, args: any[]): void;
+}
+
+declare abstract class Component<P, T extends { [index: string]: string }, E> extends EventEmitter {
     public root: IDOMElement;
     public props: P & { l?: GetLocalization, data?: any };
     public id: string;

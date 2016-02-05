@@ -2,7 +2,8 @@
 'use strict';
 
 import { React, ContentComponent, DOMElement, PageInfo, charToHTMLEntity } from '../Library/Index';
-import { TextFormatInput } from '../Components/TextFormatInput';
+import { TextFormatInput } from './TextFormatInput';
+
 interface Props {
 }
 
@@ -20,7 +21,7 @@ export class PostForm extends ContentComponent<Props, Text, Elements> {
                 <img id='PostFormProfileImage' bindText='src:image'/>
                 <form id='PostFormForm'>
                     <div id='PostFormInputContainer'>
-                        <TextFormatInput/>
+                        <TextFormatInput data={this.data} l={this.props.l}/>
                     </div>
                 </form>
             </div>

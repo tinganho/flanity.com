@@ -1,11 +1,33 @@
 [
   {
     "files": [
+      "Contents/TextFormatInput.tsx"
+    ],
+    "id": "KGKdq6GLI5g",
+    "key": "USERS_COMPLETION_LIST->LOADING_USERS_DESCRIPTION",
+    "new": true,
+    "timestamp": "2016-02-03T06:00:44.514Z",
+    "value": "Loading...",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/TextFormatInput.tsx"
+    ],
+    "id": "rLjK5yjnH4j",
+    "key": "USERS_COMPLETION_LIST->USERS_NOT_FOUND_DESCRIPTION",
+    "new": false,
+    "timestamp": "2016-02-03T04:14:35.485Z",
+    "value": "Could not find any users.",
+    "variables": []
+  },
+  {
+    "files": [
       "Contents/HomeContentView.tsx"
     ],
     "id": "gjxLz4yEuR",
     "key": "HOME_CONTENT->PAGE_TITLE",
-    "new": true,
+    "new": false,
     "timestamp": "2016-01-27T10:21:32.548Z",
     "value": "Flanity",
     "variables": []

@@ -18,7 +18,7 @@ export namespace Feed {
             return (
                 <div id='Feed'>
                     <h1 id='FeedTitle' class='HeaderBlack1 HomeContentTitle'>{this.text.title}</h1>
-                    <PostForm id='PostForm' data={this.data.get('user')}/>
+                    <PostForm id='PostForm' data={this.data.get('user')} l={this.props.l}/>
                 </div>
             );
         }

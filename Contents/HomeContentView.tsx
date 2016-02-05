@@ -20,7 +20,7 @@ export class HomeContentView extends ContentComponent<Props, Text, Elements> {
     public render() {
         return (
             <div>
-                <Feed.Component id='Feed' data={this.data}/>
+                <Feed.Component id='Feed' data={this.data} l={this.props.l}/>
             </div>
         );
     }

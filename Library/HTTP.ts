@@ -471,6 +471,7 @@ export class HttpRequest<R> {
                 }
             }
             else {
+                            console.log(this.path)
                 this.clientRequest = nodeHttp.request(
                     {
                         protocol: this.options.protocol + ':',

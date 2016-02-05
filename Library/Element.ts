@@ -1,6 +1,6 @@
 
 import { DOMElement, Debug, isArray, Map, encodeHTML } from '../Library/Index';
-import { Component, Props } from '../Core/Component';
+import { Component, Props } from './Component';
 
 let id = 0;
 let instantiatedComponents: { [renderId: string]: Map<Component<any, any, any>> } = {};
@@ -91,10 +91,12 @@ export namespace React {
             let frag = document.createDocumentFragment();
             renderId = handleDOMAction(renderId, (element, renderId) => {
                 let root = document.createElement(element);
-
                 if (!component.hasRenderedFirstElement) {
                     component.root = new DOMElement(root);
                     root.setAttribute('id', component.id);
+
+                    // We set 'has renderedFirstElement' in below. Because we want to keep track
+                    // of the root element.
                 }
 
                 let innerHTML: string = null;
@@ -184,15 +186,14 @@ export namespace React {
                 frag.appendChild(root);
 
                 // If the current element is root element of a component. Then we want to
-                // reset the first rendered element flag. Otherwise, child of root
-                // elements can cause some the next sibling child to render the id
-                // attribute. And we don't want that to happen. Only the root element
-                // should render an id by default.
-                if (!isChildOfRootElement) {
-
-                    // Reset rendered first element flag so we can render the id again.
-                    component.hasRenderedFirstElement = false;
-                }
+                // reset the first rendered element flag. Otherwise, child of root elements
+                // can cause the next sibling to render the id attribute. And we don't
+                // want that to happen. Only the root element should render an id by default.
+//                 if (!isChildOfRootElement) {
+//
+//                     // Reset rendered first element flag so we can render the id again.
+//                     component.hasRenderedFirstElement = false;
+//                 }
             },
             (element, renderId) => {
                 let elementComponent: Component<any, any, any>;
@@ -335,11 +336,11 @@ export namespace React {
                 // elements can cause some the next sibling child to render the id
                 // attribute. And we don't want that to happen. Only the root element
                 // should render an id by default.
-                if (!isChildOfRootElement) {
-
-                    // Reset rendered first element flag so we can render the id again.
-                    component.hasRenderedFirstElement = false;
-                }
+//                 if (!isChildOfRootElement) {
+//
+//                     // Reset rendered first element flag so we can render the id again.
+//                     component.hasRenderedFirstElement = false;
+//                 }
             }
             else {
                 let elementComponent: Component<any, any, any>;

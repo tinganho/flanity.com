@@ -1,6 +1,6 @@
 
 import React = require('./Element');
-import { Component } from '../Core/Component';
+import { Component } from './Component';
 import { JsonScriptAttributes } from '../Core/ServerComposer';
 let __r = require;
 import SystemType from './Server/System';
