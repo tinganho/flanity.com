@@ -283,7 +283,6 @@ export abstract class Model<P> extends DataStore {
 
     public add(relation: string, props: any): this {
         let URL = this.getModelURL();
-
         let collection = this.props[relation] as Collection<Model<any>>;
         collection.add(props);
         return this;

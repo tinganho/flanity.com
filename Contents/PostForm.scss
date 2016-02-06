@@ -22,3 +22,13 @@
     border-bottom: 1px solid #F6F6F6;
     border-top: 1px solid #F6F6F6;
 }
+
+.PostFormAction {
+    float: left;
+    cursor: pointer;
+    padding: 10px 8px;
+
+    &:active {
+        opacity: 0.3;
+    }
+}

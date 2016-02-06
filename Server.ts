@@ -59,9 +59,6 @@ export function startServer(quiet = false) {
             return next();
         });
     }
-    if (!quiet) {
-        // Server.use(logger('dev'));
-    }
     Server.use(bodyParser.urlencoded({ extended: true }));
     Server.use('/Public', express.static(System.joinPaths(__dirname, 'Public'), { etag: false }));
     Server.use('/', express.static(__dirname));

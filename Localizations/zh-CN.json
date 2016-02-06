@@ -1,11 +1,33 @@
 [
   {
     "files": [
+      "Contents/PostForm.tsx"
+    ],
+    "id": "dbKj9yrphp9",
+    "key": "POST_FORM->UPLOAD_IMAGE_BUTTON_TEXT",
+    "new": true,
+    "timestamp": "2016-02-06T15:16:53.589Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
+      "Contents/PostForm.tsx"
+    ],
+    "id": "ajxedGRzHe8",
+    "key": "POST_FORM->CHOOSE_TOPIC_BUTTON_TEXT",
+    "new": false,
+    "timestamp": "2016-02-06T15:12:57.392Z",
+    "value": "",
+    "variables": []
+  },
+  {
+    "files": [
       "Contents/TextFormatInput.tsx"
     ],
     "id": "KGKdq6GLI5g",
     "key": "USERS_COMPLETION_LIST->LOADING_USERS_DESCRIPTION",
-    "new": true,
+    "new": false,
     "timestamp": "2016-02-03T06:00:44.514Z",
     "value": "",
     "variables": []
